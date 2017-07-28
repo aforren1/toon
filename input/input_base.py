@@ -28,8 +28,7 @@ class InputBase(object):
     def close(self):
         """Close"""
         return
-    
-    @abc.abstractmethod
+
     def read(self):
         """Read data from the input source and clear buffer"""
         return self._raw_to_exp(self._world_to_raw())
@@ -48,7 +47,7 @@ class InputBase(object):
     def _world_to_raw(self):
         """Take input from the world (defined once per device)"""
         return
-    @abc.abstractmethod
+    
     def _raw_to_exp(self, values):
         """Convert raw data to experiment-specific (defined once per experiment)"""
         return values
