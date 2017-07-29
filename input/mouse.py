@@ -1,6 +1,8 @@
 from input.input_base import InputBase
 from psychopy import event
- 
+# use from keyboard import mouse?
+# only thing is hiding the mouse/unhiding on failure
+
 class Mouse(InputBase):
     def __init__(self, clock_source=None, visible=True, win=None):
         super(Mouse, self).__init__(clock_source)
