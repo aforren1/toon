@@ -37,15 +37,12 @@
 ## \file flockofbirds.py
 ## Contains the FlockOfBirds class.
 
-import types
-from . import component
-from . import eventmanager, events
-from .slots import *
-from .cgtypes import *
+import numpy as np
+import quaternion
 from . import fob
 
 # FlockOfBirds
-class FlockOfBirds(component.Component):
+class FlockOfBirds(object):
     """Receives tracker values from a Flock of Birds motion tracker.
 
     For each bird the component creates the following four slots:
@@ -68,8 +65,7 @@ class FlockOfBirds(component.Component):
                  timeout = 2.0,
                  num_birds = 1,
                  bird_mode = "p",
-                 hemisphere = "forward",
-                 auto_insert = True):
+                 hemisphere = "forward"):
         """Constructor.
 
         The bird mode is one of "p" (position), "a" (angles), "m" (matrix),
@@ -87,8 +83,6 @@ class FlockOfBirds(component.Component):
         \param hemisphere (\c str) Hemisphere setting for the transmitter ("forward", "aft", "upper", "lower", "left", "right")
         \param auto_insert (\c bool) True if the component should be inserted into the scene automatically
         """
-        
-        component.Component.__init__(self, name, auto_insert)
 
         self.com_port = com_port
         self.baud_rate = baud_rate
@@ -109,19 +103,15 @@ class FlockOfBirds(component.Component):
         # Create slots
         self._slots = []
         for i in range(self.num_birds):
-            p = Vec3Slot()
-            a = Vec3Slot()
-            m = Mat3Slot(mat3(1))
-            q = QuatSlot(quat(1))
+            p = np.zeros(3)
+            a = np.zeros(3)
+            m = np.zeros((3,3)) 
+            q = np.quaternion()
             self._slots.append((p,a,m,q))
             setattr(self, "pos%d_slot"%(i+1), p)
             setattr(self, "angle%d_slot"%(i+1), a)
             setattr(self, "matrix%d_slot"%(i+1), m)
             setattr(self, "quat%d_slot"%(i+1), q)
-            self.addSlot("pos%d"%(i+1), p)
-            self.addSlot("angle%d"%(i+1), a)
-            self.addSlot("matrix%d"%(i+1), m)
-            self.addSlot("quat%d"%(i+1), q)
 
         # Initialize the FOB...
         
@@ -141,7 +131,8 @@ class FlockOfBirds(component.Component):
             self.setTrackerMode(self.bird_mode[i], i+1)
         self._fob.run()
         
-        eventmanager.eventManager().connect(events.STEP_FRAME, self)
+        #TODO: What's our equivalent?
+        #eventmanager.eventManager().connect(events.STEP_FRAME, self)
         
 
     ## protected:
@@ -156,24 +147,17 @@ class FlockOfBirds(component.Component):
                 # 1. Convert values into proper types
                 #    (position, angles, matrix, quat)
                 # 2. Set the values on the corresponding slots
-#                print values
-                ps,angs,ms,qs = self._slots[i]
+                #                print values
                 m = self.bird_mode[i]
                 if m[0]=="P":
-                    p = vec3(values[:3])
-                    ps.setValue(p)
+                    self._slots[i][0] = values[:3]
                 c = m[-1]                    
                 if c=="A":
-                    a = vec3(values[-3:])
-                    angs.setValue(a)
+                    self._slots[i][1] = values[-3:]
                 elif c=="M":
-                    m = mat3(values[-9:])
-                    ms.setValue(m)
+                    self._slots[i][2] = values[-9:]
                 elif c=="Q":
-                    q = quat(values[-4:])
-                    qs.setValue(q)
-                    
-
+                    self._slots[i][3] = values[-4:]
 
     # setTrackerMode
     def setTrackerMode(self, mode, addr):

@@ -36,8 +36,7 @@
 
 
 import sys, string, time, struct
-from .cgtypes import *
-from math import pi
+
 try:
     import serial
     serial_installed = True
@@ -240,8 +239,6 @@ class BirdContext:
         self.record_size = 2*self.num_words
 #        if self.metal_flag:
 #            self.record_size+=1
-        
-        
 
 # FOB
 class FOB:
@@ -317,18 +314,6 @@ class FOB:
                 s += "has no sensor"
             if i<14:
                 s += "\n"
-            
-#        c,dev,deps = self.examineValue(FBB_AUTO_CONFIGURATION)
-#        for i in range(14):
-#            s += "  Bird %2d: "%i
-#            if dev&(1<<i):
-#                s += "running, "
-#            else:
-#                s += "not running, "
-#            if deps&(1<<i):
-#                s += "dependent\n"
-#            else:
-#                s += "not dependent\n"
         return s
     
     # open
@@ -352,18 +337,6 @@ class FOB:
                                  timeout=timeout)
         self.ser.setRTS(0)
         ser = self.ser
-#        print "Port:",ser.portstr
-#        print "Baudrates:",ser.BAUDRATES
-#        print "Bytesizes:",ser.BYTESIZES
-#        print "Parities:",ser.PARITIES
-#        print "Stopbits:",ser.STOPBITS
-#        print "CTS:",ser.getCTS()
-#        print "DSR:",ser.getDSR()
-#        print "RI:",ser.getRI()
-#        print "CD:",ser.getCD()
-#        self.ser.setRTS(1)
-#        time.sleep(1.0)
-#        self.ser.setRTS(0)
 
     # close
     def close(self):
@@ -651,9 +624,6 @@ class FOB:
         
     def _write(self, s):
         """Send string s to the Bird."""
-#        print 70*"-"
-#        print "Host->Bird:"
-#        hexdump(s)
         self.ser.write(s)
 
     def _read(self, size=1, exc=False):
@@ -669,45 +639,3 @@ class FOB:
         if exc and len(v)!=size:
             raise DataError('Expected %d bytes from the bird, but got %d'%(size, len(v)))
         return v
-
-#    def _decode(self, s):
-#        values = []
-#        for i in range(self.num_words):
-#            v = self._decodeWord(s[2*i:2*i+2])
-#            v*=self.scales[i]
-#            v=v/32768.0
-#            values.append(v)
-
-#        return values
-        
-
-#    def _decodeWord(self, s):
-#        """Decode the word in string s.
-
-#        s must contain exactly 2 bytes.
-#        """
-
-#        ls = ord(s[0]) & 0x7f
-#        ms = ord(s[1])
-#        if ms&0x80==0x80:
-#            print "MSB bit7 nicht 0!"
-#        v = (ms<<9) | (ls<<2)
-#        if v<0x8000:
-#            return v
-#        else:
-#            return v-0x10000 
-        
-
-#    def _readAll(self):
-#        buf = ""
-#        while 1:
-#            s = self._read()
-#            if s=="":
-#                break
-#            buf+=s
-#        print 70*"-"
-#        print "Bird->Host:"
-#        hexdump(buf)
-
-    
-
