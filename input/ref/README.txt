@@ -1,0 +1,1 @@
+fob.py and flockofbirds.py are the originals from cgkit-2.0.0. They're here for reference (for now). The plan is to clean them up a little/remove dependencies on data types provided by cgkit (vec3, vec4, quat). Arrays are available through numpy, and quaternions by numpy-quaternion.
