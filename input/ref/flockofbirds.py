@@ -39,7 +39,7 @@
 
 import numpy as np
 import quaternion
-from . import fob
+import fob
 
 # FlockOfBirds
 class FlockOfBirds(object):

@@ -105,33 +105,6 @@ class DataError(Exception):
     doesn't match what is expected."""
     pass
 
-def hexdump(data):
-    """data als Hex-Dump ausgeben."""
-    if len(data)>16:
-        hexdump(data[:16])
-        hexdump(data[16:])
-    else:
-        t = ""
-        for c in data:
-            s = hex(ord(c))[2:]
-            if len(s)==1:
-                s="0"+s
-            print(s, end=' ')
-            if c in string.printable and c not in string.whitespace:
-                t+=c
-            else:
-                t+="."
-        print((48-3*len(data))*" ", end=' ')
-        print(t)
-
-class FOBRecord:
-    def __init__(self):
-        self.pos = (0.0, 0.0, 0.0)
-        self.angles = (0,0,0)
-        self.matrix = (0,0,0,0,0,0,0,0,0)
-        self.quat = (0,0,0,0)
-        self.metal = None
-
 # BirdContext
 class BirdContext:
     """Context class for one individual bird (sensor).
@@ -141,7 +114,7 @@ class BirdContext:
     sent by the bird.
     """
     def __init__(self):
-
+        #TODO: Check comments below, do we need to adjust?
         # 144 for extended range transmitter (see p. 89 of the FOB manual)
         # 2.54 to convert inches into cm
         self.pos_scale = 144*2.54
@@ -212,10 +185,6 @@ class BirdContext:
             v*=self.scales[i]
             v=v/32768.0
             values.append(v)
-
-#        if self.metal_flag:
-#            print "Metal:",ord(s[-1])
-
         return values
         
 
@@ -237,8 +206,6 @@ class BirdContext:
 
     def _calc_record_size(self):
         self.record_size = 2*self.num_words
-#        if self.metal_flag:
-#            self.record_size+=1
 
 # FOB
 class FOB:
@@ -500,10 +467,8 @@ class FOB:
         if len(record)!=ctx.record_size:
             print("Wrong number of bytes read (%d instead of %d)"%(len(record), ctx.record_size))
             return None
-#        hexdump(res)
 
         res = ctx.decode(record)
-#        print res
         return res
 
     def hemisphere(self, hemisphere, addr=None):
@@ -586,8 +551,6 @@ class FOB:
         self.birds = [None]
         for i in range(numbirds):
             self.birds.append(BirdContext())
-#        res = self._read(2)
-#        print len(res)
 
     def rs232ToFbb(self, addr):
         """Address a particular bird.
