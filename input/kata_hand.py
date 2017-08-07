@@ -16,6 +16,7 @@ class KataHand(object):
         self._shared_buffer = mp.Array(ctypes.c_double, self.nrow*self.ncol)
         self.shared_buffer = shared_to_numpy(self._shared_buffer, self.nrow, self.ncol)
         self.shared_buffer.fill(np.nan)
+        self.read_buffer = np.full((self.nrow, self.ncol), np.nan)
 
         self.poison_pill = mp.Value(ctypes.c_bool)
         self.poison_pill.value = True
@@ -32,9 +33,9 @@ class KataHand(object):
         self.poison_pill.value = False
     
     def read(self):
-        res = np.copy(self.shared_buffer)
+        self.read_buffer[:] = self.shared_buffer
         self.clear()
-        return(res)
+        return(self.read_buffer)
 
     def write(self):
         raise NotImplementedError('Alex needs to implement this.')
@@ -55,7 +56,7 @@ class KataHand(object):
                     arr[:] = np.roll(arr, -1, axis=0)
                     arr[-1,0] = psychopy.core.getTime()
                     arr[-1,1] = np.random.random()
-                psychopy.core.wait(0.0001)
+                psychopy.core.wait(0.000001)
 
 if __name__=='__main__':
     hd = KataHand(buffer_rows=100)
