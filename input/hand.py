@@ -135,7 +135,7 @@ class Hand(object):
         # (try to) clear buffer
         arr = shared_to_numpy(shared_buffer, nrow, ncol)
         for i in range(50):
-            notused = self.read()
+            self.read()
         while poison_pill.value:
             data = self._read()
             if data is not None:
