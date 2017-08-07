@@ -79,7 +79,7 @@ class FlockOfBirds(object):
         \param baud_rate (\c int) Baud rate
         \param timeout (\c float) Time out value in seconds for RS232 operations
         \param num_birds (\c int) Number of birds to use (including the ERC)
-        \param bird_mode (\c str or \c list) Tracker mode (selects what kind of data the birds will send)
+        \param bird_mode (\c str) Tracker mode (selects what kind of data the birds will send)
         \param hemisphere (\c str) Hemisphere setting for the transmitter ("forward", "aft", "upper", "lower", "left", "right")
         \param auto_insert (\c bool) True if the component should be inserted into the scene automatically
         """
@@ -90,12 +90,7 @@ class FlockOfBirds(object):
         self.num_birds = num_birds
         self.hemisphere = hemisphere
 
-        if isinstance(bird_mode, str):
-            self.bird_mode = self.num_birds*[bird_mode]
-        else:
-            self.bird_mode = bird_mode
-
-        self.bird_mode = [x.upper() for x in self.bird_mode]
+        self.bird_mode = bird_mode
 
         if len(self.bird_mode)!=self.num_birds:
             raise ValueError("%d bird modes expected (got %d)"%(self.num_birds, len(self.bird_mode)))
@@ -128,13 +123,15 @@ class FlockOfBirds(object):
                "right":fob.RIGHT }
         for i in range(1, self.num_birds):
             self._fob.hemisphere(hs[self.hemisphere.lower()], addr=i+1)
-            self.setTrackerMode(self.bird_mode[i], i+1)
+            self.setTrackerMode(self.bird_mode, i+1)
         self._fob.run()
 
     def read(self):
         # AF: should we return a numpy array instead?
         # Right now, read values land inside the class
         # Poll values
+        m = self.bird_mode
+        c = m[-1]
         for i in range(1, self.num_birds):
             values = self._fob.point(i+1)
             if values==None:
@@ -144,10 +141,8 @@ class FlockOfBirds(object):
                 #    (position, angles, matrix, quat)
                 # 2. Set the values on the corresponding slots
                 #                print values
-                m = self.bird_mode[i]
                 if m[0]=="P":
                     self._slots[i][0] = values[:3]
-                c = m[-1]                    
                 if c=="A":
                     self._slots[i][1] = values[-3:]
                 elif c=="M":

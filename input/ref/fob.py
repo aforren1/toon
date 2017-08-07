@@ -303,7 +303,7 @@ class FOB:
                                  rtscts=0,
                                  timeout=timeout)
         self.ser.setRTS(0)
-        ser = self.ser
+        ser = self.ser #TODO: does this line do anything?
 
     # close
     def close(self):
@@ -531,7 +531,7 @@ class FOB:
         self._write(METAL_ERROR)               
         met = self._read(1)
         if len(met)!=1:
-            print("Metal error byte nicht erhalten")
+            print("Metal error byte not received.")
             return
         print("Metal error:",ord(met[0]))
         
