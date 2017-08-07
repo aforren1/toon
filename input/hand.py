@@ -32,7 +32,7 @@ class Hand(object):
         self.nrow = buffer_rows
         self._device = None
         self.multiproc = multiproc
-        self._force_data = np.full(16, np.nan)
+        self._force_data = np.full(17, np.nan)
         self._rot_val = np.pi / 4.0
 
         if multiproc:
@@ -94,7 +94,8 @@ class Hand(object):
             data = np.asarray(data, dtype='d')
             data[0] /= 1000.0
             data[1:] /= 65535.0
-            self._force_data[0] = data[0]
+            self._force_data[0] = psychopy.core.getAbsTime() # game time
+            self._force_data[1] = data[0] # HAND's personal time
             self._force_data[1::3] = data[2::4] * np.cos(self._rot_val) - data[3::4] * np.sin(self._rot_val) # x
             self._force_data[2::3] = data[2::4] * np.sin(self._rot_val) + data[3::4] * np.cos(self._rot_val) # y
             self._force_data[3::3] = data[4::4] + data[5::4] # z
