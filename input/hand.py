@@ -133,13 +133,13 @@ class Hand(object):
         self._device.open(0x16c0, 0x486)
         self._device.set_nonblocking(1)
         # (try to) clear buffer
+        arr = shared_to_numpy(shared_buffer, nrow, ncol)
         for i in range(50):
             notused = self.read()
         while poison_pill.value:
             data = self._read()
             if data is not None:
                 with shared_buffer.get_lock():
-                    arr = shared_to_numpy(shared_buffer, nrow, ncol)
                     current_nans = np.isnan(arr).any(axis=1)
                     if current_nans.any():
                         next_index = np.where(current_nans)[0][0]
