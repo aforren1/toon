@@ -1,3 +1,8 @@
+"""
+Scratch work for polling on a separate process.
+See hand.py for an example implementation.
+"""
+
 import ctypes
 import multiprocessing as mp
 import struct
@@ -14,9 +19,6 @@ def worker(remote_buffer, poison_pill, nrow, ncol):
         with remote_buffer.get_lock():
             # convert to numpy array for more friendly modifications
             arr = shared_to_numpy(remote_buffer, nrow, ncol)
-            # get first non-nan row
-            #bytes_from_dev = d.read(64)
-            #arr[i] = struct.unpack('>LHH', bytes_from_dev)
             current_nans = np.isnan(arr).any(axis=1)
             if current_nans.any():
                 next_index = np.where(current_nans)[0][0]

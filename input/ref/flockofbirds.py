@@ -130,14 +130,10 @@ class FlockOfBirds(object):
             self._fob.hemisphere(hs[self.hemisphere.lower()], addr=i+1)
             self.setTrackerMode(self.bird_mode[i], i+1)
         self._fob.run()
-        
-        #TODO: What's our equivalent?
-        #eventmanager.eventManager().connect(events.STEP_FRAME, self)
-        
 
-    ## protected:
-
-    def onStepFrame(self):
+    def read(self):
+        # AF: should we return a numpy array instead?
+        # Right now, read values land inside the class
         # Poll values
         for i in range(1, self.num_birds):
             values = self._fob.point(i+1)
