@@ -33,6 +33,7 @@ class KataHand(object):
         self.poison_pill.value = False
     
     def read(self):
+        # TODO: return both x,y,z (based on median) AND raw data
         self.read_buffer[:] = self.shared_buffer
         self.clear()
         return(self.read_buffer)
