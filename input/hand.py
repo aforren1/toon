@@ -123,7 +123,8 @@ class Hand(object):
         """
         Clear the shared buffer.
         """
-        self.shared_buffer.fill(np.nan)
+        with self.shared_buffer.get_lock():
+            self.shared_buffer.fill(np.nan)
     
     def worker(self, shared_buffer, poison_pill, nrow, ncol):
         """
