@@ -145,11 +145,10 @@ if __name__ == '__main__':
     dev = Hand(time=monotime, multiproc=True)
     dev.start()
     psychopy.core.wait(0.016, hogCPUperiod=0.016)
-    data = dev.read()
-    print(data[:,0])
-    print(data[:,1])
-    psychopy.core.wait(0.016, hogCPUperiod=0.016)
-    data = dev.read()
-    print(data[:,0])
-    print(data[:,1])
+    for ii in range(10):
+        data = dev.read()
+        print(data[:, 0])
+        print(data[:, 1])
+        psychopy.core.wait(0.016, hogCPUperiod=0.016)
+
     dev.close()
