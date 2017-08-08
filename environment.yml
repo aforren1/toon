@@ -1,0 +1,8 @@
+name: toon2
+
+dependencies:
+  - python=3.6
+  - numpy
+  - scipy
+  - pip:
+    - git+https://github.com/psychopy/psychopy
