@@ -25,7 +25,7 @@ class Hand(object):
     dev.close() # also calls dev.stop()
     """
 
-    def __init__(self, time, buffer_rows=50, multiproc=False):
+    def __init__(self, time, buffer_rows=50, multiproc=False, nonblocking=True):
         """
         If multiproc is True, sets up remote interface for polling the device.
         The size of the shared buffer can be set via buffer_rows.
@@ -37,6 +37,7 @@ class Hand(object):
         self._force_data = np.full(self.ncol, np.nan)
         self._rot_val = np.pi / 4.0
         self.monotime = time
+        self.nonblocking = nonblocking
 
         if multiproc:
             self._shared_buffer = mp.Array(ctypes.c_double, self.nrow * self.ncol)
@@ -62,7 +63,7 @@ class Hand(object):
         else:
             self._device = hid.device()
             self._device.open(0x16c0, 0x486)
-            self._device.set_nonblocking(1)
+            self._device.set_nonblocking(self.nonblocking)
 
     def stop(self):
         """ If multiproc is True, stop the remote process (does nothing otherwise)."""
@@ -119,7 +120,7 @@ class Hand(object):
         """ Workhorse for polling the device on a remote process."""
         self._device = hid.device()
         self._device.open(0x16c0, 0x486)
-        self._device.set_nonblocking(1)
+        self._device.set_nonblocking(self.nonblocking)
         # (try to) clear buffer
         arr = shared_to_numpy(shared_buffer, self.nrow, self.ncol)
         for i in range(50):
