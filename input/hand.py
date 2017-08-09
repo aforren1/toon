@@ -16,7 +16,10 @@ class Hand(object):
     Example usage:
 
     from hand import Hand
-    dev = Hand(multiproc=True)
+    import psychopy.core
+
+    monotime = psychopy.core.monotonicClock
+    dev = Hand(time=monotime, multiproc=True)
     
     dev.start()
     data = dev.read() # returns buffer since last read
@@ -27,8 +30,13 @@ class Hand(object):
 
     def __init__(self, time, buffer_rows=50, multiproc=False, nonblocking=True):
         """
-        If multiproc is True, sets up remote interface for polling the device.
-        The size of the shared buffer can be set via buffer_rows.
+        If `multiproc` is True, sets up remote interface for polling the device.
+        The size of the shared buffer can be set via `buffer_rows`.
+
+        `time` should be a copy of psychopy.core.monotonicClock (though I don't enforce that currently).
+        `nonblocking` determines whether the HID blocks the thread while waiting for input.
+
+        Note that the default settings are conservative (no multiprocessing, no blocking).
         """
         self.ncol = 17
         self.nrow = buffer_rows
@@ -81,6 +89,9 @@ class Hand(object):
         Returns a single reading (multiproc=False) or the all values stored
         in the shared buffer (multiproc=True).
         If no data, returns None (multiproc=False and True).
+
+        Each row is formatted as follows:
+        [psychopy_time, HAND_time, x1, y1, z1, x2, y2, z2, x3...]
         """
         # TODO: return both x,y,z (based on median) AND raw data
         if self.multiproc:
