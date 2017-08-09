@@ -9,6 +9,18 @@ def shared_to_numpy(mp_arr, nrow, ncol):
     return np.frombuffer(mp_arr.get_obj()).reshape((nrow, ncol))
 
 
+class DummyTime(object):
+    """
+    Stand-in for psychopy timer.
+
+    Just provides a `getTime` method that returns 0,
+    so that we can run the device without having psychopy fully installed.
+    """
+
+    def getTime(self):
+        return 0
+
+
 class Hand(object):
     """
     A class that handles communication with HAND.
@@ -28,7 +40,7 @@ class Hand(object):
     dev.close() # also calls dev.stop()
     """
 
-    def __init__(self, time, buffer_rows=50, multiproc=False, nonblocking=True):
+    def __init__(self, time=DummyTime(), buffer_rows=50, multiproc=False, nonblocking=True):
         """
         If `multiproc` is True, sets up remote interface for polling the device.
         The size of the shared buffer can be set via `buffer_rows`.
@@ -93,7 +105,7 @@ class Hand(object):
         Each row is formatted as follows:
         [psychopy_time, HAND_time, x1, y1, z1, x2, y2, z2, x3...]
         """
-        # TODO: return both x,y,z (based on median) AND raw data
+        # TODO: return both x,y,z (based on median) AND raw data?
         if self.multiproc:
             np.copyto(self.read_buffer, self.shared_buffer)
             self.clear()
