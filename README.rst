@@ -1,3 +1,6 @@
+toon: tools for neuroscience
+============================
+
 Create environment:
 
 ```
@@ -6,5 +9,5 @@ activate toon
 conda install numpy scipy
 pip install git+https://github.com/psychopy/psychopy
 pip install keyboard nidaqmx pyusb hidapi
-conda install -c m-labs libusb 
+conda install -c m-labs libusb
 ```
