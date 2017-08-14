@@ -35,7 +35,8 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=[
         'psychopy',
-        'transitions'
+        'transitions',
+        'hid'
     ],
     dependency_links=[
         'https://github.com/psychopy/psychopy/tarball/master#egg=psychopy-1.85.3'
