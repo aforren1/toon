@@ -34,10 +34,10 @@ setup(
     keywords='psychophysics neuroscience input experiment',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=[
-        'psychopy==1.85.3',
+        'psychopy',
         'transitions'
     ],
     dependency_links=[
-        'git+https://github.com/psychopy/psychopy.git@master#egg=psychopy'
+        'https://github.com/psychopy/psychopy/tarball/master#egg=psychopy-1.85.3'
     ]
 )
