@@ -32,6 +32,8 @@ def beep_train(click_freq=[440, 660, 880, 1220],
 
 if __name__ == '__main__':
     from psychopy import sound
-    # hamming leads to audio defect, stereo
+    # hamming leads to audio defect
+    # stereo is ignored for array (always stereo?)
+    # reduce blockSize for lower latency(?)
     click_train = sound.Sound(beep_train(), blockSize=32, hamming=False)
     click_train.play()
