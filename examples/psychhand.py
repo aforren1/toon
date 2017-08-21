@@ -1,8 +1,9 @@
 # run as `python -m psychhand.py`
 # middle finger only
 import numpy as np
-from input.hand import Hand
 from psychopy import core, visual, event
+
+from toon.input.hand import Hand
 
 timer = core.monotonicClock
 
@@ -39,7 +40,7 @@ while baseline is None:
 baseline = np.median(baseline[:, 2:], axis=0)
 
 j = 1
-factor = 5 # 'visual gain' = scale the raw input so it tends to stay on the screen
+factor = 1 # 'visual gain' = scale the raw input so it tends to stay on the screen
 offset = np.linspace(-0.3, 0.3, num=5)
 for i in range(5):
     # we want each to start at (0,0) in relative coordinates,

@@ -16,7 +16,6 @@ class DummyTime(object):
     Just provides a `getTime` method that returns 0,
     so that we can run the device without having psychopy fully installed.
     """
-
     def getTime(self):
         return 0
 
@@ -50,23 +49,25 @@ class Hand(object):
 
         Note that the default settings are conservative (no multiprocessing, no blocking).
         """
-        self.ncol = 17
-        self.nrow = buffer_rows
+        self._ncol = 17
+        self._nrow = buffer_rows
         self._device = None
         self.multiproc = multiproc
-        self._force_data = np.full(self.ncol, np.nan)
+        self._force_data = np.full(self._ncol, np.nan)
         self._rot_val = np.pi / 4.0
-        self.monotime = time
+        self._sinval = np.sin(self._rot_val)
+        self._cosval = np.cos(self._rot_val)
+        self._time = time
         self.nonblocking = nonblocking
 
         if multiproc:
-            self._shared_buffer = mp.Array(ctypes.c_double, self.nrow * self.ncol)
-            self.shared_buffer = shared_to_numpy(self._shared_buffer, self.nrow, self.ncol)
-            self.shared_buffer.fill(np.nan)
-            self.read_buffer = np.full((self.nrow, self.ncol), np.nan)
-            self.poison_pill = mp.Value(ctypes.c_bool)
-            self.poison_pill.value = True
-            self.process = None
+            self._shared_mp_buffer = mp.Array(ctypes.c_double, self.nrow * self.ncol)
+            self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self.nrow, self.ncol)
+            self._shared_np_buffer.fill(np.nan)
+            self._read_buffer = np.full((self.nrow, self.ncol), np.nan)
+            self._poison_pill = mp.Value(ctypes.c_bool)
+            self._poison_pill.value = True
+            self._process = None
 
     def start(self):
         """
@@ -74,12 +75,11 @@ class Hand(object):
         Otherwise, open the HID communication.
         """
         if self.multiproc:
-            self.poison_pill.value = True
+            self._poison_pill.value = True
             self.clear()
-            self.process = mp.Process(target=self.worker,
-                                      args=(self._shared_buffer, self.poison_pill))
-            self.process.daemon = True
-            self.process.start()
+            self._process = mp.Process(target=self.worker)
+            self._process.daemon = True
+            self._process.start()
         else:
             self._device = hid.device()
             self._device.open(0x16c0, 0x486)
@@ -88,7 +88,7 @@ class Hand(object):
     def stop(self):
         """ If multiproc is True, stop the remote process (does nothing otherwise)."""
         if self.multiproc:
-            self.poison_pill.value = False
+            self._poison_pill.value = False
 
     def close(self):
         """ Close the HID interface."""
@@ -107,11 +107,11 @@ class Hand(object):
         """
         # TODO: return both x,y,z (based on median) AND raw data?
         if self.multiproc:
-            np.copyto(self.read_buffer, self.shared_buffer)
+            np.copyto(self._read_buffer, self._shared_np_buffer)
             self.clear()
-            if np.isnan(self.read_buffer).all():
+            if np.isnan(self._read_buffer).all():
                 return None
-            return self.read_buffer[~np.isnan(self.read_buffer).any(axis=1)]
+            return self._read_buffer[~np.isnan(self._read_buffer).any(axis=1)]
         return self._read()
 
     def _read(self):
@@ -122,10 +122,10 @@ class Hand(object):
             data = np.asarray(data, dtype='d')
             data[0] /= 1000.0
             data[1:] /= 65535.0
-            self._force_data[0] = self.monotime.getTime()  # game time
+            self._force_data[0] = self._time.getTime()  # game time
             self._force_data[1] = data[0]  # HAND's personal time
-            self._force_data[2::3] = data[2::4] * np.cos(self._rot_val) - data[3::4] * np.sin(self._rot_val)  # x
-            self._force_data[3::3] = data[2::4] * np.sin(self._rot_val) + data[3::4] * np.cos(self._rot_val)  # y
+            self._force_data[2::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
+            self._force_data[3::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
             self._force_data[4::3] = data[4::4] + data[5::4]  # z
             return self._force_data
         return None
@@ -136,37 +136,37 @@ class Hand(object):
 
     def clear(self):
         """ Clear the shared buffer. """
-        with self._shared_buffer.get_lock():
-            self.shared_buffer.fill(np.nan)
+        with self._shared_mp_buffer.get_lock():
+            self._shared_np_buffer.fill(np.nan)
 
-    def worker(self, shared_buffer, poison_pill):
+    def worker(self, shared_buffer):
         """ Workhorse for polling the device on a remote process."""
         self._device = hid.device()
         self._device.open(0x16c0, 0x486)
         self._device.set_nonblocking(self.nonblocking)
         # (try to) clear buffer
-        arr = shared_to_numpy(shared_buffer, self.nrow, self.ncol)
         for i in range(50):
-            self.read()
-        while poison_pill.value:
+            self._read()
+        # loop until poison pill toggled
+        while self._poison_pill.value:
             data = self._read()
             if data is not None:
-                with shared_buffer.get_lock():
-                    current_nans = np.isnan(arr).any(axis=1)
+                with self._shared_mp_buffer.get_lock():
+                    current_nans = np.isnan(self._shared_np_buffer).any(axis=1)
                     if current_nans.any():
                         next_index = np.where(current_nans)[0][0]
-                        arr[next_index, :] = data
+                        self._shared_np_buffer[next_index, :] = data
                     else:
-                        arr[:] = np.roll(arr, -1, axis=0)
-                        arr[-1, :] = data
+                        self._shared_np_buffer[:] = np.roll(self._shared_np_buffer, -1, axis=0)
+                        self._shared_np_buffer[-1, :] = data
         self._device.close()
 
 
 if __name__ == '__main__':
     import psychopy.core
 
-    monotime = psychopy.core.monotonicClock
-    dev = Hand(time=monotime, multiproc=True)
+    time = psychopy.core.monotonicClock
+    dev = Hand(time=time, multiproc=True)
     dev.start()
     psychopy.core.wait(0.016, hogCPUperiod=0.016)
     for ii in range(10):

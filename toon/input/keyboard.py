@@ -1,5 +1,5 @@
-from input.base_input import BaseInput
-import keyboard
+from toon.input.base_input import BaseInput
+
 
 # http://www.psychopy.org/api/iohub/device/keyboard.html
 
