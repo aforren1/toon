@@ -77,8 +77,7 @@ class Hand(object):
         if self.multiproc:
             self._poison_pill.value = True
             self.clear()
-            self._process = mp.Process(target=self.worker,
-                                       args=(self._shared_buffer, self._poison_pill))
+            self._process = mp.Process(target=self.worker)
             self._process.daemon = True
             self._process.start()
         else:
