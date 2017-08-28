@@ -6,6 +6,7 @@ import hid
 
 
 def shared_to_numpy(mp_arr, nrow, ncol):
+    """Helper to allow use of a multiprocessing.Array as a numpy array"""
     return np.frombuffer(mp_arr.get_obj()).reshape((nrow, ncol))
 
 
