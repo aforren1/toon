@@ -12,7 +12,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.0.1.dev1',
+    version='0.0.1.dev2',
     description='Tools for neuroscience experiments',
     long_description=long_description,
     url='https://github.com/aforren1/toon',
