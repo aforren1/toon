@@ -16,7 +16,7 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.0.1.dev26',
+    version='0.0.1.dev28',
     description='Tools for neuroscience experiments',
     long_description=long_description,
     url='https://github.com/aforren1/toon',
@@ -35,7 +35,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'
     ],
+    install_requires=requirements,
     keywords='psychophysics neuroscience input experiment',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=requirements
+    packages=find_packages(exclude=['contrib', 'docs', 'tests'])
 )

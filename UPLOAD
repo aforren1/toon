@@ -2,3 +2,9 @@
 2. `git tag -a <version> -m <message>`
 3. `git push github <version>`
 4. `git push github master`
+
+Local:
+
+1. python setup.py bdist_wheel
+2. python setup.py sdist
+3. twine upload dist/*
