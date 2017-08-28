@@ -18,7 +18,7 @@ pip install toon
 
 Devel (both):
 ```shell
-pip install git+https://github.com/aforren1/toon@pypi --process-dependency-links
+pip install git+https://github.com/aforren1/toon --process-dependency-links
 ```
 
 Three modules so far: audio, input, and tools.
