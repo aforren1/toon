@@ -10,9 +10,13 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+# get requirements
+with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+    requirements = f.read().splitlines()
+
 setup(
     name='toon',
-    version='0.0.1.dev2',
+    version='0.0.1.dev4',
     description='Tools for neuroscience experiments',
     long_description=long_description,
     url='https://github.com/aforren1/toon',
@@ -33,11 +37,5 @@ setup(
     ],
     keywords='psychophysics neuroscience input experiment',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=[
-        'psychopy',
-        'hidapi'
-    ],
-    dependency_links=[
-        'https://github.com/psychopy/psychopy/tarball/master#egg=psychopy-1.85.3'
-    ]
+    install_requires=requirements
 )
