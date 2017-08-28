@@ -16,7 +16,7 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.0.1.dev22',
+    version='0.0.1.dev23',
     description='Tools for neuroscience experiments',
     long_description=long_description,
     url='https://github.com/aforren1/toon',
