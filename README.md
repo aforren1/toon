@@ -1,9 +1,12 @@
 toon: tools for neuroscience
 ============================
 
-Install:
+[![Version](https://img.shields.io/pypi/v/toon.svg)]()
+[![License](https://img.shields.io/pypi/l/toon.svg)]()
+[![Travis](https://img.shields.io/travis/aforren1/toon.svg)]()
 
-(This is somewhat temporary, until the pip-enhanced version of psychopy hits pypi)
+
+Install:
 
 python 2.7, 3.6:
 
