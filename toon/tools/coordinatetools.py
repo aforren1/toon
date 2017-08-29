@@ -5,8 +5,8 @@ import numpy as np
 
 def _shapend(args, dims=None):
     """Helper to abstract out handling shape"""
-    if len(args) is 1:  # received Nx2 or 2XN array
-        output = np.array(args[0])
+    if len(args) is 1:  # received Nx2 or 2XN array (or list)
+        output = np.asarray(args[0], dtype='float64')
         if not dims in output.shape or len(output.shape) > dims:
             raise ValueError('Must either be Nx2 or 2XN array.')
         return_array = True
@@ -19,8 +19,7 @@ def _shapend(args, dims=None):
     elif len(args) is dims:  # received separate x, y
         return_array = False
         return_transpose = False
-        output = np.asarray(args[:dims]).transpose()
-        print(output)
+        output = np.array(args[:dims], dtype='float64').transpose()
     else:
         raise ValueError('Input has incorrect dimensions.')
     return output, return_array, return_transpose
@@ -62,7 +61,7 @@ def cart2pol(*args, **kwargs):
     if units in ('deg', 'degs', 'degree', 'degrees'):
         theta *= 180.0 / np.pi
     if return_array:
-        res = np.asarray((theta, radius))
+        res = np.array((theta, radius))
         if return_transpose:
             return res
         return res.transpose()
@@ -104,7 +103,7 @@ def pol2cart(*args, **kwargs):
         xx = coord[1] * np.cos(coord[0]) + ref[0]
         yy = coord[1] * np.sin(coord[0]) + ref[1]
     if return_array:
-        res = np.asarray((xx, yy))
+        res = np.array((xx, yy))
         if return_transpose:
             return res
         return res.transpose()
@@ -152,7 +151,7 @@ def cart2sph(*args, **kwargs):
         azimuth *= 180.0 / np.pi
         elevation *= 180.0 / np.pi
     if return_array:
-        sphere = np.asarray([elevation, azimuth, radius])
+        sphere = np.array([elevation, azimuth, radius])
         if return_transpose:
             return sphere
         return sphere.transpose()
@@ -197,7 +196,7 @@ def sph2cart(*args, **kwargs):
         x = coord[2] * np.cos(coord[0]) * np.cos(coord[1])
         y = coord[2] * np.cos(coord[0]) * np.sin(coord[1])
     if return_array:
-        res = np.asarray([x, y, z])
+        res = np.array([x, y, z])
         if return_transpose:
             return res
         return res.transpose()
