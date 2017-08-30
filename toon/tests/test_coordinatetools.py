@@ -15,19 +15,22 @@ class TestCoordinateTools(TestCase):
         pass
 
     def test_shape_helper(self):
-        def shapend_shell(*args, dims=None):
+        def shapend_shell2(*args):
             """Helper, otherwise I need to think about how *args get passed around"""
-            a, b, c = _shapend(args, dims=dims)
+            a, b, c = _shapend(args, dims=2)
             return a, b, c
-
-        self.assertRaises(ValueError, shapend_shell, (3, 3, 3), dims=2)
-        self.assertRaises(ValueError, shapend_shell, self.ex_2d, dims=3)
-        self.assertRaises(ValueError, shapend_shell, self.ex_3d, dims=2)
-        a1, b1, c1 = shapend_shell(self.ex_2d, dims=2)
+        def shapend_shell3(*args):
+            """Helper, otherwise I need to think about how *args get passed around"""
+            a, b, c = _shapend(args, dims=3)
+            return a, b, c
+        self.assertRaises(ValueError, shapend_shell2, (3, 3, 3))
+        self.assertRaises(ValueError, shapend_shell3, self.ex_2d)
+        self.assertRaises(ValueError, shapend_shell2, self.ex_3d)
+        a1, b1, c1 = shapend_shell2(self.ex_2d)
         self.assertTupleEqual(self.ex_2d.shape, a1.shape)
         self.assertEqual(b1, True)
         self.assertEqual(c1, False)
-        a2, b2, c2 = shapend_shell(self.ex_2d.transpose(), dims=2)
+        a2, b2, c2 = shapend_shell2(self.ex_2d.transpose())
         self.assertTupleEqual(self.ex_2d.shape, a2.shape)
         self.assertEqual(b2, True)
         self.assertEqual(c2, True)
