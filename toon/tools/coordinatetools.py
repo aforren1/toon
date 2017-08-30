@@ -180,20 +180,19 @@ def sph2cart(*args, **kwargs):
         raise ValueError('Reference must be of length 3.')
     coord, return_array, return_transpose = _shapend(args, dims=3)
     if coord.ndim > 1:
-        print(coord)
         if units in ('deg', 'degs', 'degree', 'degrees'):
             coord[:, 0] *= np.pi / 180.0
             coord[:, 1] *= np.pi / 180.0
-        z = coord[:, 2] * np.sin(coord[:, 0])
-        x = coord[:, 2] * np.cos(coord[:, 0]) * np.cos(coord[:, 1])
-        y = coord[:, 2] * np.cos(coord[:, 0]) * np.sin(coord[:, 1])
+        z = coord[:, 2] * np.sin(coord[:, 0]) + ref[2]
+        x = coord[:, 2] * np.cos(coord[:, 0]) * np.cos(coord[:, 1]) + ref[0]
+        y = coord[:, 2] * np.cos(coord[:, 0]) * np.sin(coord[:, 1]) + ref[1]
     else:
         if units in ('deg', 'degs', 'degree', 'degrees'):
             coord[0] *= np.pi / 180.0
             coord[1] *= np.pi / 180.0
-        z = coord[2] * np.sin(coord[0])
-        x = coord[2] * np.cos(coord[0]) * np.cos(coord[1])
-        y = coord[2] * np.cos(coord[0]) * np.sin(coord[1])
+        z = coord[2] * np.sin(coord[0]) + ref[2]
+        x = coord[2] * np.cos(coord[0]) * np.cos(coord[1]) + ref[0]
+        y = coord[2] * np.cos(coord[0]) * np.sin(coord[1]) + ref[1]
     if return_array:
         res = np.array([x, y, z])
         if return_transpose:

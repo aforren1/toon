@@ -1,0 +1,3 @@
+[run]
+source = toon
+include = */toon/*
