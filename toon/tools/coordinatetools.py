@@ -6,15 +6,15 @@ import numpy as np
 def _shapend(args, dims=None):
     """Helper to abstract out handling shape"""
     if len(args) is 1:  # received Nx2 or 2XN array (or list)
-        output = np.asarray(args[0], dtype='float64')
+        output = np.array(args[0], dtype='float64')
         if not dims in output.shape or len(output.shape) > dims:
-            raise ValueError('Must either be Nx2 or 2XN array.')
+            raise ValueError('Must either be N x %s or %s X N array.' % (dims, dims))
         return_array = True
         return_transpose = False
         if output.ndim > 1 and \
                         output.shape[0] is dims and \
                         output.shape[1] is not dims:
-            output = np.transpose(output)  # act on
+            output = output.transpose()  # act on
             return_transpose = True
     elif len(args) is dims:  # received separate x, y
         return_array = False
@@ -47,15 +47,13 @@ def cart2pol(*args, **kwargs):
     ref = kwargs.pop('ref', (0, 0))
     if len(ref) != 2:
         raise ValueError('Reference must be of length 2.')
-    coord, return_array, return_transpose = _shapend(args, 2)
+    coord, return_array, return_transpose = _shapend(args, dims=2)
     if coord.ndim > 1:
-        coord[:, 0] -= ref[0]
-        coord[:, 1] -= ref[1]
+        coord[:, 0:2] -= ref
         radius = np.hypot(coord[:, 0], coord[:, 1])
         theta = np.arctan2(coord[:, 1], coord[:, 0])
     else:
-        coord[0] -= ref[0]
-        coord[1] -= ref[1]
+        coord -= ref
         radius = np.hypot(coord[0], coord[1])
         theta = np.arctan2(coord[1], coord[0])
     if units in ('deg', 'degs', 'degree', 'degrees'):
@@ -90,7 +88,7 @@ def pol2cart(*args, **kwargs):
     ref = kwargs.pop('ref', (0, 0))
     if len(ref) != 2:
         raise ValueError('Reference must be of length 2.')
-    coord, return_array, return_transpose = _shapend(args, 2)
+    coord, return_array, return_transpose = _shapend(args, dims=2)
     if units in ('deg', 'degs', 'degree', 'degrees'):
         if coord.ndim > 1:
             coord[:, 0] *= np.pi / 180.0
@@ -132,7 +130,7 @@ def cart2sph(*args, **kwargs):
     ref = kwargs.pop('ref', (0, 0, 0))
     if len(ref) != 3:
         raise ValueError('Reference must be of length 3.')
-    coord, return_array, return_transpose = _shapend(args, 3)
+    coord, return_array, return_transpose = _shapend(args, dims=3)
     if coord.ndim > 1:
         coord[:, 0] -= ref[0]
         coord[:, 1] -= ref[1]
@@ -180,8 +178,9 @@ def sph2cart(*args, **kwargs):
     ref = kwargs.pop('ref', (0, 0, 0))
     if len(ref) != 3:
         raise ValueError('Reference must be of length 3.')
-    coord, return_array, return_transpose = _shapend(args, 3)
+    coord, return_array, return_transpose = _shapend(args, dims=3)
     if coord.ndim > 1:
+        print(coord)
         if units in ('deg', 'degs', 'degree', 'degrees'):
             coord[:, 0] *= np.pi / 180.0
             coord[:, 1] *= np.pi / 180.0
