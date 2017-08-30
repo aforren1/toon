@@ -1,9 +1,9 @@
 toon: tools for neuroscience
 ============================
 
-[![Version](https://img.shields.io/pypi/v/toon.svg)]()
-[![License](https://img.shields.io/pypi/l/toon.svg)]()
-[![Travis](https://img.shields.io/travis/aforren1/toon.svg)]()
+[![Version](https://img.shields.io/pypi/v/toon.svg)](https://pypi.python.org/pypi/toon)
+[![License](https://img.shields.io/pypi/l/toon.svg)](https://raw.githubusercontent.com/aforren1/toon/master/LICENSE.txt)
+[![Travis](https://img.shields.io/travis/aforren1/toon.svg)](https://travis-ci.org/aforren1/toon)
 
 
 Install:
