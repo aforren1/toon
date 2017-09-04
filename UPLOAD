@@ -3,8 +3,9 @@
 3. `git push github <version>`
 4. `git push github master`
 
-Local:
+Local (from project root):
 
+0. rm dist/*
 1. python setup.py bdist_wheel
 2. python setup.py sdist
 3. twine upload dist/*
