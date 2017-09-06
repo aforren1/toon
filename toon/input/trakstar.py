@@ -11,30 +11,12 @@ class TrakStar(object):
         self.bird_ep_in = 0x86
         self.bird_ep_out = 0x02
 
-        self.commands = {
-            'point': 0x42,
-            'run': 0x46,
-            'sleep': 0x47,
-            'examine_value': 0x4F,
-            'change_value': 0x50,
-            'pos_ang': 0x59,
-            'pos_mat': 0x5A,
-            'reset': 0x62,
-            'metal': 0x73
-        }
+        self.commands = dict(point=0x42, run=0x46, sleep=0x47, examine_value=0x4F, change_value=0x50, pos_ang=0x59,
+                             pos_mat=0x5A, reset=0x62, metal=0x73)
 
-        self.options = {
-            'bird_status': 0x00, # 2 bytes
-            'bird_position_scaling': 0x03, # 2 bytes
-            'measurement_rate': 0x07, # 2 bytes
-            'bird_error_code': 0x0A, # 1 byte
-            'system_model_ident': 0x0F, # 10 bytes
-            'bird_serial_number': 0x19, # 2 bytes
-            'sensor_serial_number': 0x1A, # 2 bytes
-            'transmitter_serial_number': 0x1B, # 2 bytes
-            'sudden_output_change_lock': 0x0E, # 1 byte
-            'fbb_auto_configuration': 0x32 # ??
-        }
+        self.options = dict(bird_status=0x00, bird_position_scaling=0x03, measurement_rate=0x07, bird_error_code=0x0A,
+                            system_model_ident=0x0F, bird_serial_number=0x19, sensor_serial_number=0x1A,
+                            transmitter_serial_number=0x1B, sudden_output_change_lock=0x0E, fbb_auto_configuration=0x32)
 
         self.device = usb.core.find(idVendor=self.bird_vendor,
                                     idProduct=self.bird_product)
@@ -64,3 +46,4 @@ class TrakStar(object):
         self.util.dispose_resources(self.device)
     
     def start(self):
+        pass
