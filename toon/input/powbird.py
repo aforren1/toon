@@ -36,6 +36,7 @@ class OneBird(object):
         self.serial.setRTS(0)
         self.serial.write(output_types[self.data_mode].char)
         if self.master:
+            # fbb_auto_config
             self.serial.write('P' + chr(0x32) + chr(self.num_birds))
             time.sleep(1.0)
 
@@ -54,8 +55,6 @@ class OneBird(object):
 class FlockOfBirds(object):
     """Manages individual birds (we never use group mode)"""
     def __init__(self, ports=None, data_mode='position', master=None):
-        if len(master) > 1:
-            raise ValueError('There must be only one master.')
 
         if master not in ports:
             raise ValueError('The master must be named among the ports.')
@@ -91,6 +90,6 @@ class FlockOfBirds(object):
     def clear(self):
         for bird in self.birds:
             bird.clear()
-        
+
 
 
