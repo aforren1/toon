@@ -10,8 +10,10 @@ import numpy as np
 import hid
 import psychopy.core
 
+
 def shared_to_numpy(mp_arr, nrow, ncol):
     return np.frombuffer(mp_arr.get_obj()).reshape((nrow,ncol))
+
 
 def worker(remote_buffer, poison_pill, nrow, ncol):
     # set poison_pill.value to False to end worker
