@@ -16,16 +16,6 @@ class FobOut(object):
         self.scales = scales
 
 
-pos_scale = 36 * 2.54
-output_types = dict(angles=FobOut(b'W', 6, [180] * 3),
-                    position=FobOut(b'V', 6, [pos_scale] * 3),
-                    position_angles=FobOut(b'Y', 12, [pos_scale] * 3 + [180] * 3),
-                    matrix=FobOut(b'X', 18, [1] * 9),
-                    position_matrix=FobOut(b'Z', 24, [pos_scale] * 3 + [1] * 9),
-                    quaternion=FobOut(b'\\', 8, [1] * 4),
-                    position_quaternion=FobOut(b']', 14, [pos_scale] * 3 + [1] * 4))
-
-
 class OneBird(object):
     def __init__(self, port=None, data_mode='position', master=False, num_birds=None):
         self.serial = None
@@ -33,6 +23,14 @@ class OneBird(object):
         self.data_mode = data_mode
         self.master = master
         self.num_birds = num_birds
+        pos_scale = 36 * 2.54
+        self.output_types = dict(angles=FobOut(b'W', 6, [180] * 3),
+                                 position=FobOut(b'V', 6, [pos_scale] * 3),
+                                 position_angles=FobOut(b'Y', 12, [pos_scale] * 3 + [180] * 3),
+                                 matrix=FobOut(b'X', 18, [1] * 9),
+                                 position_matrix=FobOut(b'Z', 24, [pos_scale] * 3 + [1] * 9),
+                                 quaternion=FobOut(b'\\', 8, [1] * 4),
+                                 position_quaternion=FobOut(b']', 14, [pos_scale] * 3 + [1] * 4))
 
     def open(self):
         self.serial = serial.Serial(port=self.port,
@@ -44,27 +42,45 @@ class OneBird(object):
                                     timeout=1)
         self.serial.setRTS(0)
         # set data output type
-        self.serial.write(output_types[self.data_mode].char)
+        self.serial.write(self.output_types[self.data_mode].char)
         if self.master:
             # fbb_auto_config
             time.sleep(1.0)
             self.serial.write(('P' + chr(0x32) + chr(self.num_birds)).encode('UTF-8'))
             time.sleep(1.0)
         # change bird measurement rate to 138 hz (not sure about endianness...)
-        self.serial.write(b'P' + struct.pack('>H', int(138 * 256)))
+        self.serial.write(b'P' + b'\x07' + struct.pack('>H', int(138 * 256)))
         # change Vm table to Ascension's "snappy" settings
-        self.serial.write(b'P' + struct.pack('>HHHHHHH', *[2, 2, 2, 10, 10, 40, 200]))
+        self.serial.write(b'P' + b'C' + struct.pack('>HHHHHHH', *[2, 2, 2, 10, 10, 40, 200]))
         # Turn off Sudden Output Change Lock (should already be off...)
-        self.serial.write(b'P' + b'\x00')
+        self.serial.write(b'P' + b'E' + b'\x00')
         # first 5 bits are meaningless, B2 is 0 (AC narrow ON), B1 is 1 (AC wide OFF), B0 is 0 (DC ON)
-        self.serial.write(('P' + '\x00' + hex(int('00000010', 2))).encode('UTF-8'))
+        self.serial.write(('P' + '\x04' + '\x00' + '\x02').encode('UTF-8'))
+
+    def decode(self, msg, n_words=None):
+        if n_words is None:
+            n_words = self.output_types[self.data_mode]['size'] / 2
+        return [self._decode_words(msg, i) for i in range(n_words)]
+
+    def _decode_word(self, msg):
+        lsb = ord(msg[0]) & 0x7f
+        msb = ord(msg[1])
+        v = (msb << 9) | (lsb << 2)
+        if v < 0x8000:
+            return v
+        return v - 0x10000
+
+    def _decode_words(self, s, i):
+        v = self._decode_word(s[2 * i:2 * i + 2])
+        v *= self.output_types[self.data_mode]['scales'][i]
+        return v / 32768.0  # v to centimeters (???)
 
     def start(self):
         self.serial.write(b'F')  # run
         self.serial.write(b'@')  # stream
 
     def _read(self):
-        data = self.serial.read(output_types[self.data_mode].size)
+        data = self.serial.read(self.output_types[self.data_mode].size)
 
     def clear(self):
         while True:
