@@ -1,4 +1,4 @@
-import time.sleep
+import time
 import struct
 import numpy as np
 import serial
@@ -36,7 +36,6 @@ class OneBird(object):
         self.serial = serial.Serial(port=self.port,
                                     baudrate=115200,
                                     bytesize=serial.EIGHTBITS,
-                                    stopbits=serial.PARITY_NONE,
                                     xonxoff=0,
                                     rtscts=0,
                                     timeout=1)
@@ -59,8 +58,8 @@ class OneBird(object):
 
     def decode(self, msg, n_words=None):
         if n_words is None:
-            n_words = self.output_types[self.data_mode]['size'] / 2
-        return [self._decode_words(msg, i) for i in range(n_words)]
+            n_words = self.output_types[self.data_mode].size / 2
+        return [self._decode_words(msg, i) for i in range(int(n_words))]
 
     def _decode_word(self, msg):
         lsb = ord(msg[0]) & 0x7f
@@ -72,15 +71,16 @@ class OneBird(object):
 
     def _decode_words(self, s, i):
         v = self._decode_word(s[2 * i:2 * i + 2])
-        v *= self.output_types[self.data_mode]['scales'][i]
+        v *= self.output_types[self.data_mode].scales[i]
         return v / 32768.0  # v to centimeters (???)
 
     def start(self):
         self.serial.write(b'F')  # run
         self.serial.write(b'@')  # stream
 
-    def _read(self):
+    def read(self):
         data = self.serial.read(self.output_types[self.data_mode].size)
+        return self.decode(data)
 
     def clear(self):
         while True:
@@ -92,6 +92,7 @@ class OneBird(object):
         self.serial.write(b'?')  # stop stream
 
     def close(self):
+        self.stop()
         self.serial.write(b'G')  # sleep
         self.serial.close()
 
@@ -127,6 +128,18 @@ class FlockOfBirds(object):
             if ii == master_index:
                 continue
             self.birds[ii].open()
+
+    def start(self):
+        for bird in self.birds:
+            bird.start()
+
+    def read(self):
+        """Temporary, for the sake of figuring out whether this works..."""
+        return [bird.read() for bird in self.birds]
+
+    def stop(self):
+        for bird in self.birds:
+            bird.stop()
 
     def close(self):
         for bird in self.birds:
