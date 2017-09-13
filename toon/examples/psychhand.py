@@ -1,5 +1,4 @@
 # run as `python -m psychhand.py`
-# middle finger only
 
 if __name__ == '__main__':
     import numpy as np
