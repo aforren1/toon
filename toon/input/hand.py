@@ -149,6 +149,7 @@ class Hand(object):
         # (try to) clear buffer
         for i in range(50):
             self._read()
+        # make a numpy version of the multiprocessing array
         shared_np_buffer = shared_to_numpy(shared_mp_buffer, self._nrow, self._ncol)
         # loop until poison pill toggled
         while poison_pill.value:
@@ -157,9 +158,11 @@ class Hand(object):
                 with shared_mp_buffer.get_lock():
                     current_nans = np.isnan(shared_np_buffer).any(axis=1)
                     if current_nans.any():
+                        # fill in the next nan row with data
                         next_index = np.where(current_nans)[0][0]
                         shared_np_buffer[next_index, :] = data
                     else:
+                        # replace oldest data in buffer with new data
                         shared_np_buffer[:] = np.roll(shared_np_buffer, -1, axis=0)
                         shared_np_buffer[-1, :] = data
         self._device.close()

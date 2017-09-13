@@ -37,11 +37,12 @@ class OneBird(object):
         self.serial.write(output_types[self.data_mode].char)
         if self.master:
             # fbb_auto_config
-            self.serial.write('P' + chr(0x32) + chr(self.num_birds))
+            self.serial.write(('P' + chr(0x32) + chr(self.num_birds)).encode('UTF-8'))
             time.sleep(1.0)
 
     def start(self):
-        self.serial.write('F')
+        self.serial.write(b'F')
+        self.serial.write(b'@')
 
     def clear(self):
         while True:
