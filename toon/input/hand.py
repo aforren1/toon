@@ -62,10 +62,10 @@ class Hand(object):
         self.nonblocking = nonblocking
 
         if multiproc:
-            self._shared_mp_buffer = mp.Array(ctypes.c_double, self.nrow * self.ncol)
-            self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self.nrow, self.ncol)
+            self._shared_mp_buffer = mp.Array(ctypes.c_double, self._nrow * self._ncol)
+            self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self._nrow, self._ncol)
             self._shared_np_buffer.fill(np.nan)
-            self._read_buffer = np.full((self.nrow, self.ncol), np.nan)
+            self._read_buffer = np.full((self._nrow, self._ncol), np.nan)
             self._poison_pill = mp.Value(ctypes.c_bool)
             self._poison_pill.value = True
             self._process = None
@@ -78,7 +78,7 @@ class Hand(object):
         if self.multiproc:
             self._poison_pill.value = True
             self.clear()
-            self._process = mp.Process(target=self.worker)
+            self._process = mp.Process(target=self.worker, args=(self._shared_mp_buffer, self._poison_pill))
             self._process.daemon = True
             self._process.start()
         else:
@@ -108,7 +108,8 @@ class Hand(object):
         """
         # TODO: return both x,y,z (based on median) AND raw data?
         if self.multiproc:
-            np.copyto(self._read_buffer, self._shared_np_buffer)
+            with self._shared_mp_buffer.get_lock():
+                np.copyto(self._read_buffer, self._shared_np_buffer)
             self.clear()
             if np.isnan(self._read_buffer).all():
                 return None
@@ -140,7 +141,7 @@ class Hand(object):
         with self._shared_mp_buffer.get_lock():
             self._shared_np_buffer.fill(np.nan)
 
-    def worker(self, shared_buffer):
+    def worker(self, shared_mp_buffer, poison_pill):
         """ Workhorse for polling the device on a remote process."""
         self._device = hid.device()
         self._device.open(0x16c0, 0x486)
@@ -148,32 +149,17 @@ class Hand(object):
         # (try to) clear buffer
         for i in range(50):
             self._read()
+        shared_np_buffer = shared_to_numpy(shared_mp_buffer, self._nrow, self._ncol)
         # loop until poison pill toggled
-        while self._poison_pill.value:
+        while poison_pill.value:
             data = self._read()
             if data is not None:
-                with self._shared_mp_buffer.get_lock():
-                    current_nans = np.isnan(self._shared_np_buffer).any(axis=1)
+                with shared_mp_buffer.get_lock():
+                    current_nans = np.isnan(shared_np_buffer).any(axis=1)
                     if current_nans.any():
                         next_index = np.where(current_nans)[0][0]
-                        self._shared_np_buffer[next_index, :] = data
+                        shared_np_buffer[next_index, :] = data
                     else:
-                        self._shared_np_buffer[:] = np.roll(self._shared_np_buffer, -1, axis=0)
-                        self._shared_np_buffer[-1, :] = data
+                        shared_np_buffer[:] = np.roll(shared_np_buffer, -1, axis=0)
+                        shared_np_buffer[-1, :] = data
         self._device.close()
-
-
-if __name__ == '__main__':
-    import psychopy.core
-
-    time = psychopy.core.monotonicClock
-    dev = Hand(time=time, multiproc=True)
-    dev.start()
-    psychopy.core.wait(0.016, hogCPUperiod=0.016)
-    for ii in range(10):
-        data = dev.read()
-        print(data[:, 0])
-        print(data[:, 1])
-        psychopy.core.wait(0.016, hogCPUperiod=0.016)
-
-    dev.close()
