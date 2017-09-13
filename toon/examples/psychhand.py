@@ -3,7 +3,7 @@
 
 if __name__ == '__main__':
     import numpy as np
-    from psychopy import core, visual, event
+    from psychopy import core, visual, event, logging
     from multiprocessing import freeze_support
     freeze_support()
 
@@ -11,9 +11,13 @@ if __name__ == '__main__':
 
     timer = core.monotonicClock
 
-    win = visual.Window(size=(600, 600),
+    win = visual.Window(size=(1920, 1080),
                         screen=0,
-                        units='height')
+                        units='height',
+                        fullscr=True)
+    win.recordFrameIntervals = True
+    win.refreshThreshold = 1/60 + 0.004
+    logging.console.setLevel(logging.WARNING)
     # make one circle per axis
     rad = 0.05
     opacity = 0.5
@@ -23,8 +27,8 @@ if __name__ == '__main__':
                                       autoDraw=True,
                                       lineWidth=3)
                         for i in range(5)]
-
-    controlled_circles = [visual.Circle(win, fillColor='lightcoral',
+    colours = ['#34a853', '#4285f4', '#ed1c24', '#fbbc05', '#a5a0a9']
+    controlled_circles = [visual.Circle(win, fillColor=colours[i],
                                         opacity=opacity,
                                         autoDraw=True,
                                         radius=rad,
@@ -45,7 +49,7 @@ if __name__ == '__main__':
 
     j = 1
     factor = 1 # 'visual gain' = scale the raw input so it tends to stay on the screen
-    offset = np.linspace(-0.3, 0.3, num=5)
+    offset = np.linspace(-0.4, 0.4, num=5)
     for i in range(5):
         # we want each to start at (0,0) in relative coordinates,
         # and the radius to be 0.05 (just eyeballing)
@@ -67,8 +71,10 @@ if __name__ == '__main__':
             for i in range(5):
                 controlled_circles[i].pos = (-newdata[j] / factor + offset[i] + baseline[j]/factor,
                                              (newdata[j+1] / factor) - baseline[j+1]/factor)
-                controlled_circles[i].radius = 0.05 + (1/(newdata[j+2] - baseline[j+2])/factor)
+                controlled_circles[i].radius = (1/(20 + 100*(newdata[j+2] - baseline[j+2])/factor))
                 j += 3
 
         win.flip()
     dev.close()
+
+    print('Overall, %i frames were dropped.' % win.nDroppedFrames)
