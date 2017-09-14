@@ -40,21 +40,20 @@ class OneBird(object):
                                     rtscts=0,
                                     timeout=1)
         self.serial.setRTS(0)
-        # set data output type
-        self.serial.write(self.output_types[self.data_mode].char)
         if self.master:
             # fbb_auto_config
             time.sleep(1.0)
             self.serial.write(('P' + chr(0x32) + chr(self.num_birds)).encode('UTF-8'))
             time.sleep(1.0)
-        # change bird measurement rate to 138 hz (not sure about endianness...)
-        self.serial.write(b'P' + b'\x07' + struct.pack('>H', int(138 * 256)))
+            # change bird measurement rate to 138 hz (not sure about endianness...)
+            self.serial.write(b'P' + b'\x07' + struct.pack('<H', int(138 * 256)))
+
+        # set data output type
+        self.serial.write(self.output_types[self.data_mode].char)
         # change Vm table to Ascension's "snappy" settings
-        self.serial.write(b'P' + b'C' + struct.pack('>HHHHHHH', *[2, 2, 2, 10, 10, 40, 200]))
-        # Turn off Sudden Output Change Lock (should already be off...)
-        self.serial.write(b'P' + b'E' + b'\x00')
+        self.serial.write(b'P' + b'\x0C' + struct.pack('<HHHHHHH', *[2, 2, 2, 10, 10, 40, 200]))
         # first 5 bits are meaningless, B2 is 0 (AC narrow ON), B1 is 1 (AC wide OFF), B0 is 0 (DC ON)
-        self.serial.write(('P' + '\x04' + '\x00' + '\x02').encode('UTF-8'))
+        self.serial.write(b'P' + b'\x04' + b'\x02' + b'\x00')
 
     def decode(self, msg, n_words=None):
         if n_words is None:
@@ -62,8 +61,8 @@ class OneBird(object):
         return [self._decode_words(msg, i) for i in range(int(n_words))]
 
     def _decode_word(self, msg):
-        lsb = ord(msg[0]) & 0x7f
-        msb = ord(msg[1])
+        lsb = msg[0] & 0x7f
+        msb = msg[1]
         v = (msb << 9) | (lsb << 2)
         if v < 0x8000:
             return v
@@ -75,7 +74,6 @@ class OneBird(object):
         return v / 32768.0  # v to centimeters (???)
 
     def start(self):
-        self.serial.write(b'F')  # run
         self.serial.write(b'@')  # stream
 
     def read(self):
@@ -93,7 +91,8 @@ class OneBird(object):
 
     def close(self):
         self.stop()
-        self.serial.write(b'G')  # sleep
+        if self.master:
+            self.serial.write(b'G')  # sleep
         self.serial.close()
 
 
