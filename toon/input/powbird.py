@@ -32,7 +32,6 @@ class OneBird(object):
                                  quaternion=FobOut(b'\\', 8, [1] * 4),
                                  position_quaternion=FobOut(b']', 14, [pos_scale] * 3 + [1] * 4))
 
-    def open(self):
         self.serial = serial.Serial(port=self.port,
                                     baudrate=115200,
                                     bytesize=serial.EIGHTBITS,
@@ -40,6 +39,8 @@ class OneBird(object):
                                     rtscts=0,
                                     timeout=1)
         self.serial.setRTS(0)
+
+    def open(self):
         if self.master:
             # fbb_auto_config
             time.sleep(1.0)
@@ -97,7 +98,21 @@ class OneBird(object):
 
 
 class FlockOfBirds(object):
-    """Manages individual birds (we never use group mode)"""
+    """Manages individual birds (we never use group mode)
+
+    Example:
+
+    fob = FlockOfBirds(ports=['/dev/ttyUSB0', '/dev/ttyUSB2'],
+                       master = '/dev/ttyUSB0')
+
+    fob.open()
+    fob.start()
+
+    # ...
+
+    fob.close()
+
+    """
 
     def __init__(self, ports=None, data_mode='position', master=None):
 
