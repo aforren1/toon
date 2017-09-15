@@ -10,34 +10,72 @@ import serial
 # dc filter ON, AC narrow notch filter ON, AC wide notch OFF (done)
 # Vm table = 2, 2, 2, 10, 10, 40, 200 (done)
 class FobOut(object):
-    def __init__(self, char=None, size=None, scales=None):
+    def __init__(self, char=None, sizes=None, scales=None,
+                 numpy_fun=None, reshape_fun=None, correct_fun=None):
         self.char = char
-        self.size = size
+        self.sizes = sizes
         self.scales = scales
+        self.numpy_fun = numpy_fun
+        self.reshape_fun = reshape_fun
+        self.correct_fun = correct_fun
+
+
+def do_nothing(*args):
+    return args[0]
+
+
+def correct_pos(vals):
+    tmp_x = vals[0]
+    tmp_y = vals[1]
+    vals[0] = tmp_x * np.cos(-0.01938) - tmp_y * np.sin(-0.01938)
+    vals[1] = tmp_x * np.sin(-0.01938) + tmp_y * np.cos(-0.01938)
+    vals[0] += 61.35
+    vals[1] += 17.69
+    return vals
 
 
 class OneBird(object):
-    def __init__(self, port=None, data_mode='position', master=False, num_birds=None):
+    def __init__(self, port=None, data_mode='position', master=False, num_birds=None, timer=None):
         self.serial = None
         self.port = port
         self.data_mode = data_mode
         self.master = master
         self.num_birds = num_birds
-        pos_scale = 36 * 2.54
-        self.output_types = dict(angles=FobOut(b'W', 6, [180] * 3),
-                                 position=FobOut(b'V', 6, [pos_scale] * 3),
-                                 position_angles=FobOut(b'Y', 12, [pos_scale] * 3 + [180] * 3),
-                                 matrix=FobOut(b'X', 18, [1] * 9),
-                                 position_matrix=FobOut(b'Z', 24, [pos_scale] * 3 + [1] * 9),
-                                 quaternion=FobOut(b'\\', 8, [1] * 4),
-                                 position_quaternion=FobOut(b']', 14, [pos_scale] * 3 + [1] * 4))
+        self.timer = timer
+        self.time0 = self.timer()
+
+        self._x_offset = 61.35  # centimeters
+        self._y_offset = 17.69  # centimeters
+        self._xy_rotation = -0.01938  # radians
+        pos_scale = 36 * 2.54  # convert to centimeters
+
+        self.output_types = dict(angles=FobOut(b'W', [6], [180] * 3, np.array, do_nothing, do_nothing),
+                                 position=FobOut(b'V', [6], [pos_scale] * 3, np.array, do_nothing, correct_pos),
+                                 position_angles=FobOut(b'Y', [6, 6],
+                                                        [pos_scale] * 3 + [180] * 3,
+                                                        np.array,
+                                                        [do_nothing, do_nothing],
+                                                        [correct_pos, do_nothing]),
+                                 matrix=FobOut(b'X', [18], [1] * 9, np.array, np.reshape, do_nothing),
+                                 position_matrix=FobOut(b'Z', [6, 18],
+                                                        [pos_scale] * 3 + [1] * 9,
+                                                        np.array,
+                                                        [do_nothing, np.reshape],
+                                                        [correct_pos, do_nothing]),
+                                 quaternion=FobOut(b'\\', [8], [1] * 4, np.array, do_nothing, do_nothing),
+                                 position_quaternion=FobOut(b']', [6, 8],
+                                                            [pos_scale] * 3 + [1] * 4,
+                                                            np.array,
+                                                            [do_nothing, do_nothing],
+                                                            [correct_pos, do_nothing])
+                                 )
 
         self.serial = serial.Serial(port=self.port,
                                     baudrate=115200,
                                     bytesize=serial.EIGHTBITS,
                                     xonxoff=0,
                                     rtscts=0,
-                                    timeout=1)
+                                    timeout=0.01)  # play with timeouts, don't want to sit around for long...
         self.serial.setRTS(0)
 
     def open(self):
@@ -46,8 +84,8 @@ class OneBird(object):
             time.sleep(1.0)
             self.serial.write(('P' + chr(0x32) + chr(self.num_birds)).encode('UTF-8'))
             time.sleep(1.0)
-            # change bird measurement rate to 138 hz (not sure about endianness...)
-            self.serial.write(b'P' + b'\x07' + struct.pack('<H', int(138 * 256)))
+            # change bird measurement rate to 130 hz (not sure about endianness...)
+            self.serial.write(b'P' + b'\x07' + struct.pack('<H', int(130 * 256)))
 
         # set data output type
         self.serial.write(self.output_types[self.data_mode].char)
@@ -57,6 +95,7 @@ class OneBird(object):
         self.serial.write(b'P' + b'\x04' + b'\x02' + b'\x00')
 
     def decode(self, msg, n_words=None):
+        """ Words to floats"""
         if n_words is None:
             n_words = self.output_types[self.data_mode].size / 2
         return [self._decode_words(msg, i) for i in range(int(n_words))]
@@ -72,19 +111,45 @@ class OneBird(object):
     def _decode_words(self, s, i):
         v = self._decode_word(s[2 * i:2 * i + 2])
         v *= self.output_types[self.data_mode].scales[i]
-        return v / 32768.0  # v to centimeters (???)
+        return v / 32768.0  # v to centimeters
 
     def start(self):
         self.serial.write(b'@')  # stream
 
     def read(self):
-        data = self.serial.read(self.output_types[self.data_mode].size)
-        return self.decode(data)
+        """
+        Steps:
+        1. read expected data size
+        2. convert words to floats
+        3. Convert to numpy array
+        4. If multiple data types, split apart
+        5. Apply reshape (for matrices)
+        6. Apply corrections (for position)
+        7. Return None if no data
+        """
+        tmp = self.output_types[self.data_mode]
+        data_size = sum(tmp.sizes)
+        time = self.timer() - self.time0
+        data = self.serial.read(data_size)
+        if data is not b'':
+            if len(tmp.sizes) > 1:
+                data1 = self.decode(data[:(tmp.sizes[0]+1)], n_words=int(tmp.sizes[0]/2))
+                data2 = self.decode(data[(tmp.sizes[0]+1):], n_words=int(tmp.sizes[1]/2))
+                data1 = tmp.numpy_fun(data1)
+                data2 = tmp.numpy_fun(data2)
+                data1 = tmp.correct_fun(tmp.reshape_fun(data1))
+                data2 = tmp.correct_fun(tmp.reshape_fun(data2))
+                return time, data1, data2  # multiple measurements (e.g. position_angle)
+            else:
+                data = self.decode(data, n_words=int(tmp.sizes[0]/2))
+                data = tmp.numpy_fun(data)
+                return time, tmp.correct_fun(tmp.reshape_fun(data))  # single type of measurement
+        return None  # return nothing if empty string retrieved
 
     def clear(self):
         while True:
             s = self.serial.read(1)
-            if s == '':
+            if s is b'':
                 break
 
     def stop(self):
@@ -101,20 +166,15 @@ class FlockOfBirds(object):
     """Manages individual birds (we never use group mode)
 
     Example:
-
     fob = FlockOfBirds(ports=['/dev/ttyUSB0', '/dev/ttyUSB2'],
                        master = '/dev/ttyUSB0')
-
     fob.open()
     fob.start()
-
     # ...
-
     fob.close()
-
     """
 
-    def __init__(self, ports=None, data_mode='position', master=None):
+    def __init__(self, ports=None, data_mode='position', master=None, timer=time.time):
 
         if master not in ports:
             raise ValueError('The master must be named among the ports.')
@@ -129,7 +189,8 @@ class FlockOfBirds(object):
         self.master = master
         self.birds = [OneBird(port=x, data_mode=data_mode,
                               master=master == x,
-                              num_birds=len(ports))
+                              num_birds=len(ports),
+                              timer=timer)
                       for x in ports]
 
     def open(self):
@@ -149,7 +210,10 @@ class FlockOfBirds(object):
 
     def read(self):
         """Temporary, for the sake of figuring out whether this works..."""
-        return [bird.read() for bird in self.birds]
+        results = [bird.read() for bird in self.birds]
+        if any(res is None for res in results):
+            return None
+        return results
 
     def stop(self):
         for bird in self.birds:
