@@ -4,6 +4,7 @@ import multiprocessing as mp
 import ctypes
 import numpy as np
 
+
 def shared_to_numpy(mp_arr, nrow, ncol):
     """Helper to allow use of a multiprocessing.Array as a numpy array"""
     return np.frombuffer(mp_arr.get_obj()).reshape((nrow, ncol))
@@ -12,17 +13,17 @@ def shared_to_numpy(mp_arr, nrow, ncol):
 class BaseInput(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, clock_source=time,
+    def __init__(self,
+                 clock_source=time,
                  multiprocess=False,
-                 buffer_rows=50,
-                 ncol=0,
-                 **kwargs):
+                 buffer_rows=50):
 
         self.time = clock_source
         self.multiprocess = multiprocess
         self._start_time = None
         self._nrow = buffer_rows
-        self._ncol = ncol
+        self._ncol = 0
+        self._stopped = False
 
         if multiprocess:
             self._shared_mp_buffer = mp.Array(ctypes.c_double, self._nrow * self._ncol)
@@ -43,18 +44,35 @@ class BaseInput(object):
 
     @abc.abstractmethod
     def start(self):
+        self._stopped = False
         self._start_time = self.time()
         if self.multiprocess:
             self._poison_pill.value = True
-            self.clear()
             self._process = mp.Process(target=self._mp_worker,
                                        args=(self._shared_mp_buffer,
                                              self._shared_mp_time_buffer,
                                              self._poison_pill))
-    
+        else:  # start device on original processor
+            self._init_device()
+            self.clear()
+
     @abc.abstractmethod
     def stop(self):
-        return
+        """
+        Stop reading, but possible to restart
+        """
+        self._stopped = True
+        if self.multiprocess:
+            self._poison_pill.value = True
+
+    @abc.abstractmethod
+    def close(self):
+        """Deallocate device resources,
+           make sure stop() is called first
+        """
+        if not self._stopped:
+            self.stop()
+        pass
 
     @abc.abstractmethod
     def read(self):
@@ -68,7 +86,7 @@ class BaseInput(object):
                 return None
             return (self._read_buffer[~np.isnan(self._read_buffer).any(axis=1)],
                     self._read_time_buffer[np.isnan(self._read_time_buffer).any(axis=1)])
-        # no multiprocessing
+        # no multiprocessing (returns tuple (data, timestamp))
         return self._read()
 
     @abc.abstractmethod
@@ -81,15 +99,17 @@ class BaseInput(object):
 
     @abc.abstractmethod
     def clear(self):
-        return
+        """Remove all pending data (call read a few times?)"""
+        pass
 
     @abc.abstractmethod
     def _init_device(self):
         """Start talking to the actual device"""
-        return
+        pass
 
     @abc.abstractmethod
     def _mp_worker(self, shared_mp_buffer, shared_mp_time_buffer, poison_pill):
+        """Poll device on separate process"""
         self._init_device()
         self.clear()
         shared_np_buffer = shared_to_numpy(shared_mp_buffer, self._nrow, self._ncol)
@@ -110,6 +130,5 @@ class BaseInput(object):
                         shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
                         shared_np_buffer[-1, :] = data
                         shared_np_time_buffer[-1, 0] = timestamp
-        self._device.close()
-
-
+        self.stop()
+        self.close()
