@@ -61,7 +61,6 @@ class BaseInput(object):
                                              self._poison_pill))
         else:  # start device on original processor
             self._init_device()
-            self.clear()
 
     @abc.abstractmethod
     def stop(self):
@@ -70,7 +69,9 @@ class BaseInput(object):
         """
         self._stopped = True
         if self.multiprocess:
-            self._poison_pill.value = True
+            self._poison_pill.value = True # also causes remote device to *close*
+        else:
+            self._stop_device()
 
     @abc.abstractmethod
     def close(self):
@@ -79,7 +80,9 @@ class BaseInput(object):
         """
         if not self._stopped:
             self.stop()
-        pass
+        if not self.multiprocess:
+            self._close_device()
+
 
     @abc.abstractmethod
     def read(self):
@@ -117,11 +120,20 @@ class BaseInput(object):
         """Start talking to the actual device"""
         pass
 
+    def _stop_device(self):
+        """Clean-up (without disconnecting from device)"""
+        pass
+
+    @abc.abstractmethod
+    def _close_device(self):
+        """Disconnect from device"""
+        pass
+
     @abc.abstractmethod
     def _mp_worker(self, shared_mp_buffer, shared_mp_time_buffer, poison_pill):
         """Poll device on separate process"""
         self._init_device()
-        self.clear()
+        self.clear()  # purge buffers (in case there's residual stuff from previous run)
         shared_np_buffer = shared_to_numpy(shared_mp_buffer, self._nrow, self._ncol)
         shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, self._nrow, 1)
         while poison_pill.value:
@@ -140,4 +152,6 @@ class BaseInput(object):
                         shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
                         shared_np_buffer[-1, :] = data
                         shared_np_time_buffer[-1, 0] = timestamp
-        self.close()
+        # call extra cleanup
+        self._stop_device()
+        self._close_device()

@@ -17,6 +17,7 @@ class Hand(BaseInput):
         self._ncol = 16
         self.nonblocking = nonblocking
         self._force_data = np.full(self._ncol, np.nan)
+        self._device = None
 
     def _init_device(self):
         self._device = hid.device()
@@ -53,7 +54,13 @@ class Hand(BaseInput):
     def close(self):
         super(Hand, self).close()
         if not self.multiprocess:
-            self._device.close()
+            self._close_device() # close local device
+
+    def _stop_device(self):
+        super(Hand, self)._stop_device()
+
+    def _close_device(self):
+        self._device.close()
 
     def _mp_worker(self, *args):
         super(Hand, self)._mp_worker(args)
