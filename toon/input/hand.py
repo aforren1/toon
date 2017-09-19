@@ -106,7 +106,6 @@ class Hand(object):
         Each row is formatted as follows:
         [psychopy_time, HAND_time, x1, y1, z1, x2, y2, z2, x3...]
         """
-        # TODO: return both x,y,z (based on median) AND raw data?
         if self.multiproc:
             with self._shared_mp_buffer.get_lock():
                 np.copyto(self._read_buffer, self._shared_np_buffer)

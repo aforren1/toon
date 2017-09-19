@@ -9,12 +9,19 @@ def shared_to_numpy(mp_arr, nrow, ncol):
     """Helper to allow use of a multiprocessing.Array as a numpy array"""
     return np.frombuffer(mp_arr.get_obj()).reshape((nrow, ncol))
 
+class DummyTime(object):
+    """Stand-in for
+    from psychopy.core import monotonicClock as mc
+    mc.getTime()
+    """
+    def getTime(self):
+        return time()
 
 class BaseInput(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self,
-                 clock_source=time,
+                 clock_source=DummyTime,
                  multiprocess=False,
                  buffer_rows=50):
 
@@ -22,7 +29,7 @@ class BaseInput(object):
         self.multiprocess = multiprocess
         self._start_time = None
         self._nrow = buffer_rows
-        self._ncol = 0
+        self._ncol = 1 # need to define per device
         self._stopped = False
 
         if multiprocess:
@@ -100,7 +107,10 @@ class BaseInput(object):
     @abc.abstractmethod
     def clear(self):
         """Remove all pending data (call read a few times?)"""
-        pass
+        if self.multiprocess:
+            with self._shared_mp_buffer.get_lock(), self._shared_mp_time_buffer.get_lock():
+                self._shared_np_buffer.fill(np.nan)
+                self._shared_np_time_buffer.fill(np.nan)
 
     @abc.abstractmethod
     def _init_device(self):
@@ -130,5 +140,4 @@ class BaseInput(object):
                         shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
                         shared_np_buffer[-1, :] = data
                         shared_np_time_buffer[-1, 0] = timestamp
-        self.stop()
         self.close()
