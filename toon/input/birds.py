@@ -2,7 +2,7 @@ import struct
 import time
 import numpy as np
 import serial
-from toon.input import BaseInput, DummyTime
+from toon.input.base_input import BaseInput, DummyTime
 
 
 class BlamBirds(BaseInput):

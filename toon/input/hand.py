@@ -1,6 +1,6 @@
 import struct
 import numpy as np
-from toon.input import BaseInput, DummyTime
+from toon.input.base_input import BaseInput, DummyTime
 import hid
 
 class Hand(BaseInput):
