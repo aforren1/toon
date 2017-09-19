@@ -52,7 +52,7 @@ class BaseInput(object):
     @abc.abstractmethod
     def start(self):
         self._stopped = False
-        self._start_time = self.time()
+        self._start_time = self.time.getTime()
         if self.multiprocess:
             self._poison_pill.value = True
             self._process = mp.Process(target=self._mp_worker,

@@ -22,7 +22,6 @@ class Hand(BaseInput):
     def _init_device(self):
         self._device = hid.device()
         self._device.open(0x16c0, 0x486)
-        self._device.start()
         self._device.set_nonblocking(self.nonblocking)
 
     def _read(self):
