@@ -23,12 +23,14 @@ class BaseInput(object):
     def __init__(self,
                  clock_source=DummyTime,
                  multiprocess=False,
-                 buffer_rows=50):
+                 buffer_rows=50,
+                 _ncol=1):
 
         self.time = clock_source
         self.multiprocess = multiprocess
         self._start_time = None
         self._nrow = buffer_rows
+        self._ncol = _ncol
         self._stopped = False
 
         if multiprocess:

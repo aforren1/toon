@@ -17,10 +17,9 @@ class BlamBirds(BaseInput):
             raise ValueError('The master must be named amongst the ports.')
         if data_mode not in ['position']:
             raise ValueError('Invalid or unimplemented data mode.')
-
-        super(BlamBirds, self).__init__(clock_source, multiprocess, buffer_rows)
+        _ncol = 3 * len(ports)
+        super(BlamBirds, self).__init__(clock_source, multiprocess, buffer_rows, _ncol)
         self._birds = None
-        self._ncol = 3 * len(ports)  # strong assumption here of 'position' mode (x,y,z for each bird)
         self.ports = ports
         self.master = master
         self._master_index = ports.index(master)

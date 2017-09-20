@@ -7,10 +7,10 @@ class Hand(BaseInput):
     def __init__(self, clock_source=DummyTime(),
                  multiprocess=False,
                  buffer_rows=50,
-                 nonblocking=True):
+                 nonblocking=True,
+                 _ncol=15):
 
-        self._ncol = 15  # data only
-        super(Hand, self).__init__(clock_source, multiprocess, buffer_rows)
+        super(Hand, self).__init__(clock_source, multiprocess, buffer_rows, _ncol)
 
         self._rotval = np.pi/4.0
         self._sinval = np.sin(self._rotval)
