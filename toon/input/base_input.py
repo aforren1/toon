@@ -29,7 +29,6 @@ class BaseInput(object):
         self.multiprocess = multiprocess
         self._start_time = None
         self._nrow = buffer_rows
-        self._ncol = 1 # need to define per device
         self._stopped = False
 
         if multiprocess:
@@ -59,6 +58,8 @@ class BaseInput(object):
                                        args=(self._shared_mp_buffer,
                                              self._shared_mp_time_buffer,
                                              self._poison_pill))
+            self._process.daemon = True
+            self._process.start()
         else:  # start device on original processor
             self._init_device()
 
@@ -69,7 +70,7 @@ class BaseInput(object):
         """
         self._stopped = True
         if self.multiprocess:
-            self._poison_pill.value = True # also causes remote device to *close*
+            self._poison_pill.value = False # also causes remote device to *close*
         else:
             self._stop_device()
 

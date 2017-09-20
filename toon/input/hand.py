@@ -9,12 +9,12 @@ class Hand(BaseInput):
                  buffer_rows=50,
                  nonblocking=True):
 
+        self._ncol = 15  # data only
         super(Hand, self).__init__(clock_source, multiprocess, buffer_rows)
 
         self._rotval = np.pi/4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
-        self._ncol = 15  # data only
         self.nonblocking = nonblocking
         self._force_data = np.full(self._ncol, np.nan)
         self._device = None
@@ -62,6 +62,6 @@ class Hand(BaseInput):
         self._device.close()
 
     def _mp_worker(self, *args):
-        super(Hand, self)._mp_worker(args)
+        super(Hand, self)._mp_worker(*args)
 
 
