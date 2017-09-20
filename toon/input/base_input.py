@@ -96,9 +96,9 @@ class BaseInput(object):
                 np.copyto(self._read_time_buffer, self._shared_np_time_buffer)
             self.clear()
             if np.isnan(self._read_buffer).all():
-                return None
+                return None, None
             return (self._read_buffer[~np.isnan(self._read_buffer).any(axis=1)],
-                    self._read_time_buffer[np.isnan(self._read_time_buffer).any(axis=1)])
+                    self._read_time_buffer[~np.isnan(self._read_time_buffer).any(axis=1)])
         # no multiprocessing (returns tuple (data, timestamp))
         return self._read()
 

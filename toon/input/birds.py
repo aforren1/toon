@@ -79,6 +79,10 @@ class BlamBirds(BaseInput):
             return data, timestamp
         return None, None
 
+    def read(self):
+        data, timestamp = super(BlamBirds, self).read()
+        return data, timestamp
+
     def clear(self):
         super(BlamBirds, self).clear()
 

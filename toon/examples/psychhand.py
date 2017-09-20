@@ -44,7 +44,7 @@ if __name__ == '__main__':
     baseline = None
     while baseline is None:
         baseline = dev.read()[0]
-    baseline = np.median(baseline[:, 2:], axis=0)
+    baseline = np.median(baseline, axis=0)
 
     j = 1
     factor = 1 # 'visual gain' = scale the raw input so it tends to stay on the screen
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         if data is not None:
             # print(data)
             # take median of current chunk & subtract off median of calibration
-            newdata = np.median(data[:, 2:], axis=0)
+            newdata = np.median(data, axis=0)
             j = 0
             for i in range(5):
                 controlled_circles[i].pos = (-newdata[j] / factor + offset[i] + baseline[j]/factor,

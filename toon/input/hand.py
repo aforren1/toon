@@ -39,7 +39,8 @@ class Hand(BaseInput):
         return None, None
 
     def read(self):
-        super(Hand, self).read()
+        data, timestamp = super(Hand, self).read()
+        return data, timestamp
 
     def clear(self):
         super(Hand, self).clear()
