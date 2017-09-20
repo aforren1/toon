@@ -29,7 +29,7 @@ import toon.audio as ta
 import toon.input as ti
 import toon.tools as tt
 
-beeps = ta.beep_train(click_freq=[440, 660, 880],
+beeps = ta.beep_sequence(click_freq=[440, 660, 880],
                       num_clicks=3)
 x, y = tt.pol2cart(45, 3, units='deg', ref=(1, 1))
 
