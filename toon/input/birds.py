@@ -65,7 +65,7 @@ class BlamBirds(BaseInput):
         # don't convert if data not there
         if not any(b'' == s for s in _datalist):
             _datalist = [self.decode(msg) for msg in _datalist]
-            data = np.array(_datalist).reshape((6,))  # assumes position data
+            data = np.array(_datalist).reshape((6,))  # assumes position data from two birds
             data[:] = data[[1, 2, 0, 4, 5, 3]]  # reorder
             # rotate
             tmp_x = data[::3]

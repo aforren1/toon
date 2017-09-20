@@ -3,6 +3,7 @@ import numpy as np
 from toon.input.base_input import BaseInput, DummyTime
 import hid
 
+
 class Hand(BaseInput):
     def __init__(self, clock_source=DummyTime(),
                  multiprocess=False,
@@ -12,7 +13,7 @@ class Hand(BaseInput):
 
         super(Hand, self).__init__(clock_source, multiprocess, buffer_rows, _ncol)
 
-        self._rotval = np.pi/4.0
+        self._rotval = np.pi / 4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
         self.nonblocking = nonblocking
@@ -54,7 +55,7 @@ class Hand(BaseInput):
     def close(self):
         super(Hand, self).close()
         if not self.multiprocess:
-            self._close_device() # close local device
+            self._close_device()  # close local device
 
     def _stop_device(self):
         super(Hand, self)._stop_device()
@@ -64,5 +65,3 @@ class Hand(BaseInput):
 
     def _mp_worker(self, *args):
         super(Hand, self)._mp_worker(*args)
-
-
