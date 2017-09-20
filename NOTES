@@ -1,0 +1,5 @@
+Run
+
+find . -type f -exec dos2unix {} +
+
+to remove Windows line endings.

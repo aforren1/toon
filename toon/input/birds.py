@@ -37,7 +37,7 @@ class BlamBirds(BaseInput):
             bird.setRTS(0)
 
         # init master
-        ## fbb auto config
+        # fbb auto config
         time.sleep(1)
         self._birds[self._master_index].write(('P' + chr(0x32) + chr(len(self.ports))).encode('UTF-8'))
         time.sleep(1)
@@ -66,7 +66,7 @@ class BlamBirds(BaseInput):
         if not any(b'' in s for s in _datalist):
             _datalist = [self.decode(msg) for msg in _datalist]
             data = np.array(_datalist).reshape((9,))  # assumes position data
-            data[:] = data[(1,2,0,4,5,3,7,8,6)] # reorder
+            data[:] = data[(1, 2, 0, 4, 5, 3, 7, 8, 6)]  # reorder
             # rotate
             tmp_x = data[::3]
             tmp_y = data[1::3]
@@ -98,18 +98,20 @@ class BlamBirds(BaseInput):
             bird.write(b'?')  # stop stream
 
     def _close_device(self):
-        self._birds[self._master_index].write(b'G') # sleep (master only?)
+        self._birds[self._master_index].write(b'G')  # sleep (master only?)
         for bird in self._birds:
             bird.close()
 
+    def _mp_worker(self, *args):
+        super(BlamBirds, self)._mp_worker(*args)
 
     def decode(self, msg, n_words=3):
         return [self._decode_words(msg, i) for i in range(int(n_words))]
 
     def _decode_words(self, s, i):
-        v = self._decode_word(s[2*i:2*i+2])
-        v *= 36 * 2.54 # scaling to cm
-        return v/32768.0
+        v = self._decode_word(s[2 * i:2 * i + 2])
+        v *= 36 * 2.54  # scaling to cm
+        return v / 32768.0
 
     def _decode_word(self, msg):
         lsb = msg[0] & 0x7f
