@@ -1,8 +1,8 @@
 import numpy as np
 from unittest import TestCase
 
-from toon.toon.tools import cart2pol, pol2cart, cart2sph, sph2cart
-from toon.toon.tools.coordinatetools import _shapend
+from toon.tools import cart2pol, pol2cart, cart2sph, sph2cart
+from toon.tools.coordinatetools import _shapend
 
 
 class TestCoordinateTools(TestCase):

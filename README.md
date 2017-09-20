@@ -35,3 +35,9 @@ x, y = tt.pol2cart(45, 3, units='deg', ref=(1, 1))
 
 hand = ti.Hand()
 ```
+
+If you have psychopy and the HAND, you can run an example via:
+
+```python
+python -m toon.examples.psychhand
+```
