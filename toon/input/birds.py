@@ -60,13 +60,13 @@ class BlamBirds(BaseInput):
     def _read(self):
         timestamp = self.time.getTime()
         _datalist = list()
-        for ii in range(len(self._birds)):
-            _datalist[ii] = self._birds[ii].read(6)  # assumes position data
+        for bird in self._birds:
+            _datalist.append(bird.read(6))  # assumes position data
         # don't convert if data not there
-        if not any(b'' in s for s in _datalist):
+        if not any(b'' == s for s in _datalist):
             _datalist = [self.decode(msg) for msg in _datalist]
-            data = np.array(_datalist).reshape((9,))  # assumes position data
-            data[:] = data[(1, 2, 0, 4, 5, 3, 7, 8, 6)]  # reorder
+            data = np.array(_datalist).reshape((6,))  # assumes position data
+            data[:] = data[[1, 2, 0, 4, 5, 3]]  # reorder
             # rotate
             tmp_x = data[::3]
             tmp_y = data[1::3]
@@ -93,7 +93,6 @@ class BlamBirds(BaseInput):
         super(BlamBirds, self).close()
 
     def _stop_device(self):
-        super(BlamBirds, self)._stop_device()
         for bird in self._birds:
             bird.write(b'?')  # stop stream
 
