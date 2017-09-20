@@ -39,29 +39,8 @@ class Hand(BaseInput):
             return self._force_data, timestamp
         return None, None
 
-    def read(self):
-        data, timestamp = super(Hand, self).read()
-        return data, timestamp
-
-    def clear(self):
-        super(Hand, self).clear()
-
-    def start(self):
-        super(Hand, self).start()
-
-    def stop(self):
-        super(Hand, self).stop()
-
-    def close(self):
-        super(Hand, self).close()
-        if not self.multiprocess:
-            self._close_device()  # close local device
-
     def _stop_device(self):
         super(Hand, self)._stop_device()
 
     def _close_device(self):
         self._device.close()
-
-    def _mp_worker(self, *args):
-        super(Hand, self)._mp_worker(*args)

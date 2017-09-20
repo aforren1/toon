@@ -54,9 +54,6 @@ class BlamBirds(BaseInput):
         for bird in self._birds:
             bird.write(b'@')  # 'stream' command
 
-    def start(self):
-        super(BlamBirds, self).start()
-
     def _read(self):
         timestamp = self.time.getTime()
         _datalist = list()
@@ -79,19 +76,6 @@ class BlamBirds(BaseInput):
             return data, timestamp
         return None, None
 
-    def read(self):
-        data, timestamp = super(BlamBirds, self).read()
-        return data, timestamp
-
-    def clear(self):
-        super(BlamBirds, self).clear()
-
-    def stop(self):
-        super(BlamBirds, self).stop()
-
-    def close(self):
-        super(BlamBirds, self).close()
-
     def _stop_device(self):
         for bird in self._birds:
             bird.write(b'?')  # stop stream
@@ -100,9 +84,6 @@ class BlamBirds(BaseInput):
         self._birds[self._master_index].write(b'G')  # sleep (master only?)
         for bird in self._birds:
             bird.close()
-
-    def _mp_worker(self, *args):
-        super(BlamBirds, self)._mp_worker(*args)
 
     def decode(self, msg, n_words=3):
         return [self._decode_words(msg, i) for i in range(int(n_words))]

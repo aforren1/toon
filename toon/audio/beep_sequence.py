@@ -8,12 +8,15 @@
 """
 import numpy as np
 
+
 def beep(frequency, duration, sample_rate=44100):
     """Generates a sine wave.
 
     Args:
         frequency (int or float): The frequency of the sine wave.
         duration (int or float): Duration of the beep in seconds.
+
+    Kwargs:
         sample_rate (int or float): Sampling rate for the wave.
 
     Returns:
@@ -23,7 +26,7 @@ def beep(frequency, duration, sample_rate=44100):
     a duration of half a second, and a sampling rate of 44.1 kHz,
         >>> my_beep = beep(440, 0.5, 44100)
     """
-    return np.sin(2 * np.pi * frequency * (np.arange(0, duration * sample_rate))/sample_rate)
+    return np.sin(2 * np.pi * frequency * (np.arange(0, duration * sample_rate)) / sample_rate)
 
 
 def ramp_beep(frequency, duration, sample_rate=44100, proportion=0.1):
@@ -32,6 +35,8 @@ def ramp_beep(frequency, duration, sample_rate=44100, proportion=0.1):
     Args:
         frequency (int or float): The frequency of the sine wave.
         duration (int or float): Duration of the beep in seconds.
+
+    Kwargs:
         sample_rate (int or float): Sampling rate for the wave.
         proportion (float): On the interval [0, 0.5], determines the duration of the ramp phase.
 
@@ -57,7 +62,7 @@ def beep_sequence(click_freq=[440, 660, 880, 1220],
                   sample_rate=44100):
     """Generate a series of linearly ramped sine waves.
 
-    Args:
+    Kwargs:
         click_freq (list, tuple, or 1d numpy array): The frequency of each beep.
         inter_click_interval (int or float): The period between the beep midpoints.
         num_clicks (int): Number of clicks.
@@ -77,7 +82,7 @@ def beep_sequence(click_freq=[440, 660, 880, 1220],
         click_freq = [click_freq] * num_clicks
     beeps = [ramp_beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
     space = np.zeros(int((inter_click_interval * sample_rate) - len(beeps[0])))
-    out = np.zeros((int(sample_rate * 0.5 - len(beeps[0])/2)))
+    out = np.zeros((int(sample_rate * 0.5 - len(beeps[0]) / 2)))
     out = np.append(out, beeps[0])
     for i in range(num_clicks - 1):
         out = np.append(out, space)
