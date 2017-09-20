@@ -14,7 +14,7 @@ class Hand(BaseInput):
         self._rotval = np.pi/4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
-        self._ncol = 16
+        self._ncol = 15  # data only
         self.nonblocking = nonblocking
         self._force_data = np.full(self._ncol, np.nan)
         self._device = None
