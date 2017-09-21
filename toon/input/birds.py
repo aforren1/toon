@@ -1,3 +1,12 @@
+"""
+.. module:: input
+     :platform: Unix, Windows
+     :synopsis: Tools for dealing with input devices.
+
+.. moduleauthor:: Alexander Forrence <aforren1@jhu.edu>
+
+"""
+
 import struct
 import time
 import numpy as np
