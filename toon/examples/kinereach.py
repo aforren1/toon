@@ -25,33 +25,36 @@ if __name__ == '__main__':
         dev = event.Mouse()
 
     core.wait(1)
+    try:
+        center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0),
+                               autoDraw=True)
 
-    center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0),
-                           autoDraw=True)
+        pointer = visual.Circle(win, radius=2.54/2, fillColor='darkmagenta',
+                                pos=(0, 0), autoDraw=True)
 
-    pointer = visual.Circle(win, radius=2.54/2, fillColor='darkmagenta',
-                            pos=(0, 0), autoDraw=True)
-
-    if flock:
-        baseline = None
-        while baseline is None:
-            baseline = dev.read()[0]
-        baseline = np.median(baseline, axis=0)[0:2]
-    else:
-        baseline = dev.getPos()
-    pointer.pos = baseline
-
-    while not event.getKeys():
         if flock:
-            data = dev.read()[0]
-            if data is not None:
-                newdata = np.median(data, axis=0)[0:2]
-                print(newdata)
-                pointer.pos = newdata
+            baseline = None
+            while baseline is None:
+                baseline = dev.read()[0]
+            baseline = np.median(baseline, axis=0)[0:2]
         else:
-            pointer.pos = dev.getPos()
-        win.flip()
+            baseline = dev.getPos()
+        pointer.pos = baseline
 
-    if flock:
+        while not event.getKeys():
+            if flock:
+                data = dev.read()[0]
+                if data is not None:
+                    newdata = np.median(data, axis=0)[0:2]
+                    print(newdata)
+                    pointer.pos = newdata
+            else:
+                pointer.pos = dev.getPos()
+            win.flip()
+
+        if flock:
+            dev.stop()
+            dev.close()
+    except KeyboardInterrupt:
         dev.stop()
         dev.close()
