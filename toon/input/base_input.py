@@ -121,7 +121,7 @@ class BaseInput(object):
         """
         self._stopped = True
         if self.multiprocess:
-            self._poison_pill.value = False # also causes remote device to *close*
+            self._poison_pill.value = False  # also causes remote device to *close*
         else:
             self._stop_device()
 
