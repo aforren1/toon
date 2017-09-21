@@ -13,9 +13,8 @@ class Hand(BaseInput):
     """
     def __init__(self, clock_source=DummyTime(),
                  multiprocess=False,
-                 buffer_rows=50,
-                 nonblocking=True,
-                 _ncol=15):
+                 dims=(50, 15),
+                 nonblocking=True):
         """Interface to HAND.
 
         Kwargs:
@@ -30,19 +29,21 @@ class Hand(BaseInput):
             `nonblocking` should typically remain `True`, as I doubt there's any performance
             benefit and it leads to difficult debugging.
 
+            Data is formatted as [x, y, z] per finger (15 elements, 3 per finger).
+
         Examples:
             Initialization should be straightforward.
 
             >>> device = Hand(multiprocess=True)
         """
 
-        super(Hand, self).__init__(clock_source, multiprocess, buffer_rows, _ncol)
+        super(Hand, self).__init__(clock_source, multiprocess, dims)
 
         self._rotval = np.pi / 4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
         self.nonblocking = nonblocking
-        self._force_data = np.full(self._ncol, np.nan)
+        self._force_data = np.full(dims[1], np.nan)
         self._device = None
 
     def _init_device(self):

@@ -27,6 +27,9 @@ class BlamBirds(BaseInput):
             data_mode (string): Data format returned by the flock of birds. Currently, only
                                 'position' is allowed.
 
+        Notes:
+            The data returned represents [x, y, z] elements per bird.
+
         Examples:
 
             >>> birds = BlamBirds(ports=['COM5', 'COM6', 'COM7'], master='COM5')
@@ -36,14 +39,14 @@ class BlamBirds(BaseInput):
             raise ValueError('The master must be named amongst the ports.')
         if data_mode not in ['position']:
             raise ValueError('Invalid or unimplemented data mode.')
-        _ncol = 3 * len(ports)  # awkward, may need to change
-        super(BlamBirds, self).__init__(clock_source, multiprocess, buffer_rows, _ncol)
+        _ncol = 3 * len(ports)  # assumes only position data
+        super(BlamBirds, self).__init__(clock_source, multiprocess, (buffer_rows, _ncol))
         self._birds = None
         self.ports = ports
         self.master = master
         self._master_index = ports.index(master)
         self.data_mode = data_mode
-        self._bird_data = np.full(self._ncol, np.nan)  # fill with bird data later
+        self._bird_data = np.full(_ncol, np.nan)  # fill with bird data later
 
     def _init_device(self):
         """FOB-specific initialization.

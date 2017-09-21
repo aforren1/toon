@@ -14,20 +14,24 @@ import ctypes
 import numpy as np
 
 
-def shared_to_numpy(mp_arr, nrow, ncol):
+def shared_to_numpy(mp_arr, dims):
     """Convert a :class:`multiprocessing.Array` to a numpy array.
     Helper function to allow use of a :class:`multiprocessing.Array` as a numpy array.
     Derived from the answer at:
     <https://stackoverflow.com/questions/7894791/use-numpy-array-in-shared-memory-for-multiprocessing>
     """
-    return np.frombuffer(mp_arr.get_obj()).reshape((nrow, ncol))
+    return np.frombuffer(mp_arr.get_obj()).reshape(dims)
+
 
 class DummyTime(object):
     """Default timer.
     Provides a `getTime()` method as to be compatible with psychopy's `monotonicClock`.
     """
-    def getTime(self):
+
+    @staticmethod
+    def getTime():
         return time()
+
 
 class BaseInput(object):
     """Abstract Base Class for :mod:`multiprocessing`-empowered input devices.
@@ -38,25 +42,20 @@ class BaseInput(object):
     Notes:
         Derived classes must provide a `_read` method which returns a single, 1-dimensional
         observation. See :class:`toon.input.Hand` and :class:`toon.input.BlamBirds` for examples.
-
-        Also, a `_ncol` argument is required to set the size of the buffer (matching the length
-        of the data returned by the `_read` method).
     """
     __metaclass__ = abc.ABCMeta
 
     def __init__(self,
                  clock_source=DummyTime,
                  multiprocess=False,
-                 buffer_rows=50,
-                 _ncol=1):
+                 dims=(50, 1)):
         """Abstract Base Class for :mod:`multiprocessing`-empowered input devices.
 
         Kwargs:
             clock_source: Class that provides a `getTime` method. Default object calls :fun:`time.time()`.
             multiprocess (bool): Whether multiprocessing is enabled or not.
-            buffer_rows (int): Sets the number of rows in the shared array.
-            _ncol (int): Sets the number of columns in the shared array (depends on the length of
-                         the data provided by the `_read` method.
+            dims (tuple or list): Sets the dimensions in the shared array. The first dimension represents
+                                  time, while subsequent ones represent data at that time point.
 
         We use :class:`abc.ABCMeta` to help ensure the same API is provided across devices.
 
@@ -73,23 +72,21 @@ class BaseInput(object):
         self.time = clock_source
         self.multiprocess = multiprocess
         self._start_time = None
-        self._nrow = buffer_rows
-        self._ncol = _ncol
+        self.dims = dims
         self._stopped = False
 
         if multiprocess:
-            self._shared_mp_buffer = mp.Array(ctypes.c_double, self._nrow * self._ncol)
-            self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self._nrow, self._ncol)
+            self._shared_mp_buffer = mp.Array(ctypes.c_double, np.prod(self.dims))
+            self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self.dims)
             self._shared_np_buffer.fill(np.nan)
 
-            self._shared_mp_time_buffer = mp.Array(ctypes.c_double, self._nrow)
+            self._shared_mp_time_buffer = mp.Array(ctypes.c_double, self.dims[0])
             self._shared_np_time_buffer = shared_to_numpy(self._shared_mp_time_buffer,
-                                                          self._nrow,
-                                                          1)
+                                                          (self.dims[0], 1))
             self._shared_np_time_buffer.fill(np.nan)
 
-            self._read_buffer = np.full((self._nrow, self._ncol), np.nan)
-            self._read_time_buffer = np.full((self._nrow, 1), np.nan)
+            self._read_buffer = np.full(self.dims, np.nan)
+            self._read_time_buffer = np.full((self.dims[0], 1), np.nan)
             self._poison_pill = mp.Value(ctypes.c_bool)
             self._poison_pill.value = True
             self._process = None
@@ -184,8 +181,8 @@ class BaseInput(object):
         """
         self._init_device()
         self.clear()  # purge buffers (in case there's residual stuff from previous run)
-        shared_np_buffer = shared_to_numpy(shared_mp_buffer, self._nrow, self._ncol)
-        shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, self._nrow, 1)
+        shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
+        shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
         while poison_pill.value:
             data, timestamp = self._read()
             if data is not None:
