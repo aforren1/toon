@@ -12,3 +12,19 @@ Add `sys.path.insert(0, os.path.abspath('../toon'))` to conf.py
 Add 'sphinx.ext.napoleon' to conf.py (under extensions)
 Ran `sphinx-apidoc -f -o doc/source toon` in top-level
 Ran `make html` in doc/
+
+Upload/release:
+
+1. Commit (don't forget to increment # in setup.py)
+
+(via Travis)
+2. `git tag -a <version> -m <message>`
+3. `git push github <version>`
+4. `git push github master`
+
+Local (from project root):
+
+2. rm dist/*
+3. python setup.py bdist_wheel
+4. python setup.py sdist
+5. twine upload dist/*
