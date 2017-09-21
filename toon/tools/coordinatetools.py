@@ -1,5 +1,11 @@
-"""Functions and classes related to coordinate system conversion"""
+"""
+.. module:: tools
+     :platform: Unix, Windows
+     :synopsis: Tools for manipulating coordinates.
 
+.. moduleauthor:: Alexander Forrence <aforren1@jhu.edu>
+
+"""
 import numpy as np
 
 
@@ -35,10 +41,9 @@ def cart2pol(*args, **kwargs):
             If given a 2 by 2 array, we assume the each row is a [x, y] pair.
 
         **kwargs:
-            units: A string, used to specify either degrees or radians.
-                Defaults to 'deg' for degrees.
-            ref: A 2-element tuple or list or numpy array, which is the location of the reference
-                point in cartesian coordinates. Defaults to (0, 0).
+            units (string): Either degrees or radians. Defaults to 'deg' for degrees.
+            ref (tuple or list, length 2): The location of the reference point
+                                           in cartesian coordinates. Defaults to (0, 0).
 
     Returns:
         [theta, radius] pairs in a format matching the input format.
@@ -75,6 +80,7 @@ def pol2cart(*args, **kwargs):
 
             If given a 2 by 2 array, we assume the each row is a [theta, radius] pair.
 
+    Kwargs:
         **kwargs:
             units: A string, used to specify either degrees or radians.
                 Defaults to 'deg' for degrees.
@@ -117,6 +123,7 @@ def cart2sph(*args, **kwargs):
 
             If given a 3 by 3 array, we assume the each row is a [x, y, z] trio.
 
+    Kwargs:
         **kwargs:
             units: A string, used to specify either degrees or radians.
                 Defaults to 'deg' for degrees.

@@ -22,19 +22,44 @@ pip install git+https://github.com/aforren1/toon
 
 Three modules so far: audio, input, and tools.
 
-Usage (incomplete):
+## Audio
 
 ```python
 import toon.audio as ta
-import toon.input as ti
+from psychopy import sound
+
+beeps = ta.beep_sequence([440, 880, 1220], inter_click_interval=0.4)
+beep_aud = sound.Sound(beeps, blockSize=32, hamming=False)
+beep_aud.play()
+```
+
+## Input
+
+Flock of Birds:
+
+```python
+import time
+from toon.input import BlamBirds
+
+dev = BlamBirds(multiprocess=True)
+dev.start()
+
+for ii in range(50):
+    print(dev.read())
+    time.sleep(0.166)
+
+dev.close()
+```
+
+## Tools
+
+```python
 import toon.tools as tt
 
-beeps = ta.beep_train(click_freq=[440, 660, 880],
-                      num_clicks=3)
 x, y = tt.pol2cart(45, 3, units='deg', ref=(1, 1))
-
-hand = ti.Hand()
 ```
+
+## Extended Examples
 
 If you have psychopy and the HAND, you can run an example via:
 
