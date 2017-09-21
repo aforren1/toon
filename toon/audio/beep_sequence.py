@@ -22,8 +22,9 @@ def beep(frequency, duration, sample_rate=44100):
     Returns:
         A 1-dimensional numpy array.
 
-    For example, to generate a sine wave with a frequency of 440 Hz,
-    a duration of half a second, and a sampling rate of 44.1 kHz,
+    Example:
+        Generate a sine wave at 440 Hz and duration of 0.5 seconds:
+
         >>> my_beep = beep(440, 0.5, 44100)
     """
     return np.sin(2 * np.pi * frequency * (np.arange(0, duration * sample_rate)) / sample_rate)
@@ -43,9 +44,11 @@ def ramp_beep(frequency, duration, sample_rate=44100, proportion=0.1):
     Returns:
         A 1-dimensional numpy array.
 
-    For example, to generate a sine wave with a frequency of 440 Hz,
-    a duration of half a second, a sampling rate of 44.1 kHz, and
-    ramping up or down for the entirety of the beep,
+    Example:
+        Generate a sine wave at 440 Hz, duration of 0.5 seconds,
+        sampling rate of 44.1 kHz, and ramping either up or down
+        for the entirety of the stimulus.
+
         >>> my_beep = ramp_beep(440, 0.5, 44100, 0.5)
     """
     out = beep(frequency, duration, sample_rate)
@@ -72,8 +75,9 @@ def beep_sequence(click_freq=[440, 660, 880, 1220],
     Returns:
         A 1-dimensional numpy array.
 
-    For example, to generate four beeps of different frequency and spaced by
-    half a second,be
+    Example:
+        To generate four beeps of different frequency and spaced by half a second,
+
         >>> my_train = beep_sequence([1220, 400, 410, 620], inter_click_interval=0.5)
     """
     if len(click_freq) != 1 and len(click_freq) != num_clicks:
