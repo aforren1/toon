@@ -104,7 +104,7 @@ class BlamBirds(BaseInput):
             tmp_x = data[::3]
             tmp_y = data[1::3]
             data[::3] = tmp_x * np.cos(-0.01938) - tmp_y * np.sin(-0.01938)
-            data[1::3] = tmp_y * np.sin(-0.01938) + tmp_y * np.cos(-0.01938)
+            data[1::3] = tmp_x * np.sin(-0.01938) + tmp_y * np.cos(-0.01938)
 
             # translate
             # first number is shift calculated by Aaron
@@ -123,7 +123,7 @@ class BlamBirds(BaseInput):
         """Send the sleep command."""
         self._birds[self._master_index].write(b'G')  # sleep (master only?)
         for bird in self._birds:
-            bird.close()
+            bird.close()  # close serial communication
 
     def decode(self, msg, n_words=3):
         """Convert from word to data."""
