@@ -72,9 +72,9 @@ class BlamBirds(BaseInput):
 
         # init master
         # fbb auto config
-        time.sleep(1)
+        time.sleep(1.5)
         self._birds[self._master_index].write(('P' + chr(0x32) + chr(len(self.ports))).encode('UTF-8'))
-        time.sleep(1)
+        time.sleep(1.5)
         # set sampling frequency (130)
         self._birds[self._master_index].write(b'P' + b'\x07' + struct.pack('<H', int(130 * 256)))
 

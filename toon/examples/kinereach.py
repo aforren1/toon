@@ -1,12 +1,13 @@
 from multiprocessing import set_start_method, freeze_support
-set_start_method('spawn')
-freeze_support()
 
 if __name__ == '__main__':
+    set_start_method('spawn')
+    freeze_support()
     import numpy as np
-    from psychopy import core, visual, event, monitors, logging
+    from psychopy import core, visual, event, monitors
     from toon.input import BlamBirds
 
+    flock=False
     mon = monitors.Monitor('tmp')
     mon.setSizePix((1920, 1080))
     mon.setWidth(68)
@@ -14,36 +15,43 @@ if __name__ == '__main__':
                         screen=1, monitor=mon, units='cm',
                         allowGUI=False)
 
-    win.viewScale = [-1, 1] # mirror image
-    win.recordFrameIntervals = True
-    win.refreshThreshold = 1/60 + 0.004
-    logging.console.setLevel(logging.WARNING)
+    win.viewScale = [-1, 1]  # mirror image
 
-    dev = BlamBirds(multiprocess=True)
-    dev.start()
-    core.wait(0.5)
+    if flock:
+        dev = BlamBirds(multiprocess=True, master='/dev/ttyUSB0',
+                        ports=['/dev/ttyUSB0', '/dev/ttyUSB1'])
+        dev.start()
+    else:
+        dev = event.Mouse()
+
+    core.wait(1)
+
+    center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0),
+                           autoDraw=True)
 
     pointer = visual.Circle(win, radius=2.54/2, fillColor='darkmagenta',
-                            pos=(0, 0))
+                            pos=(0, 0), autoDraw=True)
 
-    center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0))
-
-    baseline = None
-    while baseline is None:
-        baseline, time = dev.read()[0]
-    baseline = np.median(baseline, axis=0)[0:2]
-
+    if flock:
+        baseline = None
+        while baseline is None:
+            baseline = dev.read()[0]
+        baseline = np.median(baseline, axis=0)[0:2]
+    else:
+        baseline = dev.getPos()
     pointer.pos = baseline
 
     while not event.getKeys():
-        data = dev.read()[0]
-        if data is not None:
-            newdata = np.median(data, axis=0)
-            print(newdata)
-            pointer.pos = newdata
-
+        if flock:
+            data = dev.read()[0]
+            if data is not None:
+                newdata = np.median(data, axis=0)[0:2]
+                print(newdata)
+                pointer.pos = newdata
+        else:
+            pointer.pos = dev.getPos()
         win.flip()
-    dev.close()
 
-    print('Overall, %i frames were dropped.' % win.nDroppedFrames)
-
+    if flock:
+        dev.stop()
+        dev.close()

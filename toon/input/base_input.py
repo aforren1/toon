@@ -76,7 +76,7 @@ class BaseInput(object):
         self._stopped = False
 
         if multiprocess:
-            self._shared_mp_buffer = mp.Array(ctypes.c_double, np.prod(self.dims))
+            self._shared_mp_buffer = mp.Array(ctypes.c_double, int(np.prod(self.dims)))
             self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self.dims)
             self._shared_np_buffer.fill(np.nan)
 
