@@ -107,8 +107,10 @@ class BlamBirds(BaseInput):
             data[1::3] = tmp_y * np.sin(-0.01938) + tmp_y * np.cos(-0.01938)
 
             # translate
-            data[::3] += 61.35
-            data[1::3] += 17.69
+            # first number is shift calculated by Aaron
+            # second number makes the center of the screen (0, 0)
+            data[::3] += 61.35 - 60.5
+            data[1::3] += 17.69 - 34.0
             return data, timestamp
         return None, None
 
