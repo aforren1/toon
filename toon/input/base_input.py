@@ -203,6 +203,8 @@ class BaseInput(object):
         self._stop_device()
         self._close_device()
 
+    # The following four functions must be implemented by derived input devices,
+    # though you also probably need an `__init__` too.
     @abc.abstractmethod
     def _read(self):
         """Core read method, implemented by the subclass.
