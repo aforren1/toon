@@ -16,13 +16,13 @@ Derived Classes
 
 Derived classes must implement the following methods:
 
-- `__init__`, for object-specific initialization and settings
-- `_init_device`, for device creation (e.g. `serial.Serial()`)
-- `_read`, for reading a single measurement from the device (e.g. `serial.readline()`)
+- :func:`__init__`, for object-specific initialization and settings
+- :func:`_init_device`, for device creation (e.g. :func:`serial.Serial()`)
+- :func:`_read`, for reading a single measurement from the device (e.g. :func:`serial.readline()`)
     - Should return a tuple (measurement, time), where measurement is a n-dimensional array, and time is a scalar.
     - Should return (None, None) if no data available.
-- `_stop_device`, to stop device measurements
-- `_close_device`, to close the device connection (e.g. `serial.close()`)
+- :func:`_stop_device`, to stop device measurements
+- :func:`_close_device`, to close the device connection (e.g. :func:`serial.close()`)
 
 Though it may be necessary to retool other methods for your particular use case.
 
