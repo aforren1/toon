@@ -45,6 +45,7 @@ class BaseInput(object):
     """
     __metaclass__ = abc.ABCMeta
 
+    @abc.abstractmethod
     def __init__(self,
                  clock_source=DummyTime,
                  multiprocess=False,
