@@ -23,10 +23,21 @@ Derived Classes
 
 Derived classes must implement the following methods:
 
- - `__init__`, for object-specific initialization and settings
- - `_init_device`, for device creation (e.g. `serial.Serial()`)
- - `_read`, for reading a single measurement from the device (e.g. `serial.readline()`)
- - `_stop_device`, to stop device measurements
- - `_close_device`, to close the device connection (e.g. `serial.close()`)
+- `__init__`, for object-specific initialization and settings
+- `_init_device`, for device creation (e.g. `serial.Serial()`)
+- `_read`, for reading a single measurement from the device (e.g. `serial.readline()`)
+    - Should return a tuple (measurement, time), where measurement is a n-dimensional
+array, and time is a scalar.
+    - Should return (None, None) if no data available.
+- `_stop_device`, to stop device measurements
+- `_close_device`, to close the device connection (e.g. `serial.close()`)
 
 Though it may be necessary to retool other methods for your particular use case.
+
+Misc notes:
+-----------
+
+- `_poison_pill` property is probably a misnomer (we're just toggling a flag)
+- Should call `_stop_device` and `_close_device` when the session ends if they haven't
+been called yet (so that the devices aren't left in weird states)
+-

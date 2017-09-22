@@ -200,7 +200,6 @@ class BaseInput(object):
                         shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
                         shared_np_buffer[-1, :] = data
                         shared_np_time_buffer[-1, 0] = timestamp
-        # call extra cleanup
         self._stop_device()
         self._close_device()
 
