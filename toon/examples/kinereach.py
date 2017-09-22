@@ -9,9 +9,9 @@ if __name__ == '__main__':
 
     flock=False
     mon = monitors.Monitor('tmp')
-    mon.setSizePix((1920, 1080))
-    mon.setWidth(68)
-    win = visual.Window(size=(1920, 1080), fullscr=True,
+    mon.setSizePix((1280, 720))
+    mon.setWidth(121)
+    win = visual.Window(size=(1280, 720), fullscr=True,
                         screen=1, monitor=mon, units='cm',
                         allowGUI=False)
 

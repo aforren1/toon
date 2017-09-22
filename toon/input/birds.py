@@ -48,14 +48,15 @@ class BlamBirds(BaseInput):
             raise ValueError('The master must be named amongst the ports.')
         if data_mode not in ['position']:
             raise ValueError('Invalid or unimplemented data mode.')
-        _ncol = 3 * len(ports)  # assumes only position data
-        super(BlamBirds, self).__init__(clock_source, multiprocess, (buffer_rows, _ncol))
+        self._ncol = 3 * len(ports)  # assumes only position data
+        super(BlamBirds, self).__init__(clock_source, multiprocess, (buffer_rows, self._ncol))
         self._birds = None
         self.ports = ports
         self.master = master
         self._master_index = ports.index(master)
         self.data_mode = data_mode
-        self._bird_data = np.full(_ncol, np.nan)  # fill with bird data later
+        self._bird_data = np.full(self._ncol, np.nan)  # fill with bird data later
+        self._reindex = (np.array([[0], [1], [2]]) * 3 + np.tile([1, 2, 0], (3, 1))).reshape(9)
 
     def _init_device(self):
         """FOB-specific initialization.
@@ -98,8 +99,8 @@ class BlamBirds(BaseInput):
         # don't convert if data not there
         if not any(b'' == s for s in _datalist):
             _datalist = [self.decode(msg) for msg in _datalist]
-            data = np.array(_datalist).reshape((6,))  # assumes position data from two birds
-            data[:] = data[[1, 2, 0, 4, 5, 3]]  # reorder
+            data = np.array(_datalist).reshape((self._ncol,))  # assumes position data from two birds
+            data[:] = data[self._reindex[:self._ncol]]  # reorder
             # rotate
             tmp_x = data[::3]
             tmp_y = data[1::3]
@@ -122,6 +123,7 @@ class BlamBirds(BaseInput):
     def _close_device(self):
         """Send the sleep command."""
         self._birds[self._master_index].write(b'G')  # sleep (master only?)
+        time.sleep(1)
         for bird in self._birds:
             bird.close()  # close serial communication
 
