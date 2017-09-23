@@ -17,15 +17,12 @@ if __name__ == '__main__':
 
     win.viewScale = [-1, 1]  # mirror image
 
-    if flock:
-        dev = BlamBirds(multiprocess=True, master='/dev/ttyUSB0',
-                        ports=['/dev/ttyUSB0', '/dev/ttyUSB1'])
-        dev.start()
-    else:
-        dev = event.Mouse()
+
+    device = BlamBirds(multiprocess=True, master='/dev/ttyUSB0',
+                       ports=['/dev/ttyUSB0', '/dev/ttyUSB1'])
 
     core.wait(1)
-    try:
+    with device as dev:
         center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0),
                                autoDraw=True)
 
@@ -51,10 +48,3 @@ if __name__ == '__main__':
             else:
                 pointer.pos = dev.getPos()
             win.flip()
-
-        if flock:
-            dev.stop()
-            dev.close()
-    except KeyboardInterrupt:
-        dev.stop()
-        dev.close()

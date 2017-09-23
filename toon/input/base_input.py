@@ -92,7 +92,7 @@ class BaseInput(object):
             self._poison_pill.value = True
             self._process = None
 
-    def start(self):
+    def __enter__(self):
         """Start reading from the device.
 
         This either starts the device on the main process (`multiprocess=False`),
@@ -150,7 +150,7 @@ class BaseInput(object):
         # no multiprocessing (returns tuple (data, timestamp))
         return self._read()
 
-    def close(self):
+    def __exit__(self, type, value, traceback):
         """End connection with device.
 
         Also calls `stop()` if that has not happened yet.
