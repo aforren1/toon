@@ -110,6 +110,7 @@ class BaseInput(object):
             self._process.start()
         else:  # start device on original processor
             self._init_device()
+        return self
 
     def stop(self):
         """Stop reading from the device.
