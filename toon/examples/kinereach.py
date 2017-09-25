@@ -7,7 +7,7 @@ if __name__ == '__main__':
     from psychopy import core, visual, event, monitors
     from toon.input import BlamBirds, Mouse
 
-    flock=False
+    flock = False
     rotation = True
     mon = monitors.Monitor('tmp')
     mon.setSizePix((1280, 720))
@@ -15,7 +15,6 @@ if __name__ == '__main__':
     win = visual.Window(size=(1280, 720), fullscr=True,
                         screen=1, monitor=mon, units='cm',
                         allowGUI=False)
-
 
     if flock:
         device = BlamBirds(multiprocess=True, master='/dev/ttyUSB0',
@@ -37,7 +36,7 @@ if __name__ == '__main__':
         center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0),
                                autoDraw=True)
 
-        pointer = visual.Circle(win, radius=2.54/2, fillColor='darkmagenta',
+        pointer = visual.Circle(win, radius=2.54 / 2, fillColor='darkmagenta',
                                 pos=(0, 0), autoDraw=True)
 
         baseline = None
