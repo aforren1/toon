@@ -8,7 +8,7 @@ python:
   - 3.6
 install:
   - pip install python-coveralls coverage
-  - pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython
+  - pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/linux/gtk3/ubuntu-16.04 wxPython
   - pip install git+https://github.com/psychopy/psychopy
   - pip install -r requirements.txt
   - pip install -r requirements_test.txt
