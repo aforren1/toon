@@ -1,11 +1,15 @@
 sudo: false
 language: python
-cache: pip
+cache:
+  - apt
+  - pip
 python:
   - 2.7
   - 3.6
 install:
   - pip install python-coveralls coverage
+  - pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/linux/gtk3/ubuntu-16.04 wxPython
+  - pip install git+https://github.com/psychopy/psychopy
   - pip install -r requirements.txt
   - pip install -r requirements_test.txt
 script: nosetests --with-coverage
@@ -19,3 +23,17 @@ addons:
       - libhidapi-dev
       - libudev-dev
       - libusb-1.0-0-dev
+      - dpkg-dev
+      - build-essential
+      - libjpeg-dev
+      - libtiff-dev
+      - libsdl1.2-dev
+      - libgstreamer-plugins-base0.10-dev
+      - libnotify-dev
+      - freeglut3
+      - freeglut3-dev
+      - libsm-dev
+      - libgtk2.0-dev
+      - libwebkitgtk-dev
+      - libgtk-3-dev
+      - libwebkitgtk-3.0-dev

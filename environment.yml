@@ -1,9 +1,8 @@
 name: toon
 
 dependencies:
-  - python=3.6
+  - python=3.5
   - numpy
   - scipy
   - pip:
     - git+https://github.com/psychopy/psychopy
-    - hidapi

@@ -59,7 +59,10 @@ class Hand(BaseInput):
         """HAND-specific initialization.
         """
         self._device = hid.device()
-        self._device.open(0x16c0, 0x486)  # vendor and product IDs
+        for d in hid.enumerate():
+            if d['product_id'] == 1158 and d['usage'] == 512:
+                dev_path = d['path']
+        self._device.open_path(dev_path)
         self._device.set_nonblocking(self.nonblocking)
 
     def _read(self):
@@ -80,7 +83,7 @@ class Hand(BaseInput):
 
     def _stop_device(self):
         """HAND does not need to be stopped."""
-        super(Hand, self)._stop_device()
+        pass
 
     def _close_device(self):
         """Close the HID interface."""

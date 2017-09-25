@@ -89,19 +89,18 @@ class BaseInput(object):
             self._read_buffer = np.full(self.dims, np.nan)
             self._read_time_buffer = np.full((self.dims[0], 1), np.nan)
             self._poison_pill = mp.Value(ctypes.c_bool)
-            self._poison_pill.value = True
+            self._poison_pill.value = False
             self._process = None
 
-    def start(self):
+    def __enter__(self):
         """Start reading from the device.
 
         This either starts the device on the main process (`multiprocess=False`),
         or on a separate process (`multiprocess=True`).
         """
-        self._stopped = False
         self._start_time = self.time.getTime()
         if self.multiprocess:
-            self._poison_pill.value = True
+            self._poison_pill.value = False
             self._process = mp.Process(target=self._mp_worker,
                                        args=(self._shared_mp_buffer,
                                              self._shared_mp_time_buffer,
@@ -110,18 +109,7 @@ class BaseInput(object):
             self._process.start()
         else:  # start device on original processor
             self._init_device()
-
-    def stop(self):
-        """Stop reading from the device.
-
-        In the `multiprocess=True` case, the connection with the device is
-        completely closed. In the other case, the same connection is maintained.
-        """
-        self._stopped = True
-        if self.multiprocess:
-            self._poison_pill.value = False  # also causes remote device to *close*
-        else:
-            self._stop_device()
+        return self
 
     def read(self):
         """Read data from the device.
@@ -150,19 +138,20 @@ class BaseInput(object):
         # no multiprocessing (returns tuple (data, timestamp))
         return self._read()
 
-    def close(self):
+    def __exit__(self, type, value, traceback):
         """End connection with device.
 
-        Also calls `stop()` if that has not happened yet.
+        Calls `_stop_device()` and `_close_device()` or toggles the poison pill.
         """
-        if not self._stopped:
-            self.stop()
-        if not self.multiprocess:
+        if self.multiprocess:
+            self._poison_pill.value = True  # also causes remote device to *close*
+            self._process.join()
+        else:
+            self._stop_device()
             self._close_device()
 
     def clear(self):
         """Removes all pending data from the shared buffer.
-
         """
         if self.multiprocess:
             with self._shared_mp_buffer.get_lock(), self._shared_mp_time_buffer.get_lock():
@@ -184,7 +173,7 @@ class BaseInput(object):
         self.clear()  # purge buffers (in case there's residual stuff from previous run)
         shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
         shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
-        while poison_pill.value:
+        while not poison_pill.value:
             data, timestamp = self._read()
             if data is not None:
                 with shared_mp_buffer.get_lock(), shared_mp_time_buffer.get_lock():
@@ -204,7 +193,7 @@ class BaseInput(object):
         self._close_device()
 
     # The following four functions must be implemented by derived input devices,
-    # though you also probably need an `__init__` too.
+    # along with `__init__()`.
     @abc.abstractmethod
     def _read(self):
         """Core read method, implemented by the subclass.
@@ -217,7 +206,7 @@ class BaseInput(object):
     def _init_device(self):
         """Start talking to the device.
 
-        Called by `start()` or the `_mp_worker()` function.
+        Called by `__enter__()` or the `_mp_worker()` function.
         """
         pass
 
@@ -225,7 +214,7 @@ class BaseInput(object):
     def _stop_device(self):
         """Stop device (without closing).
 
-        Called by `stop()` or the `_mp_worker()` function (which will also call `_close_device()`).
+        Called by `__exit__()` or the `_mp_worker()` function (which will also call `_close_device()`).
         """
         pass
 
@@ -233,6 +222,6 @@ class BaseInput(object):
     def _close_device(self):
         """Disconnect from the device.
 
-        Called by `close()` or the `_mp_worker()`.
+        Called by `__exit__()` or the `_mp_worker()`.
         """
         pass
