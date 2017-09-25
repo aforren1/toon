@@ -56,7 +56,7 @@ class BlamBirds(BaseInput):
         self._master_index = ports.index(master)
         self.data_mode = data_mode
         self._bird_data = np.full(self._ncol, np.nan)  # fill with bird data later
-        self._reindex = (np.array([[0], [1], [2]]) * 3 + np.tile([1, 2, 0], (3, 1))).reshape(9)
+        self._reindex = (np.array([range(len(ports))]).reshape((len(ports), 1)) * 3 + np.tile([1, 2, 0], (len(ports), 1))).reshape(self._ncol)
 
     def _init_device(self):
         """FOB-specific initialization.

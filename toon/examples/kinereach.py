@@ -17,8 +17,8 @@ if __name__ == '__main__':
                         allowGUI=False)
 
     if flock:
-        device = BlamBirds(multiprocess=True, master='/dev/ttyUSB0',
-                           ports=['/dev/ttyUSB0', '/dev/ttyUSB1'])
+        device = BlamBirds(multiprocess=True, master='COM11',
+                           ports=['COM11'])
         win.viewScale = [-1, 1]  # mirror image
     else:
         device = Mouse(win=win)
@@ -49,9 +49,10 @@ if __name__ == '__main__':
             data = dev.read()[0]
             if data is not None:
                 newdata = data[-1, 0:2]
-                newdata2 = newdata
-                newdata[0] = _rotx[0] * newdata2[0] + _rotx[1] * newdata2[1]
-                newdata[1] = _roty[0] * newdata2[0] + _roty[1] * newdata2[1]
+                if rotation:
+                    newdata2 = newdata
+                    newdata[0] = _rotx[0] * newdata2[0] + _rotx[1] * newdata2[1]
+                    newdata[1] = _roty[0] * newdata2[0] + _roty[1] * newdata2[1]
                 print(newdata)
                 pointer.pos = newdata
             win.flip()
