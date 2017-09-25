@@ -11,7 +11,7 @@ if __name__ == '__main__':
     timer = core.monotonicClock
 
     win = visual.Window(size=(1920, 1080),
-                        screen=0,
+                        screen=1,
                         units='height',
                         fullscr=True)
     win.recordFrameIntervals = True
