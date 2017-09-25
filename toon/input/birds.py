@@ -123,7 +123,7 @@ class BlamBirds(BaseInput):
     def _close_device(self):
         """Send the sleep command."""
         for bird in self._birds:
-            bird.write(b'G') # sleep (light should go off
+            bird.write(b'G') # sleep (light should go off)
         for bird in self._birds:
             bird.close()  # close serial communication
 

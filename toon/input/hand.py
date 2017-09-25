@@ -59,7 +59,7 @@ class Hand(BaseInput):
         """HAND-specific initialization.
         """
         self._device = hid.device()
-        self._device.open(0x16c0, 0x486)  # vendor and product IDs
+        self._device.open_path(b'\\\\?\\hid#vid_16c0&pid_0486&mi_00#7&26cc364d&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}')  # vendor and product IDs
         self._device.set_nonblocking(self.nonblocking)
 
     def _read(self):
