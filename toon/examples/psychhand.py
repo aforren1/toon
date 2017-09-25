@@ -19,16 +19,16 @@ if __name__ == '__main__':
     logging.console.setLevel(logging.WARNING)
     # make one circle per axis
     rad = 0.05
-    opacity = 0.5
 
+    opacities = [0.1, 0.1, 0.8, 0.1, 0.1]
     baseline_circles = [visual.Circle(win, fillColor='black',
-                                      opacity=1,
+                                      opacity=opacities[i],
                                       autoDraw=True,
                                       lineWidth=3)
                         for i in range(5)]
     colours = ['#34a853', '#4285f4', '#ed1c24', '#fbbc05', '#a5a0a9']
     controlled_circles = [visual.Circle(win, fillColor=colours[i],
-                                        opacity=opacity,
+                                        opacity=opacities[i],
                                         autoDraw=True,
                                         radius=rad,
                                         lineWidth=3)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         for i in range(5):
             # we want each to start at (0,0) in relative coordinates,
             # and the radius to be 0.05 (just eyeballing)
-            baseline_circles[i].pos = (offset[i], offset[i])
+            baseline_circles[i].pos = (offset[i], 0)
             baseline_circles[i].radius = 0.05
             controlled_circles[i].pos = baseline_circles[i].pos
             controlled_circles[i].radius = 0.05
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                 j = 0
                 for i in range(5):
                     controlled_circles[i].pos = (-newdata[j] / factor + offset[i] + baseline[j]/factor,
-                                                 (newdata[j+1] / factor) - baseline[j+1]/factor + offset[i])
+                                                 (newdata[j+1] / factor) - baseline[j+1]/factor)
                     controlled_circles[i].radius = (1/(20 + 100*(newdata[j+2] - baseline[j+2])/factor))
                     j += 3
 
