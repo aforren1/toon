@@ -8,6 +8,7 @@ if __name__ == '__main__':
     from toon.input import BlamBirds, Mouse
 
     flock=False
+    rotation = True
     mon = monitors.Monitor('tmp')
     mon.setSizePix((1280, 720))
     mon.setWidth(121)
@@ -23,6 +24,14 @@ if __name__ == '__main__':
     else:
         device = Mouse(win=win)
     core.wait(1)
+
+    _rotx = (1, 0)
+    _roty = (0, 1)
+    if rotation:
+        _theta = 30
+        _rad = _theta * np.pi / 180.0
+        _rotx = (np.cos(_rad), np.sin(_rad))
+        _roty = (-np.sin(_rad), np.cos(_rad))
 
     with device as dev:
         center = visual.Circle(win, radius=2, fillColor='green', pos=(0, 0),
@@ -41,6 +50,9 @@ if __name__ == '__main__':
             data = dev.read()[0]
             if data is not None:
                 newdata = data[-1, 0:2]
+                newdata2 = newdata
+                newdata[0] = _rotx[0] * newdata2[0] + _rotx[1] * newdata2[1]
+                newdata[1] = _roty[0] * newdata2[0] + _roty[1] * newdata2[1]
                 print(newdata)
                 pointer.pos = newdata
             win.flip()

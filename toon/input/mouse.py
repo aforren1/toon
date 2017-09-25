@@ -21,7 +21,8 @@ class Mouse(object):
         return self
 
     def read(self):
-        self._array[0][0:2] = self._mouse.getPos()
+        pos = self._mouse.getPos()
+        self._array[0][0:2] = pos
         return self._array, self.time.getTime()
 
     def __exit__(self, type, value, traceback):
