@@ -3,6 +3,12 @@ Temporary mouse class (for compat with our input devices)
 
 Probably not ideal for experiments
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 import numpy as np
 from psychopy import event
 from toon.input.base_input import DummyTime
