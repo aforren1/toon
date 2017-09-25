@@ -80,7 +80,7 @@ class Hand(BaseInput):
 
     def _stop_device(self):
         """HAND does not need to be stopped."""
-        super(Hand, self)._stop_device()
+        pass
 
     def _close_device(self):
         """Close the HID interface."""
