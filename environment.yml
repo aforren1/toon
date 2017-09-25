@@ -6,4 +6,3 @@ dependencies:
   - scipy
   - pip:
     - git+https://github.com/psychopy/psychopy
-    - hidapi
