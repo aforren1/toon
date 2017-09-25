@@ -141,7 +141,7 @@ class BaseInput(object):
     def __exit__(self, type, value, traceback):
         """End connection with device.
 
-        Also calls `stop()` if that has not happened yet.
+        Calls `_stop_device()` and `_close_device()` or toggles the poison pill.
         """
         if self.multiprocess:
             self._poison_pill.value = True  # also causes remote device to *close*
@@ -193,7 +193,7 @@ class BaseInput(object):
         self._close_device()
 
     # The following four functions must be implemented by derived input devices,
-    # though you also probably need an `__init__` too.
+    # along with `__init__()`.
     @abc.abstractmethod
     def _read(self):
         """Core read method, implemented by the subclass.
@@ -206,7 +206,7 @@ class BaseInput(object):
     def _init_device(self):
         """Start talking to the device.
 
-        Called by `start()` or the `_mp_worker()` function.
+        Called by `__enter__()` or the `_mp_worker()` function.
         """
         pass
 
@@ -214,7 +214,7 @@ class BaseInput(object):
     def _stop_device(self):
         """Stop device (without closing).
 
-        Called by `stop()` or the `_mp_worker()` function (which will also call `_close_device()`).
+        Called by `__exit__()` or the `_mp_worker()` function (which will also call `_close_device()`).
         """
         pass
 
@@ -222,6 +222,6 @@ class BaseInput(object):
     def _close_device(self):
         """Disconnect from the device.
 
-        Called by `close()` or the `_mp_worker()`.
+        Called by `__exit__()` or the `_mp_worker()`.
         """
         pass
