@@ -74,6 +74,7 @@ class BlamBirds(BaseInput):
         self.data_mode = data_mode
         self._bird_data = np.full(self._ncol, np.nan)  # fill with bird data later
         lsp = len(sample_ports)
+        # flip around axes ordering (bird [y, z, x] is screen [x, y, z])
         self._reindex = (np.array([range(lsp)]).reshape((lsp, 1)) * 3 + np.tile([1, 2, 0], (lsp, 1))).reshape(self._ncol)
 
     def _init_device(self):
