@@ -1,5 +1,4 @@
 import platform
-from time import time
 import numpy as np
 from toon.input.base_input import BaseInput, DummyTime
 
@@ -10,9 +9,11 @@ if platform.system() is 'Windows':
     from nidaqmx.stream_readers import AnalogMultiChannelReader
     from nidaqmx.utils import flatten_channel_string
     from nidaqmx.errors import DaqError
+
     system = nidaqmx.system.System.local()
 else:
     raise NotImplementedError('NIDAQ only available on Windows.')
+
 
 class ForceTransducers(BaseInput, nidaqmx.Task):
     """1D transducers."""
@@ -52,7 +53,7 @@ class ForceTransducers(BaseInput, nidaqmx.Task):
         return self._small_buffer, timestamp
 
     def _stop_device(self):
-        pass
+        self.stop()
 
     def _close_device(self):
-        nidaqmx.Task.close()
+        self.close()
