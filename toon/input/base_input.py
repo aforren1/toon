@@ -56,7 +56,7 @@ class BaseInput(object):
     def __init__(self,
                  clock_source=DummyTime,
                  multiprocess=False,
-                 dims=(50, 1)):
+                 dims=[50, 1]):
         """Abstract Base Class for :mod:`multiprocessing`-empowered input devices.
 
         Kwargs:

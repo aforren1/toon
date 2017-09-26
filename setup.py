@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
+import platform
 
 here = path.abspath(path.dirname(__file__))
 
@@ -11,6 +12,9 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # get requirements
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     requirements = f.read().splitlines()
+
+if platform.system() is 'Windows':
+    requirements.append('nidaqmx')
 
 setup(
     name='toon',
