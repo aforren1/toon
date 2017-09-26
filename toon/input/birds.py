@@ -34,6 +34,7 @@ class BlamBirds(BaseInput):
                  buffer_rows=10,
                  ports=None,
                  master=None,
+                 sample_ports=None,
                  data_mode='position'):
         """
 
@@ -41,32 +42,39 @@ class BlamBirds(BaseInput):
             clock_source: Class that provides a `getTime` method. Default object calls :fun:`time.time()`.
             multiprocess (bool): Whether multiprocessing is enabled or not.
             buffer_rows (int): Sets the number of rows in the shared array.
-            ports (list of strings): List of ports with birds attached, e.g. ['COM4', 'COM5']
+            ports (list of strings): List of ports with all birds attached, e.g. ['COM4', 'COM5']
             master (string): The master bird.
+            sample_ports (list of strings): List of salient ports (can be reordered).
             data_mode (string): Data format returned by the flock of birds. Currently, only
                                 'position' is allowed.
 
         Notes:
             The data returned represents [x, y, z] elements per bird.
 
+            It seems difficult to talk to alternating birds (from testing), so we send all birds the
+            relevant commands, but subset data later based on `sample_ports`.
+
         Examples:
 
-            >>> birds = BlamBirds(ports=['COM5', 'COM6', 'COM7'], master='COM5')
+            >>> birds = BlamBirds(ports=['COM5', 'COM6', 'COM7'], master='COM5', sample_ports=['COM5', 'COM7'])
         """
 
         if master not in ports:
             raise ValueError('The master must be named amongst the ports.')
         if data_mode not in ['position']:
             raise ValueError('Invalid or unimplemented data mode.')
-        self._ncol = 3 * len(ports)  # assumes only position data
+        self._ncol = 3 * len(sample_ports)  # assumes only position data
         super(BlamBirds, self).__init__(clock_source, multiprocess, (buffer_rows, self._ncol))
         self._birds = None
         self.ports = ports
         self.master = master
+        self._sample_ports = sample_ports
+        self._sample_ports_indices = [ports.index(sp) for sp in sample_ports]
         self._master_index = ports.index(master)
         self.data_mode = data_mode
         self._bird_data = np.full(self._ncol, np.nan)  # fill with bird data later
-        self._reindex = (np.array([range(len(ports))]).reshape((len(ports), 1)) * 3 + np.tile([1, 2, 0], (len(ports), 1))).reshape(self._ncol)
+        lsp = len(sample_ports)
+        self._reindex = (np.array([range(lsp)]).reshape((lsp, 1)) * 3 + np.tile([1, 2, 0], (lsp, 1))).reshape(self._ncol)
 
     def _init_device(self):
         """FOB-specific initialization.
@@ -83,9 +91,9 @@ class BlamBirds(BaseInput):
 
         # init master
         # fbb auto config
-        time.sleep(1.5)
+        time.sleep(1)
         self._birds[self._master_index].write(('P' + chr(0x32) + chr(len(self.ports))).encode('UTF-8'))
-        time.sleep(1.5)
+        time.sleep(1)
         # set sampling frequency (130)
         self._birds[self._master_index].write(b'P' + b'\x07' + struct.pack('<H', int(130 * 256)))
 
@@ -104,8 +112,8 @@ class BlamBirds(BaseInput):
         """FOB-specific read function."""
         timestamp = self.time.getTime()
         _datalist = list()
-        for bird in self._birds:
-            _datalist.append(bird.read(6))  # assumes position data
+        for bird in self._sample_ports_indices:
+            _datalist.append(self._birds[bird].read(6))  # assumes position data
         # don't convert if data not there
         if not any(b'' == s for s in _datalist):
             _datalist = [self.decode(msg) for msg in _datalist]
