@@ -82,6 +82,7 @@ class BaseInput(object):
         self._start_time = None
         self.dims = dims
         self._stopped = False
+        self.name = type(self).__name__
 
         if multiprocess:
             self._shared_mp_buffer = mp.Array(ctypes.c_double, int(np.prod(self.dims)))

@@ -18,7 +18,7 @@ if platform.system() is 'Windows':
 
 setup(
     name='toon',
-    version='0.2.0',
+    version='0.3.0',
     description='Tools for neuroscience experiments',
     long_description=long_description,
     url='https://github.com/aforren1/toon',

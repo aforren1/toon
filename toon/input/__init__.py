@@ -13,3 +13,4 @@ from .hand import Hand
 from .birds import BlamBirds
 from .mouse import Mouse
 from .keyboard import Keyboard
+from .force_transducers import ForceTransducers

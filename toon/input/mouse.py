@@ -21,6 +21,7 @@ class Mouse(object):
         self.win = win
         self._mouse = event.Mouse(win=win)
         self._array = np.array([[3.0,2.1]])
+        self.name = type(self).__name__
 
     def __enter__(self):
         self._start_time = self.time.getTime()

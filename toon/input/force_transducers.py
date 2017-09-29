@@ -27,7 +27,7 @@ class ForceTransducers(BaseInput):
                            multiprocess=multiprocess,
                            dims=dims)
 
-        self._device_name = system.devices[0].name  # figure out programmatically, e.g. system[0]?
+        self._device_name = system.devices[0].name  # Assume the first NIDAQ-mx device is the one we want
         self._channels = [self._device_name + '/ai' + str(n) for n in
                           [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
         self._small_buffer = np.full(dims[1], np.nan)

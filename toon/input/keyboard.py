@@ -16,6 +16,7 @@ class Keyboard(object):
         self._keys = keys
         self._buffer = np.full(self._lenkeys, 0)
         self._outbuffer = np.full(self._lenkeys, 0)
+        self.name = type(self).__name__
 
     def __enter__(self):
         self._start_time = self.time.getTime()
