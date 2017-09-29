@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from platform import system
 
 from future import standard_library
 standard_library.install_aliases()
@@ -13,4 +14,5 @@ from .hand import Hand
 from .birds import BlamBirds
 from .mouse import Mouse
 from .keyboard import Keyboard
-from .force_transducers import ForceTransducers
+if system() is 'Windows':
+    from .force_transducers import ForceTransducers
