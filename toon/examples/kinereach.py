@@ -1,3 +1,9 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 from multiprocessing import set_start_method, freeze_support
 
 if __name__ == '__main__':
@@ -18,7 +24,8 @@ if __name__ == '__main__':
 
     if flock:
         device = BlamBirds(multiprocess=True, master='COM11',
-                           ports=['COM11'])
+                           ports=['COM10', 'COM11', 'COM12', 'COM13'],
+                           sample_ports=['COM10', 'COM12'])
         win.viewScale = [-1, 1]  # mirror image
     else:
         device = Mouse(win=win)

@@ -6,7 +6,14 @@
 .. moduleauthor:: Alexander Forrence <aforren1@jhu.edu>
 
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 import abc
 from time import time
 import multiprocessing as mp
@@ -49,7 +56,7 @@ class BaseInput(object):
     def __init__(self,
                  clock_source=DummyTime,
                  multiprocess=False,
-                 dims=(50, 1)):
+                 dims=[50, 1]):
         """Abstract Base Class for :mod:`multiprocessing`-empowered input devices.
 
         Kwargs:
@@ -75,6 +82,7 @@ class BaseInput(object):
         self._start_time = None
         self.dims = dims
         self._stopped = False
+        self.name = type(self).__name__
 
         if multiprocess:
             self._shared_mp_buffer = mp.Array(ctypes.c_double, int(np.prod(self.dims)))
@@ -144,7 +152,8 @@ class BaseInput(object):
         Calls `_stop_device()` and `_close_device()` or toggles the poison pill.
         """
         if self.multiprocess:
-            self._poison_pill.value = True  # also causes remote device to *close*
+            with self._poison_pill.get_lock():
+                self._poison_pill.value = True  # also causes remote device to *close*
             self._process.join()
         else:
             self._stop_device()
@@ -173,7 +182,10 @@ class BaseInput(object):
         self.clear()  # purge buffers (in case there's residual stuff from previous run)
         shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
         shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
-        while not poison_pill.value:
+        val = False
+        while not val:
+            with poison_pill.get_lock():
+                val = poison_pill.value
             data, timestamp = self._read()
             if data is not None:
                 with shared_mp_buffer.get_lock(), shared_mp_time_buffer.get_lock():
