@@ -151,7 +151,8 @@ class BaseInput(object):
         Calls `_stop_device()` and `_close_device()` or toggles the poison pill.
         """
         if self.multiprocess:
-            self._poison_pill.value = True  # also causes remote device to *close*
+            with self._poison_pill.get_lock():
+                self._poison_pill.value = True  # also causes remote device to *close*
             self._process.join()
         else:
             self._stop_device()
@@ -180,7 +181,10 @@ class BaseInput(object):
         self.clear()  # purge buffers (in case there's residual stuff from previous run)
         shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
         shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
-        while not poison_pill.value:
+        val = False
+        while not val:
+            with poison_pill.get_lock():
+                val = poison_pill.value
             data, timestamp = self._read()
             if data is not None:
                 with shared_mp_buffer.get_lock(), shared_mp_time_buffer.get_lock():
