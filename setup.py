@@ -13,9 +13,6 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
-if platform.system() is 'Windows':
-    requirements.append('nidaqmx')
-
 setup(
     name='toon',
     version='0.3.0',
