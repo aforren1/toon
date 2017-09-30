@@ -10,7 +10,7 @@ class Keyboard(BaseInput):
         if keys is None:
             raise ValueError('`keys` must be a list of keys of interest.')
 
-        BaseInput.__init__(self, clock_source, multiprocess, (10, len(keys)))
+        BaseInput.__init__(self, clock_source, multiprocess, (nrow, len(keys)))
         self._lenkeys = len(keys)
         self._keys = keys
         self._buffer = np.full(self._lenkeys, 0)
