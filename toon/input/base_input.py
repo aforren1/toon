@@ -15,7 +15,7 @@ from builtins import int
 from future import standard_library
 standard_library.install_aliases()
 import abc
-from time import time
+from time import time, sleep
 import multiprocessing as mp
 import ctypes
 import numpy as np
@@ -99,6 +99,7 @@ class BaseInput(object):
             self._poison_pill = mp.Value(ctypes.c_bool)
             self._poison_pill.value = False
             self._process = None
+            self._sampling_period = 0
 
     def __enter__(self):
         """Start reading from the device.
@@ -184,6 +185,7 @@ class BaseInput(object):
         shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
         val = False
         while not val:
+            t0 = self.time.getTime()
             with poison_pill.get_lock():
                 val = poison_pill.value
             data, timestamp = self._read()
@@ -201,6 +203,9 @@ class BaseInput(object):
                         shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
                         shared_np_buffer[-1, :] = data
                         shared_np_time_buffer[-1, 0] = timestamp
+                # for some devices, they always have info available; rate-limit via _sampling_period
+                while (self.time.getTime() - t0) <= self._sampling_period:
+                    pass
         self._stop_device()
         self._close_device()
 
