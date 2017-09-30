@@ -1,36 +1,37 @@
-"""
-Temporary mouse class (for compat with our input devices)
-
-Probably not ideal for experiments
-"""
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
 import numpy as np
-from psychopy import event
-from toon.input.base_input import DummyTime
+from toon.input.base_input import BaseInput, DummyTime
 
-class Mouse(object):
-    def __init__(self, clock_source=DummyTime,
-                 multiprocess=False, win=None):
-        self.time = clock_source
-        self.multiprocess = multiprocess
+class Mouse(BaseInput):
+    def __init__(self,
+                 clock_source=DummyTime,
+                 multiprocess=True,
+                 nrow=10,
+                 win=None):
+        BaseInput.__init__(self, clock_source, multiprocess, (nrow, 2))
+        self._buffer = np.full(2, np.nan)
+        self._sampling_period = 0.01
         self.win = win
-        self._mouse = event.Mouse(win=win)
-        self._array = np.array([[3.0,2.1]])
-        self.name = type(self).__name__
 
-    def __enter__(self):
-        self._start_time = self.time.getTime()
-        return self
+    def _init_device(self):
+        import mouse
+        self._device = mouse
 
-    def read(self):
-        pos = self._mouse.getPos()
-        self._array[0][0:2] = pos
-        return self._array, self.time.getTime()
+    def _read(self):
+        """Conversions from psychopy"""
+        timestamp = self.time.getTime()
+        self._buffer[:] = self._device.get_position()
+        if self.win is not None:
+            if self.win.units == 'pix':
+                pass
+            elif self.win.units == 'norm':
+                self._buffer *= 2.0 / self.win.size
+            elif self.win.units == 'cm':
+                self._buffer *= self.win.getWidth() / self.win.getSizePix()[0]
+            elif self.win.units == 'height':
+                self._buffer /= float(self.win.size[1])
+        return self._buffer, timestamp
 
-    def __exit__(self, type, value, traceback):
+    def _stop_device(self):
+        pass
+    def _close_device(self):
         pass

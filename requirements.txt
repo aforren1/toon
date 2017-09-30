@@ -1,4 +1,7 @@
+future
 numpy
 hidapi
 pyserial
 keyboard
+mouse
+nidaqmx; platform_system == "Windows"
