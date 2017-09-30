@@ -20,7 +20,6 @@ Upload/release:
 (via Travis)
 2. `git tag -a <version> -m <message>`
 3. `git push github <version>`
-4. `git push github master`
 
 Local (from project root):
 
