@@ -10,7 +10,13 @@ class Mouse(BaseInput):
         BaseInput.__init__(self, clock_source, multiprocess, (nrow, 2))
         self._buffer = np.full(2, np.nan)
         self._sampling_period = 0.01
-        self.win = win
+        self.win = False
+        if win is not None:
+            self.win = True
+            self.winunits = win.units
+            self.winsize = win.size
+            self.winwidth = win.monitor.getWidth()
+            self.winsizepix = win.monitor.getSizePix()[0]
 
     def _init_device(self):
         import mouse
@@ -20,15 +26,17 @@ class Mouse(BaseInput):
         """Conversions from psychopy"""
         timestamp = self.time.getTime()
         self._buffer[:] = self._device.get_position()
-        if self.win is not None:
-            if self.win.units == 'pix':
+        if self.win:
+            self._buffer -= (self.winsize / 2)
+            self._buffer[1] *= -1
+            if self.winunits == 'pix':
                 pass
-            elif self.win.units == 'norm':
-                self._buffer *= 2.0 / self.win.size
-            elif self.win.units == 'cm':
-                self._buffer *= self.win.getWidth() / self.win.getSizePix()[0]
-            elif self.win.units == 'height':
-                self._buffer /= float(self.win.size[1])
+            elif self.winunits == 'norm':
+                self._buffer *= 2.0 / self.winsize
+            elif self.winunits == 'cm':
+                self._buffer *= self.winwidth / self.winsizepix
+            elif self.winunits == 'height':
+                self._buffer /= float(self.winsize[1])
         return self._buffer, timestamp
 
     def _stop_device(self):

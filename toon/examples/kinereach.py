@@ -28,7 +28,7 @@ if __name__ == '__main__':
                            sample_ports=['COM10', 'COM12'])
         win.viewScale = [-1, 1]  # mirror image
     else:
-        device = Mouse(win=win)
+        device = Mouse(win=win, multiprocess=True)
     core.wait(1)
 
     _rotx = (1, 0)
@@ -46,6 +46,9 @@ if __name__ == '__main__':
         pointer = visual.Circle(win, radius=2.54 / 2, fillColor='darkmagenta',
                                 pos=(0, 0), autoDraw=True)
 
+        pointer_actual = visual.Circle(win, radius=2.54 / 2, fillColor='magenta',
+                                       pos=(0, 0), autoDraw=True, opacity=0.6)
+
         baseline = None
         while baseline is None:
             baseline = dev.read()[0]
@@ -56,6 +59,7 @@ if __name__ == '__main__':
             data = dev.read()[0]
             if data is not None:
                 newdata = data[-1, 0:2]
+                pointer_actual.pos = newdata
                 if rotation:
                     newdata2 = newdata
                     newdata[0] = _rotx[0] * newdata2[0] + _rotx[1] * newdata2[1]
