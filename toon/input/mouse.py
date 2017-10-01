@@ -26,9 +26,9 @@ class Mouse(BaseInput):
         """Conversions from psychopy"""
         timestamp = self.time.getTime()
         self._buffer[:] = self._device.get_position()
-        self._buffer -= (self.winsize / 2)
-        self._buffer[1] *= -1
         if self.win:
+            self._buffer -= (self.winsize / 2)
+            self._buffer[1] *= -1
             if self.winunits == 'pix':
                 pass
             elif self.winunits == 'norm':
