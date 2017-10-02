@@ -51,12 +51,12 @@ if __name__ == '__main__':
 
         baseline = None
         while baseline is None:
-            baseline = dev.read()[0]
+            baseline = dev.read()[1]
         baseline = np.median(baseline, axis=0)[0:2]
         pointer.pos = baseline
 
         while not event.getKeys():
-            data = dev.read()[0]
+            data = dev.read()[1]
             if data is not None:
                 newdata = data[-1, 0:2]
                 pointer_actual.pos = newdata

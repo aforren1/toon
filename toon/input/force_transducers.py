@@ -51,7 +51,7 @@ class ForceTransducers(BaseInput):
             self._reader.read_one_sample(self._small_buffer, timeout=0)
         except DaqError:
             return None, None
-        return self._small_buffer, timestamp
+        return timestamp, self._small_buffer
 
     def _stop_device(self):
         self._device.stop()

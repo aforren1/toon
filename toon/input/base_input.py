@@ -142,8 +142,8 @@ class BaseInput(object):
             self.clear()
             if np.isnan(self._read_buffer).all():
                 return None, None
-            return (self._read_buffer[~np.isnan(self._read_buffer).any(axis=1)],
-                    self._read_time_buffer[~np.isnan(self._read_time_buffer).any(axis=1)])
+            return (self._read_time_buffer[~np.isnan(self._read_time_buffer).any(axis=1)],
+                    self._read_buffer[~np.isnan(self._read_buffer).any(axis=1)])
         # no multiprocessing (returns tuple (data, timestamp))
         return self._read()
 
@@ -188,7 +188,7 @@ class BaseInput(object):
             t0 = self.time.getTime()
             with poison_pill.get_lock():
                 val = poison_pill.value
-            data, timestamp = self._read()
+            timestamp, data = self._read()
             if data is not None:
                 with shared_mp_buffer.get_lock(), shared_mp_time_buffer.get_lock():
                     current_nans = np.isnan(shared_np_buffer).any(axis=1)
@@ -215,7 +215,7 @@ class BaseInput(object):
     def _read(self):
         """Core read method, implemented by the subclass.
         Read a single line (assumes vector is outcome)
-        Return data, timestamp as separate!
+        Return timestamp, data as separate!
         """
         return 0, 0
 

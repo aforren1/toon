@@ -131,7 +131,7 @@ class BlamBirds(BaseInput):
             # second number makes the center of the screen (0, 0)
             data[::3] += 61.35 - 60.5
             data[1::3] += 17.69 - 34.0
-            return data, timestamp
+            return timestamp, data
         return None, None
 
     def _stop_device(self):

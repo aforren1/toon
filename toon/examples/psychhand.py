@@ -50,7 +50,7 @@ if __name__ == '__main__':
         # run the calibration routine)
         baseline = None
         while baseline is None:
-            baseline = dev.read()[0]
+            baseline = dev.read()[1]
         baseline = np.median(baseline, axis=0)
 
         j = 1
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         # hit any key to exit
         while not event.getKeys():
-            data = dev.read()[0]
+            data = dev.read()[1]
             # data returns None if all nans
             if data is not None:
                 # print(data)

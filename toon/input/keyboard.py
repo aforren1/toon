@@ -45,7 +45,7 @@ class Keyboard(BaseInput):
         if self._buffer.any():
             np.copyto(self._outbuffer, self._buffer)
             self._buffer.fill(0)
-            return self._outbuffer, self._temptime
+            return self._temptime, self._outbuffer
         return None, None
 
     def _stop_device(self):
@@ -81,7 +81,7 @@ class DebugKeyboard(BaseInput):
 
 
     def _read(self):
-        return self._buffer, self.time.getTime()
+        return self.time.getTime(), self._buffer
 
     def _stop_device(self):
         self._device.clear_all_hotkeys()

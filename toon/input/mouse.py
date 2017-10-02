@@ -41,7 +41,7 @@ class Mouse(BaseInput):
                     self._outbuffer *= self.winwidth / self.winsizepix
                 elif self.winunits == 'height':
                     self._outbuffer /= float(self.winsize[1])
-            return self._outbuffer, self._temptime
+            return self._temptime, self._outbuffer
         return None, None
 
     def _stop_device(self):
@@ -92,7 +92,7 @@ class DebugMouse(BaseInput):
                 self._buffer *= self.winwidth / self.winsizepix
             elif self.winunits == 'height':
                 self._buffer /= float(self.winsize[1])
-        return self._buffer, timestamp
+        return timestamp, self._buffer
 
     def _stop_device(self):
         pass
