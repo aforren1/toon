@@ -36,9 +36,9 @@ class Mouse(BaseInput):
                 if self.winunits == 'pix':
                     pass
                 elif self.winunits == 'norm':
-                    self._outbuffer *= 2.0 / self.winsize
+                    self._outbuffer = self._outbuffer * 2.0 / self.winsize
                 elif self.winunits == 'cm':
-                    self._outbuffer *= self.winwidth / self.winsizepix
+                    self._outbuffer = self._outbuffer * float(self.winwidth) / self.winsizepix
                 elif self.winunits == 'height':
                     self._outbuffer /= float(self.winsize[1])
             return self._temptime, self._outbuffer
