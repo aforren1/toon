@@ -5,17 +5,20 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from multiprocessing import set_start_method, freeze_support
-from psychopy import event
+import os
+is_travis = 'TRAVIS' in os.environ
+if is_travis:
+    from psychopy import event
 
-class MouseWrapper(object):
-    def __init__(self):
-        self.mouse = event.Mouse(visible=True)
-    def __enter__(self):
-        return self
-    def __exit__(self, type, value, traceback):
-        pass
-    def read(self):
-        return self.mouse.getPos()
+    class MouseWrapper(object):
+        def __init__(self):
+            self.mouse = event.Mouse(visible=True)
+        def __enter__(self):
+            return self
+        def __exit__(self, type, value, traceback):
+            pass
+        def read(self):
+            return self.mouse.getPos()
 
 if __name__ == '__main__':
     set_start_method('spawn')
