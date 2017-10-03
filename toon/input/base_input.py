@@ -120,6 +120,7 @@ class BaseInput(object):
             self._process.start()
         else:  # start device on original processor
             self._init_device()
+            self._isstarted = True
         return self
 
     def read(self):
@@ -159,8 +160,9 @@ class BaseInput(object):
                 self._poison_pill.value = True  # also causes remote device to *close*
             self._process.join()
         else:
-            self._stop_device()
-            self._close_device()
+            if self._is_started:
+                self._stop_device()
+                self._close_device()
 
     def clear(self):
         """Removes all pending data from the shared buffer.
@@ -183,6 +185,7 @@ class BaseInput(object):
         """
         try:
             self._init_device()
+            self._is_started = True
             self.clear()  # purge buffers (in case there's residual stuff from previous run)
             shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
             shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
@@ -213,8 +216,9 @@ class BaseInput(object):
             self._close_device()
         # catch everything and try to close the device
         except (Exception, KeyboardInterrupt, SystemExit):
-            self._stop_device()
-            self._close_device()
+            if self._is_started:
+                self._stop_device()
+                self._close_device()
 
     # The following four functions must be implemented by derived input devices,
     # along with `__init__()`.
