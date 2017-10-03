@@ -5,13 +5,24 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from multiprocessing import set_start_method, freeze_support
+from psychopy import event
+
+class MouseWrapper(object):
+    def __init__(self):
+        self.mouse = event.Mouse(visible=True)
+    def __enter__(self):
+        return self
+    def __exit__(self, type, value, traceback):
+        pass
+    def read(self):
+        return self.mouse.getPos()
 
 if __name__ == '__main__':
     set_start_method('spawn')
     freeze_support()
     import numpy as np
-    from psychopy import core, visual, event, monitors
-    from toon.input import BlamBirds, Mouse
+    from psychopy import core, visual,  monitors
+    from toon.input import BlamBirds
 
     flock = False
     rotation = True
@@ -28,7 +39,7 @@ if __name__ == '__main__':
                            sample_ports=['COM10', 'COM12'])
         win.viewScale = [-1, 1]  # mirror image
     else:
-        device = Mouse(win=win, multiprocess=True)
+        device = MouseWrapper()
     core.wait(1)
 
     _rotx = (1, 0)
@@ -49,21 +60,28 @@ if __name__ == '__main__':
         pointer_actual = visual.Circle(win, radius=2.54 / 2, fillColor='magenta',
                                        pos=(0, 0), autoDraw=True, opacity=0.6)
 
-        baseline = None
-        while baseline is None:
-            baseline = dev.read()[1]
-        baseline = np.median(baseline, axis=0)[0:2]
-        pointer.pos = baseline
+        if flock:
+            baseline = None
+            while baseline is None:
+                baseline = dev.read()[1]
+            baseline = np.median(baseline, axis=0)[0:2]
+            pointer.pos = baseline
+        else:
+            baseline = dev.read()
 
         while not event.getKeys():
-            data = dev.read()[1]
+            if flock:
+                data = dev.read()[1]
+                if data is not None:
+                    data = data[-1, 0:2]
+            else:
+                data = device.read()
             if data is not None:
-                newdata = data[-1, 0:2]
-                pointer_actual.pos = newdata
+                pointer_actual.pos = data
                 if rotation:
-                    newdata2 = newdata
-                    newdata[0] = _rotx[0] * newdata2[0] + _rotx[1] * newdata2[1]
-                    newdata[1] = _roty[0] * newdata2[0] + _roty[1] * newdata2[1]
-                print(newdata)
-                pointer.pos = newdata
+                    data2 = data
+                    data[0] = _rotx[0] * data2[0] + _rotx[1] * data2[1]
+                    data[1] = _roty[0] * data2[0] + _roty[1] * data2[1]
+                print(data)
+                pointer.pos = data
             win.flip()
