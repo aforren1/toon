@@ -28,7 +28,7 @@ if __name__=='__main__':
     elif device == 'hand':
         dev = Hand(multiprocess=mp, clock_source=timer)
     elif device == 'birds':
-        dev = BlamBirds(multiprocess=mp, ports=['COM11', 'COM12', 'COM13', 'COM14'],
+        dev = BlamBirds(multiprocess=mp, ports=['COM11', 'COM12', 'COM13', 'COM10'],
                         master='COM11', sample_ports=['COM11', 'COM13'],
                         clock_source=timer)
     elif device == 'dbkeyboard':
@@ -47,7 +47,7 @@ if __name__=='__main__':
             timestamp, data = d.read()
             if data is not None:
                 print(timestamp - t0)
-                #print(data)
+                print(data)
             sleep(0.016)
 
     sys.exit()

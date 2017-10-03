@@ -82,6 +82,7 @@ class BaseInput(object):
         self._start_time = None
         self._stopped = False
         self.name = type(self).__name__
+        self._is_started = False
 
         if multiprocess:
             if dims is None:

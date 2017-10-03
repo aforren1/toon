@@ -28,6 +28,13 @@ class BlamBirds(BaseInput):
     """Minimalistic Flock of Birds implementation.
 
     This uses the settings recommended by Ascension to achieve "snappy" settings.
+
+    To find proper ports, try:
+
+    from serial.tools import list_ports
+    for i in list_ports.comports():
+        print((i.hwid, i.device))
+
     """
     def __init__(self, clock_source=DummyTime(),
                  multiprocess=False,
@@ -91,6 +98,12 @@ class BlamBirds(BaseInput):
             bird.setRTS(0)
 
         # init master
+        # figure out if the device is on
+        self._birds[self._master_index].write(('O' + chr(0x24)).encode('UTF-8'))
+        time.sleep(0.4)
+        data = self._birds[self._master_index].read(14)
+        if data == b'':
+            raise ValueError('Make sure birds are in "fly" mode.')
         # fbb auto config
         time.sleep(1)
         self._birds[self._master_index].write(('P' + chr(0x32) + chr(len(self.ports))).encode('UTF-8'))
