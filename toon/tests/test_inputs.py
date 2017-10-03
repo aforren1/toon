@@ -10,7 +10,7 @@ import os
 not_travis = 'TRAVIS' not in os.environ
 if not_travis:
     from psychopy import core
-    
+
 np.set_printoptions(precision=4, suppress=True)
 
 if __name__=='__main__':
