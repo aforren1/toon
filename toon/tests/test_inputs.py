@@ -1,12 +1,16 @@
 from time import sleep
 import sys
 from platform import system
-from toon.input import Keyboard, Hand, BlamBirds, DebugKeyboard
-from psychopy import core
+from toon.input import Keyboard, Hand, BlamBirds, DebugKeyboard, DummyTime
 import numpy as np
 if system() is 'Windows':
     from toon.input import ForceTransducers
 
+import os
+not_travis = 'TRAVIS' not in os.environ
+if not_travis:
+    from psychopy import core
+    
 np.set_printoptions(precision=4, suppress=True)
 
 if __name__=='__main__':
@@ -14,7 +18,10 @@ if __name__=='__main__':
     device = str(sys.argv[1])
     mp = bool(sys.argv[2])
 
-    timer = core.monotonicClock
+    if not_travis:
+        timer = core.monotonicClock
+    else:
+        timer = DummyTime()
 
     if device == 'keyboard':
         dev = Keyboard(multiprocess=mp, keys=['a', 's', 'd', 'f'], clock_source=timer)
