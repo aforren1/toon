@@ -56,7 +56,7 @@ class BaseInput(object):
     def __init__(self,
                  clock_source=DummyTime,
                  multiprocess=False,
-                 dims=[50, 1]):
+                 dims=None):
         """Abstract Base Class for :mod:`multiprocessing`-empowered input devices.
 
         Kwargs:
@@ -80,11 +80,13 @@ class BaseInput(object):
         self.time = clock_source
         self.multiprocess = multiprocess
         self._start_time = None
-        self.dims = dims
         self._stopped = False
         self.name = type(self).__name__
 
         if multiprocess:
+            if dims is None:
+                raise ValueError('Must provide dimensions for the shared array in multiprocessing mode.')
+            self.dims = dims
             self._shared_mp_buffer = mp.Array(ctypes.c_double, int(np.prod(self.dims)))
             self._shared_np_buffer = shared_to_numpy(self._shared_mp_buffer, self.dims)
             self._shared_np_buffer.fill(np.nan)
