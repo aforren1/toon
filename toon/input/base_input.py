@@ -179,35 +179,40 @@ class BaseInput(object):
             when using multiprocessing, or understand that you may not get
             sensible results.
         """
-        self._init_device()
-        self.clear()  # purge buffers (in case there's residual stuff from previous run)
-        shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
-        shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
-        val = False
-        while not val:
-            t0 = self.time.getTime()
-            with poison_pill.get_lock():
-                val = poison_pill.value
-            timestamp, data = self._read()
-            if data is not None:
-                with shared_mp_buffer.get_lock(), shared_mp_time_buffer.get_lock():
-                    current_nans = np.isnan(shared_np_buffer).any(axis=1)
-                    if current_nans.any():
-                        # fill in the next nan row
-                        next_index = np.where(current_nans)[0][0]
-                        shared_np_buffer[next_index, :] = data
-                        shared_np_time_buffer[next_index, 0] = timestamp
-                    else:
-                        # replace the oldest data in the buffer with new data
-                        shared_np_buffer[:] = np.roll(shared_np_buffer, -1, axis=0)
-                        shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
-                        shared_np_buffer[-1, :] = data
-                        shared_np_time_buffer[-1, 0] = timestamp
-                # for some devices, they always have info available; rate-limit via _sampling_period
-                while (self.time.getTime() - t0) <= self._sampling_period:
-                    pass
-        self._stop_device()
-        self._close_device()
+        try:
+            self._init_device()
+            self.clear()  # purge buffers (in case there's residual stuff from previous run)
+            shared_np_buffer = shared_to_numpy(shared_mp_buffer, self.dims)
+            shared_np_time_buffer = shared_to_numpy(shared_mp_time_buffer, (self.dims[0], 1))
+            val = False
+            while not val:
+                t0 = self.time.getTime()
+                with poison_pill.get_lock():
+                    val = poison_pill.value
+                timestamp, data = self._read()
+                if data is not None:
+                    with shared_mp_buffer.get_lock(), shared_mp_time_buffer.get_lock():
+                        current_nans = np.isnan(shared_np_buffer).any(axis=1)
+                        if current_nans.any():
+                            # fill in the next nan row
+                            next_index = np.where(current_nans)[0][0]
+                            shared_np_buffer[next_index, :] = data
+                            shared_np_time_buffer[next_index, 0] = timestamp
+                        else:
+                            # replace the oldest data in the buffer with new data
+                            shared_np_buffer[:] = np.roll(shared_np_buffer, -1, axis=0)
+                            shared_np_time_buffer[:] = np.roll(shared_np_time_buffer, -1, axis=0)
+                            shared_np_buffer[-1, :] = data
+                            shared_np_time_buffer[-1, 0] = timestamp
+                    # for some devices, they always have info available; rate-limit via _sampling_period
+                    while (self.time.getTime() - t0) <= self._sampling_period:
+                        pass
+            self._stop_device()
+            self._close_device()
+        # catch everything and try to close the device
+        except (Exception, KeyboardInterrupt, SystemExit):
+            self._stop_device()
+            self._close_device()
 
     # The following four functions must be implemented by derived input devices,
     # along with `__init__()`.
