@@ -6,8 +6,8 @@ from future import standard_library
 standard_library.install_aliases()
 from multiprocessing import set_start_method, freeze_support
 import os
-is_travis = 'TRAVIS' in os.environ
-if is_travis:
+not_travis = 'TRAVIS' not in os.environ
+if not_travis:
     from psychopy import event
 
     class MouseWrapper(object):
