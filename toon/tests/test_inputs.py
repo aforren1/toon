@@ -1,8 +1,11 @@
 from time import sleep
 import sys
-from toon.input import Keyboard, Hand, BlamBirds, DebugKeyboard, ForceTransducers
+from platform import system
+from toon.input import Keyboard, Hand, BlamBirds, DebugKeyboard
 from psychopy import core
 import numpy as np
+if system() is 'Windows':
+    from toon.input import ForceTransducers
 
 np.set_printoptions(precision=4, suppress=True)
 
