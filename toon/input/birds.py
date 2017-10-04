@@ -99,7 +99,7 @@ class BlamBirds(BaseInput):
                                      bytesize=serial.EIGHTBITS,
                                      xonxoff=0,
                                      rtscts=0,
-                                     timeout=0.001)
+                                     timeout=0)
                        for port in self.ports]
         for bird in self._birds:
             bird.setRTS(0)

@@ -5,10 +5,6 @@ import platform
 
 here = path.abspath(path.dirname(__file__))
 
-# Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
-
 # get requirements
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     requirements = f.read().splitlines()
@@ -17,7 +13,6 @@ setup(
     name='toon',
     version='0.4.0',
     description='Tools for neuroscience experiments',
-    long_description=long_description,
     url='https://github.com/aforren1/toon',
     author='Alexander Forrence',
     author_email='aforren1@jhu.edu',
