@@ -8,7 +8,7 @@ from toon.input import DummyTime, Hand, BlamBirds, Keyboard, DebugKeyboard
 class TestInputs(TestCase):
     def test_time(self):
         dt = DummyTime()
-        self.assertIs(dt, float)
+        self.assertIs(dt.getTime(), float)
 
     def test_hand(self):
         dev = Hand()
