@@ -19,7 +19,7 @@ Description
 Additional tools for neuroscience experiments, including:
 
 * A framework for polling input devices on a separate process.
-    * Several devices have been implemented (see below).
+    - Several devices have been implemented (see below).
 * Helper functions for generating auditory stimuli (read: beeps).
 * Coordinate tools (slightly modified from :code:`psychopy.tools.coordinatetools`), which additionally allow for calculations relative to points other than the origin.
 
@@ -63,11 +63,11 @@ Input
 
 Input devices include:
 
- - HAND (custom force measurement device) by class `Hand`
- - Flock of Birds (position tracker) by class `BlamBirds`
- - Keyboard (for changes in keyboard state, more accurate timing) via `Keyboard`
- - DebugKeyboard (for current keyboard state, constant error of up to 9 ms?) via `DebugKeyboard`
- - Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only.)
+- HAND (custom force measurement device) by class `Hand`
+- Flock of Birds (position tracker) by class `BlamBirds`
+- Keyboard (for changes in keyboard state, more accurate timing) via `Keyboard`
+- DebugKeyboard (for current keyboard state, constant error of up to 9 ms?) via `DebugKeyboard`
+- Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only.)
 
 Generally, input devices can be used as follows::
 
@@ -91,10 +91,11 @@ Tools
 ~~~~
 
 Current tools:
- - cart2pol
- - pol2cart
- - cart2sph
- - sph2cart
+
+- cart2pol
+- pol2cart
+- cart2sph
+- sph2cart
 
 For example,::
 
