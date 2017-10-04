@@ -1,5 +1,7 @@
 from time import sleep
 import sys
+from distutils import util
+import argparse
 from platform import system
 from toon.input import Keyboard, Hand, BlamBirds, DebugKeyboard, DummyTime
 import numpy as np
@@ -7,7 +9,7 @@ if system() is 'Windows':
     from toon.input import ForceTransducers
 
 # Call via
-# python -m toon.tests.test_inputs keyboard True
+# python -m toon.tests.test_inputs --dev keyboard --mp True
 import os
 not_travis = 'TRAVIS' not in os.environ
 if not_travis:
@@ -17,10 +19,16 @@ np.set_printoptions(precision=4, suppress=True)
 
 if __name__=='__main__':
 
-    device = str(sys.argv[1])
-    mp = eval(sys.argv[2])
-    assert isinstance(mp, bool)
-    
+    parser = argparse.ArgumentParser(description="My parser")
+    parser.add_argument('--dev',
+                        dest='dev')
+    parser.add_argument('--mp',
+                        dest='mp',
+                        type=lambda x: bool(util.strtobool(x)))
+    results = parser.parse_args()
+
+    mp = results.mp
+    device = results.dev
     if not_travis:
         timer = core.monotonicClock
     else:
