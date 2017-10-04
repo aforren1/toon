@@ -19,7 +19,6 @@ Description
 Additional tools for neuroscience experiments, including:
 
 * A framework for polling input devices on a separate process.
-    - Several devices have been implemented (see below).
 * Helper functions for generating auditory stimuli (read: beeps).
 * Coordinate tools (slightly modified from :code:`psychopy.tools.coordinatetools`), which additionally allow for calculations relative to points other than the origin.
 
