@@ -25,33 +25,58 @@ Three modules so far: audio, input, and tools.
 ## Audio
 
 ```python
+import numpy as np
 import toon.audio as ta
 from psychopy import sound
 
 beeps = ta.beep_sequence([440, 880, 1220], inter_click_interval=0.4)
-beep_aud = sound.Sound(beeps, blockSize=32, hamming=False)
+beep_aud = sound.Sound(np.transpose(np.vstack((beeps, beeps))), 
+                       blockSize=32, 
+                       hamming=False)
 beep_aud.play()
 ```
 
 ## Input
 
-Flock of Birds:
+Input devices include:
+ - HAND (custom force measurement device) by class `Hand`
+ - Flock of Birds (position tracker) by class `BlamBirds`
+ - Keyboard (for changes in keyboard state, more accurate timing) via `Keyboard`
+ - DebugKeyboard (for current keyboard state, constant error of up to 9 ms?) via `DebugKeyboard`
+ - Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only.)
+ 
+Generally, input devices can be used as follows:
 
 ```python
-import time
-from toon.input import BlamBirds
+from psychopy import core
+from toon.input import <device>
 
-dev = BlamBirds(multiprocess=True)
-dev.start()
+timer = core.monotonicClock
 
-for ii in range(50):
-    print(dev.read())
-    time.sleep(0.166)
+dev = <device>(multiprocess=True, clock_source=timer, <device-specific args>)
 
-dev.close()
+with dev as d:
+    while not done:
+        timestamp, data = d.read()
+        ...
+
+```
+
+You can perform a sanity check for existing devices via:
+
+```shell
+python -m toon.examples.test_inputs --dev <device> --mp True
 ```
 
 ## Tools
+
+Current tools:
+ - cart2pol
+ - pol2cart
+ - cart2sph
+ - sph2cart
+
+For example:
 
 ```python
 import toon.tools as tt
@@ -65,4 +90,10 @@ If you have psychopy and the HAND, you can run an example via:
 
 ```python
 python -m toon.examples.psychhand
+```
+
+If you're hooked up to the kinereach (also works with a mouse), try:
+
+```python
+python -m toon.examples.kinereach
 ```
