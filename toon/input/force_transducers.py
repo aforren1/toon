@@ -5,9 +5,8 @@ from toon.input.base_input import BaseInput, DummyTime
 if platform.system() is 'Windows':
     import nidaqmx
     import nidaqmx.system
-    from nidaqmx.constants import AcquisitionType
+    from nidaqmx.constants import AcquisitionType, TerminalConfiguration
     from nidaqmx.stream_readers import AnalogMultiChannelReader
-    from nidaqmx.utils import flatten_channel_string
     from nidaqmx.errors import DaqError
 
     system = nidaqmx.system.System.local()
@@ -37,8 +36,9 @@ class ForceTransducers(BaseInput):
         self._start_time = self.time.getTime()
 
         self._device.ai_channels.add_ai_voltage_chan(
-            flatten_channel_string(self._channels),
-            max_val=10, min_val=-10
+            ','.join(self._channels),
+            #max_val=10, min_val=-10,
+            terminal_config=TerminalConfiguration.RSE
         )
 
         self._device.timing.cfg_samp_clk_timing(200, sample_mode=AcquisitionType.CONTINUOUS)
@@ -51,7 +51,7 @@ class ForceTransducers(BaseInput):
             self._reader.read_one_sample(self._small_buffer, timeout=0)
         except DaqError:
             return None, None
-        return self._small_buffer, timestamp
+        return timestamp, self._small_buffer
 
     def _stop_device(self):
         self._device.stop()

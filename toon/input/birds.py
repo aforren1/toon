@@ -28,6 +28,13 @@ class BlamBirds(BaseInput):
     """Minimalistic Flock of Birds implementation.
 
     This uses the settings recommended by Ascension to achieve "snappy" settings.
+
+    To find proper ports, try:
+
+    from serial.tools import list_ports
+    for i in list_ports.comports():
+        print((i.hwid, i.device))
+
     """
     def __init__(self, clock_source=DummyTime(),
                  multiprocess=False,
@@ -58,7 +65,14 @@ class BlamBirds(BaseInput):
 
             >>> birds = BlamBirds(ports=['COM5', 'COM6', 'COM7'], master='COM5', sample_ports=['COM5', 'COM7'])
         """
-
+        if not isinstance(ports, list):
+            raise ValueError('`ports` expected to be a list of ports.')
+        if not isinstance(master, str):
+            raise ValueError('`master` must be a single string.')
+        if not isinstance(sample_ports, list):
+            raise ValueError('`sample_ports` must be a list of ports.')
+        if not set(sample_ports).issubset(ports):
+            raise ValueError('`sample_ports` must be a subset of `ports`.')
         if master not in ports:
             raise ValueError('The master must be named amongst the ports.')
         if data_mode not in ['position']:
@@ -91,6 +105,12 @@ class BlamBirds(BaseInput):
             bird.setRTS(0)
 
         # init master
+        # figure out if the device is on
+        self._birds[self._master_index].write(('O' + chr(0x24)).encode('UTF-8'))
+        time.sleep(0.2)
+        data = self._birds[self._master_index].read(14)
+        if data == b'':
+            raise ValueError('Make sure birds are in "fly" mode.')
         # fbb auto config
         time.sleep(1)
         self._birds[self._master_index].write(('P' + chr(0x32) + chr(len(self.ports))).encode('UTF-8'))
@@ -131,7 +151,7 @@ class BlamBirds(BaseInput):
             # second number makes the center of the screen (0, 0)
             data[::3] += 61.35 - 60.5
             data[1::3] += 17.69 - 34.0
-            return data, timestamp
+            return timestamp, data
         return None, None
 
     def _stop_device(self):

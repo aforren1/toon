@@ -4,79 +4,38 @@ from __future__ import division
 from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
-import numpy as np
 from unittest import TestCase
 
 from toon.tools import cart2pol, pol2cart, cart2sph, sph2cart
-from toon.tools.coordinatetools import _shapend
 
 
 class TestCoordinateTools(TestCase):
-    def setUp(self):
-        self.ex_2d = np.random.random((10, 2))
-        self.ex_3d = np.random.random((10, 3))
-        self.ex_1d = [1, 1, 1]
+    def test_2d(self):
+        # nothing wild
+        want = (3.0, 3.0)
+        tup = pol2cart(*cart2pol(*want))
+        tup = tuple(round(x, 7) for x in tup)
+        self.assertTupleEqual(tup, want)
+        # allow for different units
+        tup = pol2cart(*cart2pol(*want, units='rad'), units='rad')
+        tup = tuple(round(x, 7) for x in tup)
+        self.assertTupleEqual(tup, want)
+        # non-zero reference point
+        tup = pol2cart(*cart2pol(*want, ref=(1,3)), ref=(1,3))
+        tup = tuple(round(x, 7) for x in tup)
+        self.assertTupleEqual(tup, want)
 
-    def tearDown(self):
-        pass
-
-    def test_shape_helper(self):
-        def shapend_shell2(*args):
-            """Helper, otherwise I need to think about how *args get passed around"""
-            a, b, c = _shapend(args, dims=2)
-            return a, b, c
-        def shapend_shell3(*args):
-            """Helper, otherwise I need to think about how *args get passed around"""
-            a, b, c = _shapend(args, dims=3)
-            return a, b, c
-        self.assertRaises(ValueError, shapend_shell2, (3, 3, 3))
-        self.assertRaises(ValueError, shapend_shell3, self.ex_2d)
-        self.assertRaises(ValueError, shapend_shell2, self.ex_3d)
-        a1, b1, c1 = shapend_shell2(self.ex_2d)
-        self.assertTupleEqual(self.ex_2d.shape, a1.shape)
-        self.assertEqual(b1, True)
-        self.assertEqual(c1, False)
-        a2, b2, c2 = shapend_shell2(self.ex_2d.transpose())
-        self.assertTupleEqual(self.ex_2d.shape, a2.shape)
-        self.assertEqual(b2, True)
-        self.assertEqual(c2, True)
-
-    def test_2d_tools(self):
-        # single elements
-        self.assertTrue(np.isclose((2, 2), pol2cart(cart2pol(2, 2))).all())
-        # lists (separate x,y)
-        self.assertTrue(np.isclose((self.ex_1d, self.ex_1d), pol2cart(cart2pol(self.ex_1d, self.ex_1d))).all())
-        # operating on n x 2, 2 x n arrays
-        self.assertTrue(np.isclose(self.ex_2d, pol2cart(cart2pol(self.ex_2d))).all())
-        self.assertTrue(np.isclose(self.ex_2d.transpose(), pol2cart(cart2pol(self.ex_2d.transpose()))).all())
-        # lists of various dimensionality
-        tmp = [[2, 2], [2, 2], [2, 2]]
-        self.assertTrue(np.isclose(tmp, pol2cart(cart2pol(tmp))).all())
-        tmp = [[2, 2, 2], [2, 2, 2]]
-        self.assertTrue(np.isclose(tmp, pol2cart(cart2pol(tmp))).all())
+    def test_3d(self):
+        # nothing wild
+        want = (3.0, 3.0, 3.0)
+        tup = sph2cart(*cart2sph(*want))
+        tup = tuple(round(x, 7) for x in tup)
+        self.assertTupleEqual(tup, want)
+        # different units
+        tup = sph2cart(*cart2sph(*want, units='rad'), units='rad')
+        tup = tuple(round(x, 7) for x in tup)
+        self.assertTupleEqual(tup, want)
         # non-zero reference
-        self.assertTrue(np.isclose([4, 4], pol2cart(cart2pol([4, 4]))).all())
-        self.assertTrue(np.isclose([4, 4], pol2cart(cart2pol([4, 4], ref=(1, 1)), ref=(1, 1))).all())
-        # non-zero reference, arrays
-        self.assertTrue(np.isclose(self.ex_2d, pol2cart(cart2pol(self.ex_2d, ref=(1, 1)), ref=(1, 1))).all())
-        self.assertTrue(np.isclose(self.ex_2d.transpose(),
-                                   pol2cart(cart2pol(self.ex_2d.transpose(), ref=(1, 1)), ref=(1, 1))).all())
-
-    def test_3d_tools(self):
-        self.assertTrue(np.isclose((2, 2, 2), sph2cart(cart2sph(2, 2, 2))).all())
-        # operating on n x 3, 3 x n arrays
-        self.assertTrue(np.isclose(self.ex_3d, sph2cart(cart2sph(self.ex_3d))).all())
-        self.assertTrue(np.isclose(self.ex_3d.transpose(), sph2cart(cart2sph(self.ex_3d.transpose()))).all())
-        # lists of various dimensionality
-        tmp = [[2, 2], [2, 2], [2, 2]]
-        self.assertTrue(np.isclose(tmp, sph2cart(cart2sph(tmp))).all())
-        tmp = [[2, 2, 2], [2, 2, 2]]
-        self.assertTrue(np.isclose(tmp, sph2cart(cart2sph(tmp))).all())
-        # non-zero reference
-        self.assertTrue(np.isclose([4, 4, 4], sph2cart(cart2sph([4, 4, 4]))).all())
-        self.assertTrue(np.isclose([4, 4, 4], sph2cart(cart2sph([4, 4, 4], ref=(1, 1, 1)), ref=(1, 1, 1))).all())
-        # non-zero reference, arrays
-        self.assertTrue(np.isclose(self.ex_3d, sph2cart(cart2sph(self.ex_3d, ref=(1, 1, 1)), ref=(1, 1, 1))).all())
-        self.assertTrue(np.isclose(self.ex_3d.transpose(),
-                                   sph2cart(cart2sph(self.ex_3d.transpose(), ref=(1, 1, 1)), ref=(1, 1, 1))).all())
-        # TODO: Look at 3x3 case (at least get the result to travel the pipeline successfully
+        tup = sph2cart(*cart2sph(*want, ref=(1, 3, 5)), ref=(1, 3, 5))
+        tup = tuple(round(x, 7) for x in tup)
+        self.assertTupleEqual(tup, want)

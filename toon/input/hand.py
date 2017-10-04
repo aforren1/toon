@@ -52,6 +52,8 @@ class Hand(BaseInput):
 
             >>> device = Hand(multiprocess=True)
         """
+        if dims[1] is not 15:
+            raise ValueError('The second dimension must be 15.')
 
         super(Hand, self).__init__(clock_source, multiprocess, dims)
 
@@ -85,7 +87,7 @@ class Hand(BaseInput):
             self._force_data[0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
             self._force_data[1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
             self._force_data[2::3] = data[4::4] + data[5::4]  # z
-            return self._force_data, timestamp
+            return timestamp, self._force_data
         return None, None
 
     def _stop_device(self):
