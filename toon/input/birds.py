@@ -65,7 +65,14 @@ class BlamBirds(BaseInput):
 
             >>> birds = BlamBirds(ports=['COM5', 'COM6', 'COM7'], master='COM5', sample_ports=['COM5', 'COM7'])
         """
-
+        if not isinstance(ports, list):
+            raise ValueError('`ports` expected to be a list of ports.')
+        if not isinstance(master, str):
+            raise ValueError('`master` must be a single string.')
+        if not isinstance(sample_ports, list):
+            raise ValueError('`sample_ports` must be a list of ports.')
+        if not set(sample_ports).issubset(ports):
+            raise ValueError('`sample_ports` must be a subset of `ports`.')
         if master not in ports:
             raise ValueError('The master must be named amongst the ports.')
         if data_mode not in ['position']:

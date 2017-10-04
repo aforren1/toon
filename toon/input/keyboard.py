@@ -7,7 +7,7 @@ class Keyboard(BaseInput):
                  keys=None,
                  multiprocess=False,
                  nrow=10):
-        if keys is None:
+        if keys is None or not isinstance(keys, list):
             raise ValueError('`keys` must be a list of keys of interest.')
         BaseInput.__init__(self, clock_source, multiprocess, (nrow, len(keys)))
         self._lenkeys = len(keys)
@@ -60,7 +60,7 @@ class DebugKeyboard(BaseInput):
                  keys=None,
                  multiprocess=False,
                  nrow=10):
-        if keys is None:
+        if keys is None or not isinstance(keys, list):
             raise ValueError('`keys` must be a list of keys of interest.')
 
         BaseInput.__init__(self, clock_source, multiprocess, (nrow, len(keys)))

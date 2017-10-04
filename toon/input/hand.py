@@ -52,6 +52,8 @@ class Hand(BaseInput):
 
             >>> device = Hand(multiprocess=True)
         """
+        if dims[1] is not 15:
+            raise ValueError('The second dimension must be 15.')
 
         super(Hand, self).__init__(clock_source, multiprocess, dims)
 

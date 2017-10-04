@@ -15,7 +15,7 @@ from builtins import int
 from future import standard_library
 standard_library.install_aliases()
 import abc
-from time import time, sleep
+from time import time
 import multiprocessing as mp
 import ctypes
 import numpy as np
