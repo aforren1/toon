@@ -6,10 +6,6 @@ from toon.input import DummyTime, Hand, BlamBirds, Keyboard, DebugKeyboard
 
 #@unittest.skip("Have not figured out how to test external devices yet.")
 class TestInputs(TestCase):
-    def test_time(self):
-        dt = DummyTime()
-        self.assertIs(dt.getTime(), float)
-
     def test_hand(self):
         dev = Hand()
         self.assertIsInstance(dev, Hand)
