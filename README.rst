@@ -18,7 +18,7 @@ Description
 
 Additional tools for neuroscience experiments, including:
 
-* A framework for polling input devices on a separate process, via :code:`multiprocessing`.
+* A framework for polling input devices on a separate process.
     * Several devices have been implemented (see below).
 * Helper functions for generating auditory stimuli (read: beeps).
 * Coordinate tools (slightly modified from :code:`psychopy.tools.coordinatetools`), which additionally allow for calculations relative to points other than the origin.
@@ -27,7 +27,7 @@ Everything *should* work on Windows/Mac/Linux.
 
 See requirements.txt for dependencies.
 
-Many fully-fleshed
+Many of the full examples require :code:`psychopy` to operate.
 
 Install
 -------
@@ -62,6 +62,7 @@ Input
 ~~~~~
 
 Input devices include:
+
  - HAND (custom force measurement device) by class `Hand`
  - Flock of Birds (position tracker) by class `BlamBirds`
  - Keyboard (for changes in keyboard state, more accurate timing) via `Keyboard`
