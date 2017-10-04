@@ -121,7 +121,7 @@ class BaseInput(object):
             self._process.start()
         else:  # start device on original processor
             self._init_device()
-            self._isstarted = True
+            self._is_started = True
         return self
 
     def read(self):
@@ -216,10 +216,11 @@ class BaseInput(object):
             self._stop_device()
             self._close_device()
         # catch everything and try to close the device
-        except (Exception, KeyboardInterrupt, SystemExit):
+        except (Exception, KeyboardInterrupt, SystemExit) as e:
             if self._is_started:
                 self._stop_device()
                 self._close_device()
+                raise e
 
     # The following four functions must be implemented by derived input devices,
     # along with `__init__()`.

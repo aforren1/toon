@@ -100,7 +100,7 @@ class BlamBirds(BaseInput):
         # init master
         # figure out if the device is on
         self._birds[self._master_index].write(('O' + chr(0x24)).encode('UTF-8'))
-        time.sleep(0.4)
+        time.sleep(0.2)
         data = self._birds[self._master_index].read(14)
         if data == b'':
             raise ValueError('Make sure birds are in "fly" mode.')
