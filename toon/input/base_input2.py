@@ -15,19 +15,24 @@ class BaseInput(object):
         if data_dims is None:
             raise ValueError('Must specify expected dimensions of data.')
 
-        if any(not isinstance(i, list) for i in data_dims):
-            data_dims = [data_dims]
-
         self.data_dims = data_dims  # e.g. 5, [3,3] for 3x3 matrix, [5, [3,3]] for
                                     # two buffers -- one vector of length 5,
                                     # one 3x3 matrix
         # allocate single-line data buffers
-        self._data_buffers = [np.full(dd, np.nan) for dd in data_dims]
+        # if there's only a single dimension, use a vector
+        # for multiple dimensions, use a list
+        if not isinstance(data_dims, list):
+            self._data_buffers = np.full(data_dims, np.nan)
+            self._data_elements = 1 # how many pieces of data we return
+        else:
+            self._data_buffers = [np.full(dd, np.nan) for dd in data_dims]
+            self._data_elements = len(data_dims)
         self.name = type(self).__name__
 
 
     @abc.abstractmethod
     def __enter__(self):
+        """Start comms with device"""
         pass
 
     @abc.abstractmethod
@@ -37,6 +42,7 @@ class BaseInput(object):
 
     @abc.abstractmethod
     def __exit__(self, type, value, traceback):
+        """Put the device in a proper state"""
         pass
 
 
