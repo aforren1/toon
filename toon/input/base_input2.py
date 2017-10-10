@@ -1,5 +1,5 @@
 import abc
-import multiprocess as mp
+import multiprocessing as mp
 import ctypes
 import numpy as np
 from time import time
@@ -52,16 +52,15 @@ class BaseInput(object):
 class MultiprocessInput(object):
     def __init__(self,
                  device=None,
-                 nrow=None,
-                 device_args=None):
+                 nrow=None):
 
-        if not issubclass(device, BaseInput):
+        if not isinstance(device, BaseInput):
             raise ValueError('Device must inherit from BaseInput.')
 
         self._device = device  # swallow the original device (so we can use context managers)
         self._shared_lock = mp.Lock()  # use a single lock for time, data
 
-        data_dims = device_args['data_dims']
+        data_dims = device.data_dims
         num_data = len(data_dims) if isinstance(data_dims, list) else 1
         # allocate data
         # The first axis corresponds to time, others are data
@@ -118,7 +117,7 @@ class MultiprocessInput(object):
     def read(self):
         """Put locks on all data, copy across"""
         # we can just use the single lock, because they all share the same one
-        with self._mp_time_buffer.get_lock():
+        with self._shared_lock:
             np.copyto(self._local_time_buffer, self._np_time_buffer)
             if not isinstance(self._np_data_buffers, list):
                 np.copyto(self._local_data_buffers,
@@ -143,8 +142,7 @@ class MultiprocessInput(object):
 
     def _mp_worker(self, poison_pill, shared_lock,
                    mp_time_buffer, mp_data_buffers):
-        device = self._device(**self._device_args)
-        with device as dev:
+        with self._device as dev:
             self._clear_remote_buffers()
             np_time_buffer = shared_to_numpy(mp_time_buffer, (self._nrow, 1))
             if not isinstance(mp_data_buffers, list):
@@ -161,7 +159,7 @@ class MultiprocessInput(object):
                     stop_sampling = poison_pill.value
                 timestamp, data = dev.read()
                 if timestamp is not None:
-                    with mp_time_buffer.get_lock():
+                    with shared_lock:
                         # first handle the single-data case:
                         if not isinstance(np_data_buffers, list):
                             current_nans = np.isnan(np_data_buffers).any(axis=1)
