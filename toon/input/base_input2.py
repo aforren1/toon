@@ -1,7 +1,8 @@
 import abc
-import multiprocessing as mp
+import multiprocess as mp
 import ctypes
 import numpy as np
+from time import time
 
 
 class BaseInput(object):
@@ -9,7 +10,7 @@ class BaseInput(object):
 
     @abc.abstractmethod
     def __init__(self,
-                 clock_source=None,
+                 clock_source=time,
                  data_dims=None):
         """data_dims is list or list of lists"""
 
@@ -30,11 +31,12 @@ class BaseInput(object):
             self._data_buffers = [np.full(dd, np.nan) for dd in data_dims]
             self._data_elements = len(data_dims)
         self.name = type(self).__name__
+        self.time = clock_source
 
     @abc.abstractmethod
     def __enter__(self):
         """Start comms with device"""
-        pass
+        return self
 
     @abc.abstractmethod
     def read(self):
@@ -51,18 +53,20 @@ class MultiprocessInput(object):
     def __init__(self,
                  device=None,
                  nrow=None,
-                 data_dims=None):
+                 device_args=None):
 
-        if not isinstance(device, BaseInput):
+        if not issubclass(device, BaseInput):
             raise ValueError('Device must inherit from BaseInput.')
 
         self._device = device  # swallow the original device (so we can use context managers)
         self._shared_lock = mp.Lock()  # use a single lock for time, data
 
+        data_dims = device_args['data_dims']
+        num_data = len(data_dims) if isinstance(data_dims, list) else 1
         # allocate data
         # The first axis corresponds to time, others are data
-        if self._device._data_elements == 1:
-            self._data_buffer_dims = data_dims.insert(0, nrow)
+        if num_data == 1:
+            self._data_buffer_dims = [nrow, data_dims]
             self._mp_data_buffers = mp.Array(ctypes.c_double,
                                              int(np.prod(self._data_buffer_dims)),
                                              lock=self._shared_lock)
@@ -77,7 +81,7 @@ class MultiprocessInput(object):
                                      for dd in self._data_buffer_dims]
             self._np_data_buffers = [shared_to_numpy(self._mp_data_buffers[i],
                                                      self._data_buffer_dims[i])
-                                     for i in range(self._device._data_elements)]
+                                     for i in range(num_data)]
             self._local_data_buffers = [np.copy(d) for d in self._np_data_buffers]
 
         # timestamp containers
@@ -91,15 +95,14 @@ class MultiprocessInput(object):
         self._poison_pill.value = False
         self._process = None
         self._sampling_period = 0  # set if the device always returns data, not necessarily new
-        self._no_data = None if self._device._data_elements == 1 else [None] * self._device._data_elements
+        self._no_data = None if num_data == 1 else [None] * num_data
         self._nrow = nrow
         self._data_dims = data_dims
 
     def __enter__(self):
         self._poison_pill.value = False
         self._process = mp.Process(target=self._mp_worker,
-                                   args=(self._device,
-                                         self._poison_pill,
+                                   args=(self._poison_pill,
                                          self._shared_lock,
                                          self._mp_time_buffer,
                                          self._mp_data_buffers))
@@ -131,16 +134,16 @@ class MultiprocessInput(object):
 
     def _clear_remote_buffers(self):
         """Only called pre-multiprocess start, or when we already have the lock"""
-        self._mp_time_buffer.fill(np.nan)
+        self._np_time_buffer.fill(np.nan)
         if not isinstance(self._np_data_buffers, list):
             self._local_data_buffers.fill(np.nan)
         else:
             for data in self._local_data_buffers:
                 data.fill(np.nan)
 
-    def _mp_worker(self, device,
-                   poison_pill, shared_lock,
+    def _mp_worker(self, poison_pill, shared_lock,
                    mp_time_buffer, mp_data_buffers):
+        device = self._device(**self._device_args)
         with device as dev:
             self._clear_remote_buffers()
             np_time_buffer = shared_to_numpy(mp_time_buffer, (self._nrow, 1))
