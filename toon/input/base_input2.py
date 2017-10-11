@@ -52,20 +52,26 @@ class BaseInput(object):
 class MultiprocessInput(object):
     def __init__(self,
                  device=None,
-                 nrow=None):
+                 nrow=None,
+                 device_args=None):
 
-        if not isinstance(device, BaseInput):
+        if not issubclass(device, BaseInput):
             raise ValueError('Device must inherit from BaseInput.')
 
         self._device = device  # swallow the original device (so we can use context managers)
         self._shared_lock = mp.Lock()  # use a single lock for time, data
 
-        data_dims = device.data_dims
+        data_dims = device_args['data_dims']
+        self._device_args = device_args
         num_data = len(data_dims) if isinstance(data_dims, list) else 1
         # allocate data
         # The first axis corresponds to time, others are data
         if num_data == 1:
-            self._data_buffer_dims = [nrow, data_dims]
+            if isinstance(data_dims, list):
+                self._data_buffer_dims = data_dims.insert(0, nrow)
+                self._data_buffer_dims = list(data_dims)
+            else:
+                self._data_buffer_dims = [nrow, data_dims]
             self._mp_data_buffers = mp.Array(ctypes.c_double,
                                              int(np.prod(self._data_buffer_dims)),
                                              lock=self._shared_lock)
@@ -73,7 +79,12 @@ class MultiprocessInput(object):
                                                     self._data_buffer_dims)
             self._local_data_buffers = np.copy(self._np_data_buffers)
         else:  # more than one piece of data from a device, data_buffers becomes a list
-            self._data_buffer_dims = [dd.insert(0, nrow) for dd in data_dims]
+            self._data_buffer_dims = list(data_dims)
+            for ii in range(len(data_dims)):
+                if isinstance(data_dims[ii], list):
+                    self._data_buffer_dims[ii].insert(0, nrow)
+                else:
+                    self._data_buffer_dims[ii] = [nrow, data_dims[ii]]
             self._mp_data_buffers = [mp.Array(ctypes.c_double,
                                               int(np.prod(dd)),
                                               lock=self._shared_lock)
@@ -110,7 +121,7 @@ class MultiprocessInput(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        with self._shared_lock:
+        with self._poison_pill.get_lock():
             self._poison_pill.value = True
         self._process.join()
 
@@ -122,14 +133,21 @@ class MultiprocessInput(object):
             if not isinstance(self._np_data_buffers, list):
                 np.copyto(self._local_data_buffers,
                           self._np_data_buffers)
+                self._clear_remote_buffers()
+                if np.isnan(self._local_time_buffer).all():
+                    return None, None
+                return (self._local_time_buffer[~np.isnan(self._local_time_buffer).any(axis=1)],
+                        self._local_data_buffers[~np.isnan(self._local_data_buffers).any(axis=1)])
+
             else:
                 for i in range(len(self._local_data_buffers)):
                     np.copyto(self._local_data_buffers[i],
-                              self._np_data_buffers)
+                              self._np_data_buffers[i])
             self._clear_remote_buffers()
             if np.isnan(self._local_time_buffer).all():
                 return None, self._no_data
-        return self._local_time_buffer, self._local_data_buffers
+            return (self._local_time_buffer[~np.isnan(self._local_time_buffer).any(axis=1)],
+                    [dd[~np.isnan(dd).any(axis=1)] for dd in self._local_data_buffers])
 
     def _clear_remote_buffers(self):
         """Only called pre-multiprocess start, or when we already have the lock"""
@@ -142,7 +160,8 @@ class MultiprocessInput(object):
 
     def _mp_worker(self, poison_pill, shared_lock,
                    mp_time_buffer, mp_data_buffers):
-        with self._device as dev:
+        device = self._device(**self._device_args)
+        with device as dev:
             self._clear_remote_buffers()
             np_time_buffer = shared_to_numpy(mp_time_buffer, (self._nrow, 1))
             if not isinstance(mp_data_buffers, list):
@@ -177,11 +196,11 @@ class MultiprocessInput(object):
                             current_nans = np.isnan(np_data_buffers[0]).any(axis=1)
                             if current_nans.any():
                                 next_index = np.where(current_nans)[0][0]
-                                for ii in range(len(dev._data_elements)):
+                                for ii in range(len(dev.data_dims)):
                                     np_data_buffers[ii][next_index, :] = data[ii]
                                 np_time_buffer[next_index, 0] = timestamp
                             else:
-                                for ii in range(len(dev._data_elements)):
+                                for ii in range(len(dev.data_dims)):
                                     np_data_buffers[ii][:] = np.roll(np_data_buffers[ii], -1, axis=0)
                                     np_data_buffers[ii][-1, :] = data
                                 np_time_buffer[:] = np.roll(np_time_buffer, -1, axis=0)
