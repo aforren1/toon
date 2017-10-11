@@ -11,11 +11,11 @@ multi_data = FakeInput(data_dims=[5, [3, 2]])
 
 single_mp = MultiprocessInput(device=FakeInput, nrow=20,
                               device_args={'data_dims': 5,
-                                           'read_delay': 0.01})
+                                           'read_delay': 0.05})
 
 multi_mp = MultiprocessInput(device=FakeInput, nrow=10,
                              device_args={'data_dims': [5, [3,2]],
-                                          'read_delay': 0.01})
+                                          'read_delay': 0.05})
 
 with single_data as d:
     print(d.read())

@@ -60,10 +60,9 @@ class MultiprocessInput(object):
             raise ValueError('Device must inherit from BaseInput.')
 
         self._device = device  # swallow the original device (so we can use context managers)
-        self._shared_lock = mp.Lock()  # use a single lock for time, data
+        self._shared_lock = mp.RLock()  # use a single lock for time, data
 
         self._device_args = copy.deepcopy(device_args)
-        print(self._device_args)
         data_dims = device_args['data_dims']
         num_data = len(data_dims) if isinstance(data_dims, list) else 1
         # allocate data
@@ -79,6 +78,7 @@ class MultiprocessInput(object):
                                              lock=self._shared_lock)
             self._np_data_buffers = shared_to_numpy(self._mp_data_buffers,
                                                     self._data_buffer_dims)
+            self._np_data_buffers.fill(np.nan)
             self._local_data_buffers = np.copy(self._np_data_buffers)
         else:  # more than one piece of data from a device, data_buffers becomes a list
             self._data_buffer_dims = data_dims
@@ -94,6 +94,8 @@ class MultiprocessInput(object):
             self._np_data_buffers = [shared_to_numpy(self._mp_data_buffers[i],
                                                      self._data_buffer_dims[i])
                                      for i in range(num_data)]
+            for dd in self._np_data_buffers:
+                dd.fill(np.nan)
             self._local_data_buffers = [np.copy(d) for d in self._np_data_buffers]
 
         # timestamp containers
@@ -101,6 +103,7 @@ class MultiprocessInput(object):
                                         lock=self._shared_lock)
         self._np_time_buffer = shared_to_numpy(self._mp_time_buffer,
                                                (nrow, 1))
+        self._np_time_buffer.fill(np.nan)
         self._local_time_buffer = np.copy(self._np_time_buffer)
 
         self._poison_pill = mp.Value(ctypes.c_bool)  # has its own lock
@@ -110,7 +113,6 @@ class MultiprocessInput(object):
         self._no_data = None if num_data == 1 else [None] * num_data
         self._nrow = nrow
         self._data_dims = data_dims
-        print(self._device_args)
 
     def __enter__(self):
         self._poison_pill.value = False
@@ -159,9 +161,9 @@ class MultiprocessInput(object):
         """Only called pre-multiprocess start, or when we already have the lock"""
         self._np_time_buffer.fill(np.nan)
         if not isinstance(self._np_data_buffers, list):
-            self._local_data_buffers.fill(np.nan)
+            self._np_data_buffers.fill(np.nan)
         else:
-            for data in self._local_data_buffers:
+            for data in self._np_data_buffers:
                 data.fill(np.nan)
 
     def _mp_worker(self, poison_pill, shared_lock,
