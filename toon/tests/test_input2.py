@@ -11,22 +11,27 @@ multi_data = FakeInput(data_dims=[5, [3, 2]])
 
 single_mp = MultiprocessInput(device=FakeInput, nrow=20,
                               device_args={'data_dims': 5,
-                                           'read_delay': 0.05})
+                                           'read_delay': 0.005})
 
 multi_mp = MultiprocessInput(device=FakeInput, nrow=10,
                              device_args={'data_dims': [5, [3,2]],
-                                          'read_delay': 0.05})
+                                          'read_delay': 0.005})
 
-with single_data as d:
-    print(d.read())
+def test_read(dev):
+    with dev as d:
+        t0 = time()
+        t1 = t0 + 5
+        while t1 > time():
+            timestamps, data = d.read()
+            if timestamps is not None:
+                print(timestamps - t0)
+                print(data)
+            sleep(0.016)
 
-with multi_data as d:
-    print(d.read())
+test_read(single_data)
 
-with single_mp as d:
-    sleep(1)
-    print(d.read())
+test_read(multi_data)
 
-with multi_mp as d:
-    sleep(1)
-    print(d.read())
+test_read(single_mp)
+
+test_read(multi_mp)
