@@ -14,11 +14,10 @@ class FakeInput(BaseInput):
     def __exit__(self, type, value, traceback):
         pass
     def read(self):
-        if isinstance(self.data_dims, list):
-            data = list()
-            for i in self.data_dims:
-                data.append(np.random.random(i))
-        else:
-            data = np.random.random(self.data_dims)
+        data = list()
+        for i in self.data_dims:
+            data.append(np.random.random(i))
         sleep(self.read_delay)
+        if len(data) == 1:
+            data = data[0]
         return self.time(), data

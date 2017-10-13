@@ -7,14 +7,14 @@ from time import sleep, time
 
 single_data = FakeInput(data_dims = 5, read_delay=0.01)
 
-multi_data = FakeInput(data_dims=[5, [3, 2]])
+multi_data = FakeInput(data_dims=[[5], [3, 2]])
 
 single_mp = MultiprocessInput(device=FakeInput, nrow=20,
                               device_args={'data_dims': 5,
                                            'read_delay': 0.005})
 
 multi_mp = MultiprocessInput(device=FakeInput, nrow=10,
-                             device_args={'data_dims': [5, [3,2]],
+                             device_args={'data_dims': [[5], [3,2]],
                                           'read_delay': 0.005})
 
 def test_read(dev):
