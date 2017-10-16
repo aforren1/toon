@@ -6,15 +6,18 @@ from time import time
 import copy
 from numbers import Number
 
+def Input(device, mp=False, **kwargs):
+    if mp:
+        return MultiprocessInput(device, **kwargs)
+    return device(**kwargs)
 
 class BaseInput(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def __init__(self,
-                 clock_source=time,
-                 data_dims=None):
-        """data_dims is list or list of lists"""
+    def __init__(self, **kwargs):
+        clock_source = kwargs.get('clock_source', time)
+        data_dims = kwargs.get('data_dims', None)
 
         if data_dims is None:
             raise ValueError('Must specify expected dimensions of data.')
@@ -46,12 +49,10 @@ class BaseInput(object):
 
 
 class MultiprocessInput(object):
-    def __init__(self,
-                 device=None,
-                 nrow=None,
-                 device_args=None,
-                 **kwargs):
+    def __init__(self, device=None, **kwargs):
 
+        nrow = kwargs.pop('nrow', 40)
+        device_args = kwargs
         if not issubclass(device, BaseInput):
             raise ValueError('Device must inherit from BaseInput.')
 
