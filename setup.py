@@ -40,7 +40,7 @@ setup(
         'hand': ['hidapi'],
         'birds': ['pyserial'],
         'keyboard': ['keyboard'],
-        'force': ['nidaqmx']
+        'force': ['nidaqmx;platform_system=="Windows"']
     },
     keywords='psychophysics neuroscience input experiment',
     packages=find_packages(exclude=['contrib', 'docs', 'tests'])
