@@ -1,15 +1,18 @@
 import numpy as np
 from toon.input.base_input2 import BaseInput
-from time import sleep, time
+
 
 class FakeInput(BaseInput):
     def __init__(self, **kwargs):
         BaseInput.__init__(self, **kwargs)
         self.read_delay = kwargs.get('read_delay', 0)
+
     def __enter__(self):
         return self
+
     def __exit__(self, type, value, traceback):
         pass
+
     def read(self):
         t0 = self.time()
         t1 = t0 + self.read_delay

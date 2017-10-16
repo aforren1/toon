@@ -22,6 +22,9 @@ multi_data = Input(FakeInput,
                    clock_source=time,
                    read_delay=0.001)
 
+# if you want an idea of how fast the remote process spins,
+# try setting the read_delay to 0 and looking at the period
+# between readings
 single_mp = Input(FakeInput,
                   mp=True,
                   data_dims=5,
