@@ -35,6 +35,13 @@ setup(
         'Programming Language :: Python :: 3.6'
     ],
     install_requires=requirements,
+    extras_require={
+        'full': ['hidapi', 'pyserial', 'keyboard', 'nidaqmx;platform_system=="Windows"'],
+        'hand': ['hidapi'],
+        'birds': ['pyserial'],
+        'keyboard': ['keyboard'],
+        'force': ['nidaqmx']
+    },
     keywords='psychophysics neuroscience input experiment',
     packages=find_packages(exclude=['contrib', 'docs', 'tests'])
 )

@@ -17,7 +17,7 @@ multi_mp = MultiprocessInput(device=FakeInput, nrow=10,
                              device_args={'data_dims': [[5], [3,2]],
                                           'read_delay': 0.005})
 
-def test_read(dev):
+def read_fn(dev):
     with dev as d:
         t0 = time()
         t1 = t0 + 5
@@ -28,10 +28,11 @@ def test_read(dev):
                 print(data)
             sleep(0.016)
 
-test_read(single_data)
+def test_reads():
+    read_fn(single_data)
 
-test_read(multi_data)
+    read_fn(multi_data)
 
-test_read(single_mp)
+    read_fn(single_mp)
 
-test_read(multi_mp)
+    read_fn(multi_mp)

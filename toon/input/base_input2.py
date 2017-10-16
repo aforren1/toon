@@ -166,8 +166,12 @@ class MultiprocessInput(object):
                         current_nans = np.isnan(np_time_buffer).any(axis=1)
                         if current_nans.any():
                             next_index = np.where(current_nans)[0][0]
-                            for ii in range(len(dev.data_dims)):
-                                np_data_buffers[ii][next_index, :] = data[ii]
+                            # handle single element of data
+                            if isinstance(data, list):
+                                for ii in range(len(dev.data_dims)):
+                                    np_data_buffers[ii][next_index, :] = data[ii]
+                            else:
+                                np_data_buffers[0][next_index, :] = data
                             np_time_buffer[next_index, 0] = timestamp
                         else:
                             for ii in range(len(dev.data_dims)):
