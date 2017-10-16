@@ -23,6 +23,9 @@ def Input(device, mp=False, **kwargs):
                     always available; default is 0 (spin as fast as possible).
 
     Returns:
+        An input device, either an instantiation of the class passed in (`mp = False`) or
+        a :class:`MultiproessInput` (`mp = True`), which will begin polling the device when
+        the context manager is created.
 
     """
     if mp:
@@ -174,7 +177,18 @@ class MultiprocessInput(object):
         self._process.join()
 
     def read(self):
-        """Put locks on all data, copy data to the local process."""
+        """Put locks on all data, copy data to the local process.
+
+        Implementation note:
+        We currently end up making an extra copy of the data, when we do the
+        logical subsetting upon return. However, we *could* just find the first
+        `np.nan`, and do a `0:N` slice, which creates a view instead. What I haven't
+        figured out, though, is whether this will create unexpected behavior for the
+        user (e.g. if they stuff the results of each `read()` in a list, and return to
+        it later only to find all data is identical). We can encourage users to copy
+        the data to some larger array (in which case I don't think future changes to the
+        `_local_data_buffers` would carry over...).
+        """
 
         # we can just use the single lock, because they all share the same one
         with self._shared_lock:
@@ -186,6 +200,7 @@ class MultiprocessInput(object):
         if np.isnan(self._local_time_buffer).all():
             return None, self._no_data
         dims = [tuple(range(-1, -len(dd.shape), -1)) for dd in self._local_data_buffers]
+        # return non-nan timestamps and data
         time = self._local_time_buffer[~np.isnan(self._local_time_buffer).any(axis=1)]
         # special case: if only one piece of data, remove from list
         if self._num_data == 1:
@@ -219,6 +234,7 @@ class MultiprocessInput(object):
         device = self._device(**self._device_args)
         with device as dev:
             self._clear_remote_buffers()
+            # make more easily-accessible versions of the shared arrays
             np_time_buffer = shared_to_numpy(mp_time_buffer, (self._nrow, 1))
             np_data_buffers = [shared_to_numpy(mp_data_buffers[i],
                                                self._data_buffer_dims[i])
@@ -231,6 +247,7 @@ class MultiprocessInput(object):
                 timestamp, data = dev.read()
                 if timestamp is not None:
                     with shared_lock:
+                        # find next row
                         current_nans = np.isnan(np_time_buffer).any(axis=1)
                         if current_nans.any():
                             next_index = np.where(current_nans)[0][0]
@@ -241,13 +258,13 @@ class MultiprocessInput(object):
                             else:
                                 np_data_buffers[0][next_index, :] = data
                             np_time_buffer[next_index, 0] = timestamp
-                        else:
+                        else:  # replace oldest data with newest data
                             for ii in range(len(dev.data_dims)):
                                 np_data_buffers[ii][:] = np.roll(np_data_buffers[ii], -1, axis=0)
                                 np_data_buffers[ii][-1, :] = data[ii]
                             np_time_buffer[:] = np.roll(np_time_buffer, -1, axis=0)
                             np_time_buffer[-1, 0] = timestamp
-                    # if the device always has data, can rate-limit via this
+                    # if the device always has data available, can rate-limit via this
                     while (dev.time() - t0) <= self._sampling_period:
                         pass
 
