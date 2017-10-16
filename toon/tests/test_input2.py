@@ -10,8 +10,6 @@ else:
 
 np.set_printoptions(precision=4)
 
-mt = monotonicClock
-
 single_data = Input(FakeInput,
                     mp=False,
                     data_dims=5,
@@ -40,11 +38,12 @@ multi_mp = Input(FakeInput,
 def read_fn(dev):
     with dev as d:
         t0 = time()
-        t1 = t0 + 5
+        t1 = t0 + 3
         while t1 > time():
             t2 = time()
             t3 = 0.016 + t2
             timestamps, data = d.read()
+            print('Frame start: ', str(t2 - t0))
             if timestamps is not None:
                 print(timestamps - t0)
                 print(data)
