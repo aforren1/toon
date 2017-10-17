@@ -61,10 +61,12 @@ Input
 ~~~~~
 
 Generally useful input devices include:
+
 - Keyboard (for changes in keyboard state) via `Keyboard`
 
 The following are in-house devices, which may not be generally useful but could serve as examples
 of how to implement additional devices:
+
 - HAND (custom force measurement device) by class `Hand`
 - Flock of Birds (position tracker) by class `BlamBirds`
 - Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only.)
@@ -113,3 +115,4 @@ If you have psychopy and the HAND, you can run an example via::
 If you're hooked up to the kinereach (also works with a mouse), try::
 
     python -m toon.examples.kinereach
+
