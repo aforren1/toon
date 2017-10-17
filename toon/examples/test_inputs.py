@@ -30,32 +30,29 @@ if __name__=='__main__':
     mp = results.mp
     device = results.dev
     if not_travis:
-        timer = core.monotonicClock
+        time = core.monotonicClock.getTime
     else:
-        timer = DummyTime()
-
+        from time import time
     if device == 'keyboard':
-        dev = Keyboard(multiprocess=mp, keys=['a', 's', 'd', 'f'], clock_source=timer)
+        dev = Keyboard(multiprocess=mp, keys=['a', 's', 'd', 'f'], clock_source=time)
     elif device == 'hand':
-        dev = Hand(multiprocess=mp, clock_source=timer)
+        dev = Hand(multiprocess=mp, clock_source=time)
     elif device == 'birds':
         # settings for my laptop
         dev = BlamBirds(multiprocess=mp, ports=['COM11', 'COM12', 'COM13', 'COM10'],
                         master='COM11', sample_ports=['COM11', 'COM13'],
-                        clock_source=timer)
-    elif device == 'dbkeyboard':
-        dev = DebugKeyboard(multiprocess=mp, keys=['a', 's', 'd', 'f'], clock_source=timer)
+                        clock_source=time)
     elif device == 'forcetransducers':
-        dev = ForceTransducers(multiprocess=mp, clock_source=timer)
+        dev = ForceTransducers(multiprocess=mp, clock_source=time)
     else:
         print('Pass the device as the first arg, and True/False as the second (for multiprocessing)')
-        print("Available devices are: 'keyboard', 'hand', 'birds', 'dbkeyboard', 'forcetransducers'")
+        print("Available devices are: 'keyboard', 'hand', 'birds', 'forcetransducers'")
         sys.exit()
 
     with dev as d:
-        t0 = timer.getTime()
+        t0 = time()
         t1 = t0 + 10
-        while timer.getTime() < t1:
+        while time() < t1:
             timestamp, data = d.read()
             if data is not None:
                 print(timestamp - t0)

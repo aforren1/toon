@@ -20,7 +20,7 @@ class MultiprocessInput(object):
 
         self._device_args = copy.deepcopy(device_args)
         # pull out the data dimensions so we can preallocate the necessary arrays
-        data_dims = check_and_fix_dims(device_args['data_dims'])
+        data_dims = check_and_fix_dims(kwargs.get('data_dims', 'fail'))
         num_data = len(data_dims)
 
         # allocate data

@@ -12,7 +12,7 @@ install:
   - pip install python-coveralls coverage
   - pip install .[full]
 script:
-  - nosetests --with-coverage
+  - nosetests --with-coverage -A "interactive!=True"
 after_success:
   - coveralls --config_file .coveragerc
 notifications:

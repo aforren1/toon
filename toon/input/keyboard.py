@@ -31,6 +31,7 @@ class Keyboard(BaseInput):
             keyboard.add_hotkey(key, self._add_array, (n,), timeout=0)
             keyboard.add_hotkey(key, self._rem_array, (n,), timeout=0, trigger_on_release=True)
             n += 1
+        return self
 
     def read(self):
         if self._buffer.any():

@@ -107,6 +107,7 @@ class BlamBirds(BaseInput):
         # signal to all birds to start streaming (should this only go to the sample_ports?)
         for bird in self._birds:
             bird.write(b'@')
+        return self
 
     def read(self):
         timestamp = self.time()

@@ -36,6 +36,7 @@ class ForceTransducers(BaseInput):
         self._device.timing.cfg_samp_clk_timing(200, sample_mode=AcquisitionType.CONTINUOUS)
         self._reader = AnalogMultiChannelReader(self._device.in_stream)
         self._device.start()
+        return self
 
     def read(self):
         timestamp = self.time()

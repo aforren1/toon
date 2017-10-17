@@ -63,6 +63,7 @@ class Hand(BaseInput):
                 dev_path = d['path']
         self._device.open_path(dev_path)
         self._device.set_nonblocking(self.nonblocking)
+        return self
 
     def read(self):
         """HAND-specific read function.
