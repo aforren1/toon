@@ -60,22 +60,23 @@ This sample generates a four-beep metronome for the timed response experiment.::
 Input
 ~~~~~
 
-Input devices include:
+Generally useful input devices include:
+- Keyboard (for changes in keyboard state) via `Keyboard`
 
+The following are in-house devices, which may not be generally useful but could serve as examples
+of how to implement additional devices:
 - HAND (custom force measurement device) by class `Hand`
 - Flock of Birds (position tracker) by class `BlamBirds`
-- Keyboard (for changes in keyboard state, more accurate timing) via `Keyboard`
-- DebugKeyboard (for current keyboard state, constant error of up to 9 ms?) via `DebugKeyboard`
 - Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only.)
 
 Generally, input devices can be used as follows::
 
      from psychopy import core
-     from toon.input import <device>
+     from toon.input import <device>, MultiprocessInput
 
-     timer = core.monotonicClock
+     timer = core.monotonicClock.getTime
 
-     dev = <device>(multiprocess=True, clock_source=timer, <device-specific args>)
+     dev = MultiprocessInput(<device>(clock_source=timer, <device-specific args>))
 
      with dev as d:
          while not done:
@@ -84,7 +85,7 @@ Generally, input devices can be used as follows::
 
 You can perform a sanity check for existing devices via::
 
-     python -m toon.examples.test_inputs --dev <device> --mp True
+     python -m toon.examples.try_inputs --dev <device> --mp True
 
 Tools
 ~~~~
