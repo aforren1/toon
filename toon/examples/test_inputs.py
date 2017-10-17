@@ -3,7 +3,7 @@ import sys
 from distutils import util
 import argparse
 from platform import system
-from toon.input import Keyboard, Hand, BlamBirds, DebugKeyboard, DummyTime
+from toon.input import Keyboard, Hand, BlamBirds
 import numpy as np
 if system() is 'Windows':
     from toon.input import ForceTransducers

@@ -1,9 +1,11 @@
 import numpy as np
 from toon.tests.fake_class import FakeInput
-from toon.input import Input, BlamBirds, ForceTransducers, Hand, Keyboard
+from toon.input import Input, BlamBirds, Hand, Keyboard
 import os
 from nose.plugins.attrib import attr
 from nose.tools import assert_true
+if os.sys.platform == 'win32':
+    from toon.input import ForceTransducers
 
 if 'TRAVIS' not in os.environ:
     from psychopy.clock import monotonicClock
