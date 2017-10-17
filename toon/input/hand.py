@@ -30,13 +30,9 @@ class Hand(BaseInput):
     def __init__(self, **kwargs):
         """Interface to HAND.
 
-        Kwargs:
-            clock_source: Class that provides a `getTime` method. Default object calls :fun:`time.time()`.
-            multiprocess (bool): Whether multiprocessing is enabled or not.
-            buffer_rows (int): Sets the number of rows in the shared array.
-            nonblocking (bool): Whether the HID interface blocks for input.
-            _ncol (int): Sets the number of columns in the shared array (depends on the length of
-                         the data provided by the `_read` method.
+        Args:
+            **kwargs:
+                nonblocking (bool): Whether the HID interface blocks for input.
 
         Notes:
             `nonblocking` should typically remain `True`, as I doubt there's any performance
@@ -47,7 +43,7 @@ class Hand(BaseInput):
         Examples:
             Initialization should be straightforward.
 
-            >>> device = Hand(multiprocess=True)
+            >>> device = Hand(nonblocking=True)
         """
 
         super(Hand, self).__init__(data_dims=15, **kwargs)
