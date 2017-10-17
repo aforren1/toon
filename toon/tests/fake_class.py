@@ -1,5 +1,5 @@
 import numpy as np
-from toon.input.base_input2 import BaseInput
+from toon.input.base_input import BaseInput
 
 
 class FakeInput(BaseInput):

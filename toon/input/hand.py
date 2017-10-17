@@ -16,7 +16,7 @@ from future import standard_library
 standard_library.install_aliases()
 import struct
 import numpy as np
-from toon.input.base_input import BaseInput, DummyTime
+from toon.input.base_input import BaseInput
 import hid
 
 
@@ -27,10 +27,7 @@ class Hand(BaseInput):
     Kata and the BLAM Lab.
 
     """
-    def __init__(self, clock_source=DummyTime(),
-                 multiprocess=False,
-                 dims=(50, 15),
-                 nonblocking=True):
+    def __init__(self, **kwargs):
         """Interface to HAND.
 
         Kwargs:
@@ -52,19 +49,16 @@ class Hand(BaseInput):
 
             >>> device = Hand(multiprocess=True)
         """
-        if dims[1] is not 15:
-            raise ValueError('The second dimension must be 15.')
 
-        super(Hand, self).__init__(clock_source, multiprocess, dims)
+        super(Hand, self).__init__(data_dims=15, **kwargs)
 
         self._rotval = np.pi / 4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
-        self.nonblocking = nonblocking
-        self._force_data = np.full(dims[1], np.nan)
+        self.nonblocking = kwargs.get('nonblocking', True)
         self._device = None
 
-    def _init_device(self):
+    def __enter__(self):
         """HAND-specific initialization.
         """
         self._device = hid.device()
@@ -74,26 +68,22 @@ class Hand(BaseInput):
         self._device.open_path(dev_path)
         self._device.set_nonblocking(self.nonblocking)
 
-    def _read(self):
+    def read(self):
         """HAND-specific read function.
         """
-        timestamp = self.time.getTime()
+        timestamp = self.time()
         data = self._device.read(46)
         if data:
             data = struct.unpack('>LhHHHHHHHHHHHHHHHHHHHH', bytearray(data))
             data = np.array(data, dtype='d')
             data[0] /= 1000.0  # device timestamp (since power-up, in milliseconds)
             data[1:] /= 65535.0
-            self._force_data[0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
-            self._force_data[1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
-            self._force_data[2::3] = data[4::4] + data[5::4]  # z
-            return timestamp, self._force_data
+            self._data_buffers[0][0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
+            self._data_buffers[0][1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
+            self._data_buffers[0][2::3] = data[4::4] + data[5::4]  # z
+            return timestamp, self._data_buffers[0]
         return None, None
 
-    def _stop_device(self):
-        """HAND does not need to be stopped."""
-        pass
-
-    def _close_device(self):
+    def __exit__(self, type, value, traceback):
         """Close the HID interface."""
         self._device.close()

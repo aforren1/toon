@@ -9,9 +9,9 @@ from platform import system
 
 from future import standard_library
 standard_library.install_aliases()
-from .base_input import BaseInput, DummyTime
+from .base_input import BaseInput
 from .hand import Hand
 from .birds import BlamBirds
-from .keyboard import Keyboard, DebugKeyboard
+from .keyboard import Keyboard
 if system() is 'Windows':
     from .force_transducers import ForceTransducers
