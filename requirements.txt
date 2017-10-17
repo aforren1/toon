@@ -1,6 +1,2 @@
 future
 numpy
-hidapi
-pyserial
-keyboard
-nidaqmx; platform_system == "Windows"

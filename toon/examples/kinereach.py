@@ -3,20 +3,26 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 from future import standard_library
+
 standard_library.install_aliases()
 from multiprocessing import set_start_method, freeze_support
 import os
+
 not_travis = 'TRAVIS' not in os.environ
 if not_travis:
     from psychopy import event
 
+
     class MouseWrapper(object):
         def __init__(self):
             self.mouse = event.Mouse(visible=True)
+
         def __enter__(self):
             return self
+
         def __exit__(self, type, value, traceback):
             pass
+
         def read(self):
             return self.mouse.getPos()
 
@@ -24,7 +30,7 @@ if __name__ == '__main__':
     set_start_method('spawn')
     freeze_support()
     import numpy as np
-    from psychopy import core, visual,  monitors
+    from psychopy import core, visual, monitors
     from toon.input import BlamBirds
 
     flock = False

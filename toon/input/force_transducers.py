@@ -1,6 +1,5 @@
 import platform
-import numpy as np
-from toon.input.base_input import BaseInput, DummyTime
+from toon.input.base_input import BaseInput
 
 if platform.system() is 'Windows':
     import nidaqmx
@@ -17,44 +16,36 @@ else:
 class ForceTransducers(BaseInput):
     """1D transducers."""
 
-    def __init__(self,
-                 clock_source=DummyTime,
-                 multiprocess=False,
-                 dims=(50, 10)):
+    def __init__(self, **kwargs):
 
-        BaseInput.__init__(self, clock_source=clock_source,
-                           multiprocess=multiprocess,
-                           dims=dims)
+        BaseInput.__init__(self, data_dims=10, **kwargs)
 
         self._device_name = system.devices[0].name  # Assume the first NIDAQ-mx device is the one we want
         self._channels = [self._device_name + '/ai' + str(n) for n in
                           [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
-        self._small_buffer = np.full(dims[1], np.nan)
 
-    def _init_device(self):
+    def __enter__(self):
         self._device = nidaqmx.Task()
         self._start_time = self.time.getTime()
 
         self._device.ai_channels.add_ai_voltage_chan(
             ','.join(self._channels),
-            #max_val=10, min_val=-10,
             terminal_config=TerminalConfiguration.RSE
         )
 
         self._device.timing.cfg_samp_clk_timing(200, sample_mode=AcquisitionType.CONTINUOUS)
         self._reader = AnalogMultiChannelReader(self._device.in_stream)
         self._device.start()
+        return self
 
-    def _read(self):
-        timestamp = self.time.getTime()
+    def read(self):
+        timestamp = self.time()
         try:
-            self._reader.read_one_sample(self._small_buffer, timeout=0)
+            self._reader.read_one_sample(self._data_buffers[0], timeout=0)
         except DaqError:
             return None, None
-        return timestamp, self._small_buffer
+        return timestamp, self._data_buffers[0]
 
-    def _stop_device(self):
+    def __exit__(self, type, value, traceback):
         self._device.stop()
-
-    def _close_device(self):
         self._device.close()
