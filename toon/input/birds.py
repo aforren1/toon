@@ -18,40 +18,34 @@ class BlamBirds(BaseInput):
             print((i.hwid, i.device))
 
     """
-    def __init__(self, **kwargs):
+    def __init__(self, ports=None, sample_ports=None,
+                 master=None, data_mode='position',
+                 sampling_frequency=130, **kwargs):
         """
 
         Args:
-            **kwargs:
-                ports (list of strings): List of *all* of the attached birds, e.g. ['COM4', 'COM5', 'COM6']
-                sample_ports (list of strings): List of the relevant ports, e.g. ['COM4', 'COM6']. Defaults to
-                    all `ports`.
-                master (string): The master bird. Defaults to the first element of `ports`.
-                data_mode (string): The data requested from the flock of birds. Defaults to 'position', which is
-                    the only mode currently implemented.
-                sampling_frequency (int): The requested sampling rate in Hz. Defaults to 130.
-
-        Notes:
-            The data returned represents the [x, y, z] position of each bird in `sample_ports`.
-
-        Examples:
-
-            >>> birds = BlamBirds(ports=['COM4', 'COM5', 'COM6'])
+            ports (list of strings): List of *all* of the attached birds, e.g. ['COM4', 'COM5', 'COM6']
+            sample_ports (list of strings): List of the relevant ports, e.g. ['COM4', 'COM6'].
+                Defaults to all `ports`.
+            master (str): The master bird. Defaults to the first port in `ports`.
+            data_mode (str): Type of data returned by the flock. Default (and only implementation)
+                is 'position'.
+            sampling_frequency (int): Number of times a second all birds are sampled.
         """
 
-        self.ports = kwargs.get('ports', None)  #  need to say at least *some* port
-        self.sample_ports = kwargs.get('sample_ports', self.ports)  # read all ports by default
-        self.master = kwargs.get('master', self.ports[0])  # the master is assumed to be first, unless otherwise stated
-        self.data_mode = kwargs.get('data_mode', 'position')
-        self.sampling_frequency = int(kwargs.get('sampling_frequency', 130))
+        self.ports = ports  #  need to say at least *some* port
+        self.sample_ports = sample_ports  # read all ports by default
+        self.master = master  # the master is assumed to be first, unless otherwise stated
+        self.data_mode = data_mode
+        self.sampling_frequency = sampling_frequency
 
         # check inputs
         if not isinstance(self.ports, list):
             raise ValueError('`ports` expected to be a list of ports.')
         if not isinstance(self.master, str):
-            raise ValueError('`master` must be a single string.')
+            self.master = self.ports[0]
         if not isinstance(self.sample_ports, list):
-            raise ValueError('`sample_ports` must be a list of ports.')
+            self.sample_ports = self.ports
         if not set(self.sample_ports).issubset(self.ports):
             raise ValueError('`sample_ports` must be a subset of `ports`.')
         if self.master not in self.ports:

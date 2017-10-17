@@ -11,16 +11,32 @@ class MultiprocessInput(object):
     Called by the :func:`Input` factory function.
     """
 
-    def __init__(self, device=None, **kwargs):
-        nrow = kwargs.pop('nrow', 40)
-        device_args = kwargs
+    def __init__(self, device=None, nrow=50, _sampling_period=0, error_on_overflow=False):
+        """
+
+        Args:
+            device: Device that inherits from :class:`toon.input.BaseInput`.
+            nrow (int): Number of rows for data buffer.
+            _sampling_period (float): For devices that always have data available, this
+                will limit the number of times the device is polled on the remote process.
+            error_on_overflow (bool): Decide whether or not to error if the data buffer runs out of space.
+
+        Notes:
+            The `nrow` depends on how frequently you plan on polling for data, as well as
+                the sampling frequency of the actual device. For example, a `nrow` of 20 should
+                be sufficient for a device polled at 1000 Hz, and read by the *main* process before
+                the framebuffer flip for a 60 Hz monitor. We should expect roughly 16 measurements a
+                read (device Hz/frame Hz).
+
+            It is important to note that if the data buffer overflows, the oldest data is gradually
+                replaced with the newest data. Perhaps this should be configurable...
+        """
 
         self._device = device  # swallow the original device (so we can use context managers)
         self._shared_lock = mp.RLock()  # use a single lock for time, data
-
-        self._device_args = copy.deepcopy(device_args)
+        self.error_on_overflow = error_on_overflow
         # pull out the data dimensions so we can preallocate the necessary arrays
-        data_dims = check_and_fix_dims(kwargs.get('data_dims', 'fail'))
+        data_dims = check_and_fix_dims(device.data_dims)
         num_data = len(data_dims)
 
         # allocate data
@@ -60,7 +76,7 @@ class MultiprocessInput(object):
         self._num_data = num_data
         # only devices that constantly have data available might need this,
         # squirreled it away because it may be confusing to users
-        self._sampling_period = kwargs.get('sampling_period', 0)
+        self._sampling_period = _sampling_period
 
     def __enter__(self):
         """Start the remote process."""
@@ -134,9 +150,8 @@ class MultiprocessInput(object):
             mp_data_buffers: N-dimensional array of data or list of N-dimensional arrays.
 
         """
-        # create a new instance of the device
-        device = self._device(**self._device_args)
-        with device as dev:
+
+        with self._device as dev:
             self._clear_remote_buffers()
             # make more easily-accessible versions of the shared arrays
             np_time_buffer = shared_to_numpy(mp_time_buffer, (self._nrow, 1))
@@ -163,6 +178,8 @@ class MultiprocessInput(object):
                                 np_data_buffers[0][next_index, :] = data
                             np_time_buffer[next_index, 0] = timestamp
                         else:  # replace oldest data with newest data
+                            if self.error_on_overflow:
+                                raise ValueError('The buffer for the remote input device has overflowed.')
                             for ii in range(len(dev.data_dims)):
                                 np_data_buffers[ii][:] = np.roll(np_data_buffers[ii], -1, axis=0)
                                 np_data_buffers[ii][-1, :] = data[ii]

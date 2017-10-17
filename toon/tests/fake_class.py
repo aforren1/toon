@@ -3,9 +3,9 @@ from toon.input.base_input import BaseInput
 
 
 class FakeInput(BaseInput):
-    def __init__(self, **kwargs):
+    def __init__(self, read_delay=0, **kwargs):
         BaseInput.__init__(self, **kwargs)
-        self.read_delay = kwargs.get('read_delay', 0)
+        self.read_delay = read_delay
 
     def __enter__(self):
         return self

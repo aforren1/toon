@@ -1,6 +1,6 @@
 import numpy as np
 from toon.tests.fake_class import FakeInput
-from toon.input import Input, BlamBirds, Hand, Keyboard
+from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
 import os
 from unittest import TestCase
 from nose.plugins.attrib import attr
@@ -24,31 +24,29 @@ def read_fn(dev):
             t2 = time()
             t3 = 0.016 + t2
             timestamps, data = d.read()
-            print('Frame start: ', str(t2 - t0))
+            #print('Frame start: ', str(t2 - t0))
             if timestamps is not None:
                 print(timestamps - t0)
                 print(data)
-                data2 = data
             while t3 > time():
                 pass
-    if isinstance(data2, list):
-        assert_true(all([sh != 0 for sh in data2[0].shape]))
+    if isinstance(data, list):
+        assert_true(all([sh != 0 for sh in data[0].shape]))
     else:
-        assert_true(all([sh != 0 for sh in data2.shape]))
+        assert_true(all([sh != 0 for sh in data.shape]))
 
-single_data = Input(FakeInput, mp=False, data_dims=5, read_delay=0.001, clock_source=time)
+single_data = FakeInput(data_dims=5, read_delay=0.001, clock_source=time)
 
-multi_data = Input(FakeInput, mp=False, data_dims=[[5], [3, 2]],
-                   clock_source=time, read_delay=0.001)
+multi_data = FakeInput(data_dims=[[5], [3, 2]], clock_source=time, read_delay=0.001)
 
 # if you want an idea of how fast the remote process spins,
 # try setting the read_delay to 0 and looking at the period
 # between readings
-single_mp = Input(FakeInput, mp=True, data_dims=5, read_delay=0.001, clock_source=time)
+single_mp = MultiprocessInput(single_data)
 
-multi_mp = Input(FakeInput, mp=True, data_dims=[[5], [3, 2]],
-                 clock_source=time, read_delay=0.001)
+multi_mp = MultiprocessInput(multi_data)
 
+@attr(travis='yes')
 def test_reads():
     read_fn(single_data)
     read_fn(multi_data)
@@ -59,25 +57,25 @@ def test_reads():
 class TestRealDevices(TestCase):
 
     def test_birds(self):
-        birds = Input(BlamBirds, mp=True, ports=['COM5', 'COM6', 'COM7', 'COM8'])
+        birds = BlamBirds(ports=['COM5', 'COM6', 'COM7', 'COM8'])
         read_fn(birds)
-        birds = Input(BlamBirds, mp=False, ports=['COM5', 'COM6', 'COM7', 'COM8'])
-        read_fn(birds)
+        mp_birds = MultiprocessInput(birds)
+        read_fn(mp_birds)
 
     def test_hand(self):
-        hand = Input(Hand, mp=True, nonblocking=True)
+        hand = Hand()
         read_fn(hand)
-        hand = Input(Hand, mp=False, nonblocking=True)
+        mp_hand = MultiprocessInput(hand)
         read_fn(hand)
 
     def test_force(self):
-        ft = Input(ForceTransducers, mp=True)
+        ft = ForceTransducers()
         read_fn(ft)
-        ft = Input(ForceTransducers, mp=False)
-        read_fn(ft)
+        mp_ft = MultiprocessInput(ft)
+        read_fn(mp_ft)
 
     def test_keyboard(self):
-        kb = Input(Keyboard, mp=True, keys = ['a', 's', 'd', 'f'])
-        read_fn(kb)
-        kb = Input(Keyboard, mp=False, keys = ['a', 's', 'd', 'f'])
-        read_fn(kb)
+        """Note: In current montage, avoid importing keyboard on main process."""
+        kb = Keyboard(keys = ['a', 's', 'd', 'f'])
+        mp_kb = MultiprocessInput(kb)
+        read_fn(mp_kb)

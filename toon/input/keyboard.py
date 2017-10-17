@@ -2,19 +2,17 @@ import numpy as np
 from toon.input.base_input import BaseInput
 
 class Keyboard(BaseInput):
-    def __init__(self, **kwargs):
+    def __init__(self, keys=None, **kwargs):
         """
-
         Args:
-            **kwargs:
-                keys (list): List of keys of interest, e.g. ['a', 's', 'd', 'f']
+            keys (list): List of keys of interest, e.g. ['a', 's', 'd', 'f']
 
         Notes:
             Returns a *change* in state (1 for press, -1 for release).
-            However, there's a bug somewhere that when you release one key while holding
-            others down, it'll count as a release on *all* keys (only checked on Windows).
+                However, there's a bug somewhere that when you release one key while holding
+                others down, it'll count as a release on *all* keys (only checked on Windows).
         """
-        self._keys = kwargs.get('keys', None)
+        self._keys = keys
         if not isinstance(self._keys, list):
             raise ValueError('`keys` must be a list of keys of interest.')
         BaseInput.__init__(self, data_dims=len(self._keys), **kwargs)

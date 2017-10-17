@@ -1,11 +1,3 @@
-"""
-.. module:: input
-     :platform: Unix, Windows
-     :synopsis: Tools for dealing with input devices.
-
-.. moduleauthor:: Alexander Forrence <aforren1@jhu.edu>
-
-"""
 from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -19,7 +11,6 @@ import numpy as np
 from toon.input.base_input import BaseInput
 import hid
 
-
 class Hand(BaseInput):
     """Interface to HAND.
 
@@ -27,18 +18,15 @@ class Hand(BaseInput):
     Kata and the BLAM Lab.
 
     """
-    def __init__(self, **kwargs):
-        """Interface to HAND.
-
+    def __init__(self, nonblocking=True, **kwargs):
+        """
         Args:
-            **kwargs:
-                nonblocking (bool): Whether the HID interface blocks for input.
-
+            nonblocking (bool): Whether the HID interface blocks for input.
         Notes:
-            `nonblocking` should typically remain `True`, as I doubt there's any performance
-            benefit and it leads to difficult debugging.
+        `nonblocking` should typically remain `True`, as I doubt there's any performance
+        benefit and it leads to difficult debugging.
 
-            Data is formatted as [x, y, z] per finger (15 elements, 3 per finger).
+        Data is formatted as [x, y, z] per finger (15 elements, 3 per finger).
 
         Examples:
             Initialization should be straightforward.
@@ -51,7 +39,7 @@ class Hand(BaseInput):
         self._rotval = np.pi / 4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
-        self.nonblocking = kwargs.get('nonblocking', True)
+        self.nonblocking = nonblocking
         self._device = None
 
     def __enter__(self):
@@ -66,8 +54,7 @@ class Hand(BaseInput):
         return self
 
     def read(self):
-        """HAND-specific read function.
-        """
+        """HAND-specific read function."""
         timestamp = self.time()
         data = self._device.read(46)
         if data:
