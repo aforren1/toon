@@ -9,7 +9,7 @@ from platform import system
 
 from future import standard_library
 standard_library.install_aliases()
-from .base_input import BaseInput
+from .base_input import BaseInput, Input
 from .hand import Hand
 from .birds import BlamBirds
 from .keyboard import Keyboard
