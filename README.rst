@@ -39,6 +39,12 @@ Development version::
 
     pip install git+https://github.com/aforren1/toon
 
+For full install (including dependencies of included devices)::
+
+    pip install toon[full]
+
+See setup.py for a list of those dependencies, as well as device-specific subdivisions.
+
 Usage Overview
 --------------
 
