@@ -94,6 +94,7 @@ class BlamBirds(BaseInput):
         for bird in self._birds:
             # position as output type. TODO: allow different out data types
             bird.write(b'V')
+            # change Vm table to Ascension's "snappy" settings
             bird.write(b'P' + b'\x0C' + struct.pack('<HHHHHHH', *[2, 2, 2, 10, 10, 40, 200]))
             # first 5 bits are meaningless, B2 is 0 (AC narrow ON), B1 is 1 (AC wide OFF), B0 is 0 (DC ON)
             bird.write(b'P' + b'\x04' + b'\x02' + b'\x00')
