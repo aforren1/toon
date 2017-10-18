@@ -27,10 +27,9 @@ class MultiprocessPiper(object):
             remote_ready.set()
             while not stop_remote.is_set():
                 t0 = dev.time()
-                timestamp, data = dev.read()
-                if timestamp is not None:
-                    remote.send({'time': timestamp,
-                                 'data': data})
+                data = dev.read()
+                if data is not None:
+                    remote.send(data)
                     while self._sampling_period > (dev.time() - t0):
                         pass
 

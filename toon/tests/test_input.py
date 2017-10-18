@@ -66,7 +66,7 @@ class TestRealDevices(TestCase):
         hand = Hand()
         read_fn(hand)
         mp_hand = MultiprocessInput(hand)
-        read_fn(hand)
+        read_fn(mp_hand)
 
     def test_force(self):
         ft = ForceTransducers()

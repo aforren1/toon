@@ -1,6 +1,5 @@
 import multiprocessing as mp
 import ctypes
-import copy
 from numbers import Number
 import numpy as np
 

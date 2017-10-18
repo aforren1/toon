@@ -15,10 +15,11 @@ class Keyboard(BaseInput):
         self._keys = keys
         if not isinstance(self._keys, list):
             raise ValueError('`keys` must be a list of keys of interest.')
-        BaseInput.__init__(self, data_dims=len(self._keys), **kwargs)
+        BaseInput.__init__(self, **kwargs)
         self._buffer = np.full(len(self._keys), 0)
         self._state = np.copy(self._buffer)
         self._temp_time = None
+        self._data_buffer = np.full(len(self._keys), np.nan)
 
     def __enter__(self):
         import keyboard
@@ -33,10 +34,10 @@ class Keyboard(BaseInput):
 
     def read(self):
         if self._buffer.any():
-            np.copyto(self._data_buffers[0], self._buffer)
+            np.copyto(self._data_buffer, self._buffer)
             self._buffer.fill(0)
-            return self._temp_time, self._data_buffers[0]
-        return None, None
+            return {'time': self._temp_time, 'data': self._data_buffer}
+        return None
 
     def __exit__(self, type, value, traceback):
         self._device.clear_all_hotkeys()

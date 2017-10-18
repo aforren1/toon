@@ -59,8 +59,8 @@ class BlamBirds(BaseInput):
         self._master_index = self.ports.index(self.master)
         self._sample_ports_indices = [self.ports.index(sp) for sp in self.sample_ports]
         self._ndata = 3 * len(self.sample_ports)  # 3 axes per bird of interest
-
-        BaseInput.__init__(self, data_dims=[[self._ndata]], **kwargs)
+        self._data_buffer = np.full(self._ndata, np.nan)
+        BaseInput.__init__(self, **kwargs)
 
         # handle the reordering of axes (bird is [y, z, x] relative to screen)
         # TODO: clean this up (far too complicated)
@@ -112,17 +112,17 @@ class BlamBirds(BaseInput):
         # only convert data if it's there
         if not any(b'' == s for s in _data_list):
             _data_list = [self.decode(msg) for msg in _data_list]
-            self._data_buffers[0][:] = _data_list
-            self._data_buffers[0][:] = self._data_buffers[0][self._reindex[:self._ndata]]
-            temp_x = self._data_buffers[0][::3]
-            temp_y = self._data_buffers[0][1::3]
+            self._data_buffer[:] = _data_list
+            self._data_buffer[:] = self._data_buffer[0][self._reindex[:self._ndata]]
+            temp_x = self._data_buffer[::3]
+            temp_y = self._data_buffer[1::3]
             # here be magic numbers (very Kinereach-specific)
-            self._data_buffers[0][::3] = temp_x * np.cos(-0.01938) - temp_y * np.sin(-0.01938)
-            self._data_buffers[0][1::3] = temp_y * np.sin(-0.01938) + temp_y * np.cos(-0.01938)
-            self._data_buffers[0][::3] += 61.35 - 60.5
-            self._data_buffers[0][1::3] += 17.69 - 34.0
-            return timestamp, self._data_buffers[0]
-        return None, None
+            self._data_buffer[::3] = temp_x * np.cos(-0.01938) - temp_y * np.sin(-0.01938)
+            self._data_buffer[1::3] = temp_y * np.sin(-0.01938) + temp_y * np.cos(-0.01938)
+            self._data_buffer[::3] += 61.35 - 60.5
+            self._data_buffer[1::3] += 17.69 - 34.0
+            return {'time': timestamp, 'data': self._data_buffer}
+        return None
 
 
     def __exit__(self, type, value, traceback):

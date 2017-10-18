@@ -1,4 +1,5 @@
 import platform
+import numpy as np
 from toon.input.base_input import BaseInput
 
 if platform.system() is 'Windows':
@@ -18,11 +19,12 @@ class ForceTransducers(BaseInput):
 
     def __init__(self, **kwargs):
 
-        BaseInput.__init__(self, data_dims=10, **kwargs)
+        BaseInput.__init__(self, **kwargs)
 
         self._device_name = system.devices[0].name  # Assume the first NIDAQ-mx device is the one we want
         self._channels = [self._device_name + '/ai' + str(n) for n in
                           [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
+        self._data_buffer = np.full(10, np.nan)
 
     def __enter__(self):
         self._device = nidaqmx.Task()
@@ -41,10 +43,10 @@ class ForceTransducers(BaseInput):
     def read(self):
         timestamp = self.time()
         try:
-            self._reader.read_one_sample(self._data_buffers[0], timeout=0)
+            self._reader.read_one_sample(self._data_buffer, timeout=0)
         except DaqError:
-            return None, None
-        return timestamp, self._data_buffers[0]
+            return None
+        return {'time': timestamp, 'data': self._data_buffer}
 
     def __exit__(self, type, value, traceback):
         self._device.stop()
