@@ -1,6 +1,7 @@
 import multiprocessing as mp
 
-class MultiprocessPiper(object):
+
+class MultiprocessInput(object):
     def __init__(self, device=None, _sampling_period=0):
         self._device = device
         self.local, self.remote = mp.Pipe(duplex=False)

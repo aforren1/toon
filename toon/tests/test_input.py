@@ -5,7 +5,7 @@ import numpy as np
 from nose.plugins.attrib import attr
 
 from toon.tests.fake_class import FakeInput
-from toon.input import BlamBirds, Hand, Keyboard, MultiprocessPiper
+from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
 
 if os.sys.platform == 'win32':
     from toon.input import ForceTransducers
@@ -39,9 +39,9 @@ multi_data = FakeInput(data_dims=[[5], [3, 2]], clock_source=time, read_delay=0.
 # if you want an idea of how fast the remote process spins,
 # try setting the read_delay to 0 and looking at the period
 # between readings
-single_mp = MultiprocessPiper(single_data)
+single_mp = MultiprocessInput(single_data)
 
-multi_mp = MultiprocessPiper(multi_data)
+multi_mp = MultiprocessInput(multi_data)
 
 @attr(travis='yes')
 def test_reads():
@@ -56,23 +56,23 @@ class TestRealDevices(TestCase):
     def test_birds(self):
         birds = BlamBirds(ports=['COM5', 'COM6', 'COM7', 'COM8'])
         read_fn(birds)
-        mp_birds = MultiprocessPiper(birds)
+        mp_birds = MultiprocessInput(birds)
         read_fn(mp_birds)
 
     def test_hand(self):
         hand = Hand()
         read_fn(hand)
-        mp_hand = MultiprocessPiper(hand)
+        mp_hand = MultiprocessInput(hand)
         read_fn(mp_hand)
 
     def test_force(self):
         ft = ForceTransducers()
         read_fn(ft)
-        mp_ft = MultiprocessPiper(ft)
+        mp_ft = MultiprocessInput(ft)
         read_fn(mp_ft)
 
     def test_keyboard(self):
         """Note: In current montage, avoid importing keyboard on main process."""
         kb = Keyboard(keys = ['a', 's', 'd', 'f'])
-        mp_kb = MultiprocessPiper(kb)
+        mp_kb = MultiprocessInput(kb)
         read_fn(mp_kb)
