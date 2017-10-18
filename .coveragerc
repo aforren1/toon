@@ -1,3 +1,4 @@
 [run]
 source = toon
 include = */toon/*
+omit = toon/tests/*

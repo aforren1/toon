@@ -1,10 +1,12 @@
-import numpy as np
-from toon.tests.fake_class import FakeInput
-from toon.input import BlamBirds, Hand, Keyboard, MultiprocessPiper
 import os
 from unittest import TestCase
+
+import numpy as np
 from nose.plugins.attrib import attr
-from nose.tools import assert_true
+
+from toon.tests.fake_class import FakeInput
+from toon.input import BlamBirds, Hand, Keyboard, MultiprocessPiper
+
 if os.sys.platform == 'win32':
     from toon.input import ForceTransducers
 
