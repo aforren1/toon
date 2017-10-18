@@ -9,6 +9,8 @@ class MultiprocessPiper(object):
         self._sampling_period = _sampling_period
 
     def __enter__(self):
+        self.remote_ready.clear()
+        self.stop_remote.clear()
         self._process = mp.Process(target=self._mp_worker,
                                    args=(self.remote,
                                          self.remote_ready,
