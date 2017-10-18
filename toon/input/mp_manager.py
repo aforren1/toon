@@ -49,8 +49,9 @@ class MultiprocessTest(object):
 
     def read(self):
         data = list()
-        while self.local.poll():
-            data.append(self.local.recv())
+        with self.lock:
+            while self.local.poll():
+                data.append(self.local.recv())
         if len(data) == 0:
             return None
         return data
