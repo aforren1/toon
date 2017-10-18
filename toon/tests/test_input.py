@@ -1,6 +1,6 @@
 import numpy as np
 from toon.tests.fake_class import FakeInput
-from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
+from toon.input import BlamBirds, Hand, Keyboard, MultiprocessPiper
 import os
 from unittest import TestCase
 from nose.plugins.attrib import attr
@@ -23,17 +23,12 @@ def read_fn(dev):
         while t1 > time():
             t2 = time()
             t3 = 0.016 + t2
-            timestamps, data = d.read()
+            data = d.read()
             #print('Frame start: ', str(t2 - t0))
-            if timestamps is not None:
-                print(timestamps - t0)
+            if data is not None:
                 print(data)
             while t3 > time():
                 pass
-    if isinstance(data, list):
-        assert_true(all([sh != 0 for sh in data[0].shape]))
-    else:
-        assert_true(all([sh != 0 for sh in data.shape]))
 
 single_data = FakeInput(data_dims=5, read_delay=0.001, clock_source=time)
 
@@ -42,9 +37,9 @@ multi_data = FakeInput(data_dims=[[5], [3, 2]], clock_source=time, read_delay=0.
 # if you want an idea of how fast the remote process spins,
 # try setting the read_delay to 0 and looking at the period
 # between readings
-single_mp = MultiprocessInput(single_data)
+single_mp = MultiprocessPiper(single_data)
 
-multi_mp = MultiprocessInput(multi_data)
+multi_mp = MultiprocessPiper(multi_data)
 
 @attr(travis='yes')
 def test_reads():
@@ -59,23 +54,23 @@ class TestRealDevices(TestCase):
     def test_birds(self):
         birds = BlamBirds(ports=['COM5', 'COM6', 'COM7', 'COM8'])
         read_fn(birds)
-        mp_birds = MultiprocessInput(birds)
+        mp_birds = MultiprocessPiper(birds)
         read_fn(mp_birds)
 
     def test_hand(self):
         hand = Hand()
         read_fn(hand)
-        mp_hand = MultiprocessInput(hand)
+        mp_hand = MultiprocessPiper(hand)
         read_fn(mp_hand)
 
     def test_force(self):
         ft = ForceTransducers()
         read_fn(ft)
-        mp_ft = MultiprocessInput(ft)
+        mp_ft = MultiprocessPiper(ft)
         read_fn(mp_ft)
 
     def test_keyboard(self):
         """Note: In current montage, avoid importing keyboard on main process."""
         kb = Keyboard(keys = ['a', 's', 'd', 'f'])
-        mp_kb = MultiprocessInput(kb)
+        mp_kb = MultiprocessPiper(kb)
         read_fn(mp_kb)

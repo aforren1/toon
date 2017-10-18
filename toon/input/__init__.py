@@ -10,7 +10,7 @@ from platform import system
 from future import standard_library
 standard_library.install_aliases()
 from .base_input import BaseInput
-from .mp_input import MultiprocessInput
+from .mp_piper import MultiprocessPiper
 from .hand import Hand
 from .birds import BlamBirds
 from .keyboard import Keyboard
