@@ -87,6 +87,7 @@ class MultiprocessInput(object):
                                          self._mp_time_buffer,
                                          self._mp_data_buffers))
         self._clear_remote_buffers()
+        self._process.daemon = True
         self._process.start()
         return self
 
@@ -94,7 +95,6 @@ class MultiprocessInput(object):
         """Signal to the remote process to finish."""
         with self._poison_pill.get_lock():
             self._poison_pill.value = True
-        self._process.join()
 
     def read(self):
         """Put locks on all data, copy data to the local process.
