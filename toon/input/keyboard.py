@@ -12,7 +12,7 @@ class Keyboard(BaseInput):
         Notes:
             Read function returns only the press, not the release (for now).
             Both the character and the index (position in the list provided) are
-            returned in the dict.
+            returned in the dict, as well as the type of event (press vs. release).
         """
 
         self._keys = keys

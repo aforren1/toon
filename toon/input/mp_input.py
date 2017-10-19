@@ -3,6 +3,13 @@ import multiprocessing as mp
 
 class MultiprocessInput(object):
     def __init__(self, device=None, _sampling_period=0):
+        """
+        Allows the user poll an input device without blocking the main process.
+        Args:
+            device: An input device that inherits from :class:`toon.input.BaseInput`.
+            _sampling_period (float): Only use if the input device constantly has its
+                state available.
+        """
         self._device = device
         self.local, self.remote = mp.Pipe(duplex=False)
         self.remote_ready = mp.Event()
@@ -26,6 +33,14 @@ class MultiprocessInput(object):
         self.stop_remote.set()
 
     def _mp_worker(self, remote, remote_ready, stop_remote):
+        """
+        Function that runs on the remote process.
+        Args:
+            remote: The 'sending' end of the multiprocessing Pipe.
+            remote_ready: Used to tell the original process that the remote is ready to sample.
+            stop_remote: Used to tell the remote process to stop sampling.
+
+        """
         with self._device as dev:
             remote_ready.set()
             while not stop_remote.is_set():
@@ -37,10 +52,12 @@ class MultiprocessInput(object):
                         pass
 
     def _clear_pipe(self):
+        """Clear any pending data."""
         while self.local.poll():
             self.local.recv()
 
     def read(self):
+        """Read all pending data from the 'receiving' end of the multiprocessing Pipe."""
         data = list()
         while self.local.poll():
             data.append(self.local.recv())
