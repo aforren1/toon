@@ -12,6 +12,7 @@ install:
   - pip install python-coveralls coverage
   - pip install .[full]
 script:
+  - xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset"
   - nosetests -a travis=yes --with-coverage
 after_success:
   - coveralls --config_file .coveragerc
