@@ -34,7 +34,7 @@ class Keyboard(BaseInput):
         self._events.clear()
         if len(send_data) == 0:
             return None
-        return send_data
+        return send_data[0] # only return first press (to fix later)
 
     def __exit__(self, type, value, traceback):
         self._device.stop()
