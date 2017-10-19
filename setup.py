@@ -34,7 +34,7 @@ setup(
         'full': ['hidapi', 'pyserial', 'keyboard', 'nidaqmx;platform_system=="Windows"'],
         'hand': ['hidapi'],
         'birds': ['pyserial'],
-        'keyboard': ['keyboard'],
+        'keyboard': ['pynput'],
         'force': ['nidaqmx;platform_system=="Windows"']
     },
     keywords='psychophysics neuroscience input experiment',
