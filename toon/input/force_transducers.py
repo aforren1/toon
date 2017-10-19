@@ -28,7 +28,6 @@ class ForceTransducers(BaseInput):
 
     def __enter__(self):
         self._device = nidaqmx.Task()
-        self._start_time = self.time.getTime()
 
         self._device.ai_channels.add_ai_voltage_chan(
             ','.join(self._channels),

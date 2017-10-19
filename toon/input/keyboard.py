@@ -45,11 +45,15 @@ class Keyboard(BaseInput):
         if not isinstance(key, keyboard.Key):
             if key.char in self._keys and key.char not in self._on:
                 index = self._keys.index(key.char)
-                data = {'time': time, 'index': index, 'char': key.char}
+                data = {'time': time, 'index': index, 'char': key.char, 'type': 'press'}
                 self._events.append(data)
                 self._on.append(key.char)
 
     def _on_release(self, key):
+        time = self.time()
         if not isinstance(key, keyboard.Key):
             if key.char in self._keys and key.char in self._on:
+                index = self._keys.index(key.char)
+                data = {'time': time, 'index': index, 'char': key.char, 'type': 'release'}
+                self._events.append(data)
                 self._on.remove(key.char)

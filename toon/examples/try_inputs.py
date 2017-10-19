@@ -7,9 +7,10 @@ from toon.input import Keyboard, Hand, BlamBirds, MultiprocessInput
 import numpy as np
 if system() is 'Windows':
     from toon.input import ForceTransducers
+import matplotlib.pyplot as plt
 
 # Call via
-# python -m toon.examples.try_inputs --dev keyboard --mp True
+# python -m toon.examples.try_inputs --dev keyboard --mp True --time 10
 import os
 not_travis = 'TRAVIS' not in os.environ
 if not_travis:
@@ -24,11 +25,20 @@ if __name__=='__main__':
                         dest='dev')
     parser.add_argument('--mp',
                         dest='mp',
-                        type=lambda x: bool(util.strtobool(x)))
+                        type=lambda x: bool(util.strtobool(x)),
+                        default=False)
+    parser.add_argument('--time',
+                        dest='dur', default=5)
+    parser.add_argument('--print', dest='print', default=True)
+    parser.add_argument('--plot', dest='plot', default=False)
     results = parser.parse_args()
 
     mp = results.mp
     device = results.dev
+    duration = float(results.dur)
+    prnt = bool(results.print)
+    plt = bool(results.plot)
+
     if not_travis:
         time = core.monotonicClock.getTime
     else:
@@ -53,15 +63,25 @@ if __name__=='__main__':
         device = MultiprocessInput(dev)
     else:
         device = dev
-
+    lst = list()
     with device as d:
         t0 = time()
-        t1 = t0 + 10
+        t1 = t0 + duration
         while time() < t1:
-            timestamp, data = d.read()
+            t2 = time()
+            t3 = t2 + 0.016
+            data = d.read()
             if data is not None:
-                print(timestamp - t0)
-                print(data)
-            sleep(0.016)
+                if prnt:
+                    print(data)
+                lst.extend([d['time'] for d in data])
+            while time() < t3:
+                pass
+    if plt:
+        d = np.diff(lst)
+        plt.plot(d)
+        plt.show()
+        plt.hist(d)
+        plt.show()
 
     sys.exit()
