@@ -73,7 +73,7 @@ if __name__=='__main__':
             data = d.read()
             if data is not None:
                 if prnt:
-                    print(data)
+                    print([d['data'] for d in data])
                 lst.extend([d['time'] for d in data])
             while time() < t3:
                 pass

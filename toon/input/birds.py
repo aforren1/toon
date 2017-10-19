@@ -72,7 +72,7 @@ class BlamBirds(BaseInput):
                                      bytesize=serial.EIGHTBITS,
                                      xonxoff=0,
                                      rtscts=0,
-                                     timeout=0)
+                                     timeout=0.0001)
                        for port in self.ports]
 
         for bird in self._birds:
@@ -105,15 +105,15 @@ class BlamBirds(BaseInput):
         return self
 
     def read(self):
-        timestamp = self.time()
         _data_list = list()
+        timestamp = self.time()
         for bird in self._sample_ports_indices:
             _data_list.append(self._birds[bird].read(6))  # assumes position data
         # only convert data if it's there
         if not any(b'' == s for s in _data_list):
             _data_list = [self.decode(msg) for msg in _data_list]
-            self._data_buffer[:] = _data_list
-            self._data_buffer[:] = self._data_buffer[0][self._reindex[:self._ndata]]
+            self._data_buffer[:] = np.array(_data_list).reshape(self._ndata)
+            self._data_buffer[:] = self._data_buffer[self._reindex[:self._ndata]]
             temp_x = self._data_buffer[::3]
             temp_y = self._data_buffer[1::3]
             # here be magic numbers (very Kinereach-specific)
