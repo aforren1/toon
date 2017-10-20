@@ -43,13 +43,14 @@ class MultiprocessInput(object):
         """
         with self._device as dev:
             remote_ready.set()
+            t0 = dev.time() + self._sampling_period  # first sampling period will be off
             while not stop_remote.is_set():
-                t0 = dev.time() + self._sampling_period
                 data = dev.read()
                 if data is not None:
                     remote.send(data)
                     while dev.time() < t0:
                         pass
+                t0 = dev.time() + self._sampling_period
 
     def _clear_pipe(self):
         """Clear any pending data."""

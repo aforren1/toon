@@ -7,6 +7,7 @@ class FakeInput(BaseInput):
         self.data_dims = check_and_fix_dims(kwargs.pop('data_dims', 3))
         BaseInput.__init__(self, **kwargs)
         self.read_delay = read_delay
+        self.t1 = 0  # first period will be wrong
 
     def __enter__(self):
         return self
@@ -16,14 +17,14 @@ class FakeInput(BaseInput):
 
     def read(self):
         t0 = self.time()
-        t1 = t0 + self.read_delay
         data = list()
         for i in self.data_dims:
             data.append(np.random.random(i))
-        while self.time() < t1:
+        while self.time() < self.t1:
             pass
         if len(data) == 1:
             data = data[0]
+        self.t1 = t0 + self.read_delay
         return {'time': self.time(), 'data': data}
 
 def check_and_fix_dims(input):
