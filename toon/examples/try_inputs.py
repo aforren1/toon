@@ -7,7 +7,7 @@ from toon.input import Keyboard, Hand, BlamBirds, MultiprocessInput
 import numpy as np
 if system() is 'Windows':
     from toon.input import ForceTransducers
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plot
 
 # Call via
 # python -m toon.examples.try_inputs --dev keyboard --mp True --time 10
@@ -42,7 +42,8 @@ if __name__=='__main__':
     if not_travis:
         time = core.monotonicClock.getTime
     else:
-        from time import time
+        from timeit import default_timer
+        time = default_timer
     if device == 'keyboard':
         dev = Keyboard(keys=['a', 's', 'd', 'f'], clock_source=time)
     elif device == 'hand':
@@ -79,9 +80,9 @@ if __name__=='__main__':
                 pass
     if plt:
         d = np.diff(lst)
-        plt.plot(d)
-        plt.show()
-        plt.hist(d)
-        plt.show()
+        plot.plot(d)
+        plot.show()
+        plot.hist(d)
+        plot.show()
 
     sys.exit()
