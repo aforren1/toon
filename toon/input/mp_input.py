@@ -62,6 +62,6 @@ class MultiprocessInput(object):
         data = list()
         while self.local.poll():
             data.append(self.local.recv())
-        if len(data) == 0:
-            return None
-        return data
+        if data:
+            return data
+        return None
