@@ -16,16 +16,16 @@ class FakeInput(BaseInput):
         pass
 
     def read(self):
-        t0 = self.time()
         data = list()
         for i in self.data_dims:
             data.append(np.random.random(i))
+        t0 = self.time()
         while self.time() < self.t1:
             pass
         if len(data) == 1:
             data = data[0]
         self.t1 = self.time() + self.read_delay
-        return {'time': self.time(), 'data': data}
+        return {'time': t0, 'data': data}
 
 def check_and_fix_dims(input):
     """

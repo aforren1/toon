@@ -72,7 +72,7 @@ class BlamBirds(BaseInput):
                                      bytesize=serial.EIGHTBITS,
                                      xonxoff=0,
                                      rtscts=0,
-                                     timeout=0.0001)
+                                     timeout=(1.0/self.sampling_frequency) * 2.0)
                        for port in self.ports]
 
         for bird in self._birds:
@@ -106,10 +106,10 @@ class BlamBirds(BaseInput):
 
     def read(self):
         _data_list = list()
-        timestamp = self.time()
         for bird in self._sample_ports_indices:
             _data_list.append(self._birds[bird].read(6))  # assumes position data
         # only convert data if it's there
+        timestamp = self.time()
         if not any(b'' == s for s in _data_list):
             _data_list = [self.decode(msg) for msg in _data_list]
             self._data_buffer[:] = np.array(_data_list).reshape(self._ndata)
@@ -121,7 +121,7 @@ class BlamBirds(BaseInput):
             self._data_buffer[1::3] = temp_y * np.sin(-0.01938) + temp_y * np.cos(-0.01938)
             self._data_buffer[::3] += 61.35 - 60.5
             self._data_buffer[1::3] += 17.69 - 34.0
-            return {'time': timestamp, 'data': self._data_buffer}
+            return {'time': timestamp, 'data': np.copy(self._data_buffer)}
         return None
 
 

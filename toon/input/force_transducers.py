@@ -40,12 +40,12 @@ class ForceTransducers(BaseInput):
         return self
 
     def read(self):
-        timestamp = self.time()
         try:
             self._reader.read_one_sample(self._data_buffer, timeout=0)
+            timestamp = self.time()
         except DaqError:
             return None
-        return {'time': timestamp, 'data': self._data_buffer}
+        return {'time': timestamp, 'data': np.copy(self._data_buffer)}
 
     def __exit__(self, type, value, traceback):
         self._device.stop()

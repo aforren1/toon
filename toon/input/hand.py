@@ -18,13 +18,13 @@ class Hand(BaseInput):
     Kata and the BLAM Lab.
 
     """
-    def __init__(self, nonblocking=True, **kwargs):
+    def __init__(self, nonblocking=False, **kwargs):
         """
         Args:
             nonblocking (bool): Whether the HID interface blocks for input.
         Notes:
-        `nonblocking` should typically remain `True`, as I doubt there's any performance
-        benefit and it leads to difficult debugging.
+            If testing the `Hand`, I would suggest setting `nonblocking` to True for
+            the sake of easy debugging.
 
         Data is formatted as [x, y, z] per finger (15 elements, 3 per finger).
 
@@ -56,8 +56,8 @@ class Hand(BaseInput):
 
     def read(self):
         """HAND-specific read function."""
-        timestamp = self.time()
         data = self._device.read(46)
+        timestamp = self.time()
         if data:
             data = struct.unpack('>LhHHHHHHHHHHHHHHHHHHHH', bytearray(data))
             data = np.array(data, dtype='d')
@@ -66,7 +66,7 @@ class Hand(BaseInput):
             self._data_buffer[0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
             self._data_buffer[1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
             self._data_buffer[2::3] = data[4::4] + data[5::4]  # z
-            return {'time': timestamp, 'data': self._data_buffer,
+            return {'time': timestamp, 'data': np.copy(self._data_buffer),
                     'device_time': data[0], 'us_deviation': data[1]}
         return None
 
