@@ -32,9 +32,9 @@ class Keyboard(BaseInput):
     def read(self):
         send_data = self._events[:]
         self._events.clear()
-        if len(send_data) == 0:
-            return None
-        return send_data[0] # only return first press (to fix later)
+        if send_data:
+            return send_data[0]  # only return first press (to fix later)
+        return None
 
     def __exit__(self, type, value, traceback):
         self._device.stop()
