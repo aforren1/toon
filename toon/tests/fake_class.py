@@ -24,7 +24,7 @@ class FakeInput(BaseInput):
             pass
         if len(data) == 1:
             data = data[0]
-        self.t1 = t0 + self.read_delay
+        self.t1 = self.time() + self.read_delay
         return {'time': self.time(), 'data': data}
 
 def check_and_fix_dims(input):
