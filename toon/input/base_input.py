@@ -1,5 +1,5 @@
 import abc
-from time import time
+from timeit import default_timer
 
 class BaseInput(object):
     """
@@ -8,7 +8,7 @@ class BaseInput(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def __init__(self, clock_source=time):
+    def __init__(self, clock_source=default_timer):
         """
         Args:
             clock_source: Clock or timer that returns the current (absolute or relative) time.
