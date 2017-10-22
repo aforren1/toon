@@ -1,5 +1,5 @@
 import multiprocessing as mp
-
+import psutil
 
 class MultiprocessInput(object):
     def __init__(self, device=None, _sampling_period=0):
@@ -27,6 +27,9 @@ class MultiprocessInput(object):
         self._clear_pipe()
         self._process.start()
         self.remote_ready.wait()
+        parent = psutil.Process()
+        for child in parent.children():
+            child.nice(psutil.HIGH_PRIORITY_CLASS)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
