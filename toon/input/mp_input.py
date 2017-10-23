@@ -29,7 +29,10 @@ class MultiprocessInput(object):
         self.remote_ready.wait()
         parent = psutil.Process()
         for child in parent.children():
-            child.nice(psutil.HIGH_PRIORITY_CLASS)
+            if psutil.WINDOWS:
+                child.nice(psutil.HIGH_PRIORITY_CLASS)
+            else:
+                pass # TODO: handle niceness on Unix-like OSes
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
