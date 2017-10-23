@@ -1,9 +1,6 @@
 import os
 from unittest import TestCase
-
-import numpy as np
 from nose.plugins.attrib import attr
-
 from toon.tests.fake_class import FakeInput
 from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
 
@@ -15,8 +12,6 @@ if 'TRAVIS' not in os.environ:
     time = monotonicClock.getTime
 else:
     from time import time
-
-np.set_printoptions(precision=4)
 
 def read_fn(dev):
     with dev as d:
@@ -32,7 +27,7 @@ def read_fn(dev):
             while t3 > time():
                 pass
 
-single_data = FakeInput(data_dims=5, read_delay=0.001, clock_source=time)
+single_data = FakeInput(data_dims=[[5]], read_delay=0.001, clock_source=time)
 
 multi_data = FakeInput(data_dims=[[5], [3, 2]], clock_source=time, read_delay=0.001)
 
