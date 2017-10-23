@@ -3,12 +3,14 @@ import gc
 import psutil
 
 class MultiprocessInput(object):
-    def __init__(self, device=None, _sampling_period=0,
-                 disable_gc=True, priority='high'):
+    def __init__(self, device=None, priority='high',
+                 disable_gc=True, _sampling_period=0):
         """
         Allows the user poll an input device without blocking the main process.
         Args:
             device: An input device that inherits from :class:`toon.input.BaseInput`.
+            priority (string): Priority of the remote process. Either 'high' or 'norm'.
+            disable_gc (bool): Switches off garbage collection on the remote process.
             _sampling_period (float): Only use if the input device constantly has its
                 state available.
         """
