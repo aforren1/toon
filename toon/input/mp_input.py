@@ -4,7 +4,7 @@ import psutil
 
 class MultiprocessInput(object):
     def __init__(self, device=None, _sampling_period=0,
-                 disable_gc=False, priority='normal'):
+                 disable_gc=True, priority='high'):
         """
         Allows the user poll an input device without blocking the main process.
         Args:
@@ -34,11 +34,11 @@ class MultiprocessInput(object):
         self._pid = self._process.pid
         self._proc = psutil.Process(self._pid)
         self._original_nice = self._proc.nice()
-        self.set_priority('high')
+        self._set_priority(self._priority)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.set_priority('norm')
+        self._set_priority('norm')
         self.stop_remote.set()
 
     def read(self):
@@ -77,8 +77,8 @@ class MultiprocessInput(object):
         while self.local.poll():
             self.local.recv()
 
-    def set_priority(self, val):
-
+    def _set_priority(self, val):
+        """Helper function to set priority. Inflexible."""
         try:
             if val == 'high':
                 if psutil.WINDOWS:
