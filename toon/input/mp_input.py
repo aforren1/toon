@@ -1,4 +1,5 @@
 import multiprocessing as mp
+from ctypes import c_uint
 import gc
 import psutil
 
@@ -21,14 +22,17 @@ class MultiprocessInput(object):
         self._sampling_period = _sampling_period
         self._disable_gc = disable_gc
         self._priority = priority
+        self._counter = mp.Value(c_uint)
 
     def __enter__(self):
         self.remote_ready.clear()
         self.stop_remote.clear()
+        self._counter.value = 0
         self._process = mp.Process(target=self._mp_worker,
                                    args=(self.remote,
                                          self.remote_ready,
-                                         self.stop_remote))
+                                         self.stop_remote,
+                                         self._counter))
         self._process.daemon = True
         self._clear_pipe()
         self._process.start()
@@ -45,14 +49,16 @@ class MultiprocessInput(object):
 
     def read(self):
         """Read all pending data from the 'receiving' end of the multiprocessing Pipe."""
-        data = list()
-        while self.local.poll():
-            data.append(self.local.recv())
-        if data:
+        with self._counter.get_lock():
+            expected_count = self._counter.value
+            self._counter.value = 0
+        if expected_count > 0:
+            data = [self.local.recv() for i in range(expected_count)]
             return data
         return None
 
-    def _mp_worker(self, remote, remote_ready, stop_remote):
+
+    def _mp_worker(self, remote, remote_ready, stop_remote, counter):
         """
         Function that runs on the remote process.
         Args:
@@ -70,6 +76,8 @@ class MultiprocessInput(object):
                 data = dev.read()
                 if data is not None:
                     remote.send(data)
+                    with counter.get_lock():
+                        counter.value += 1
                     while dev.time() < t0:
                         pass
                 t0 = dev.time() + self._sampling_period
