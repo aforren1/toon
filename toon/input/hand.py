@@ -18,13 +18,13 @@ class Hand(BaseInput):
     Kata and the BLAM Lab.
 
     """
-    def __init__(self, nonblocking=True, **kwargs):
+    def __init__(self, nonblocking=False, **kwargs):
         """
         Args:
             nonblocking (bool): Whether the HID interface blocks for input.
         Notes:
-        `nonblocking` should typically remain `True`, as I doubt there's any performance
-        benefit and it leads to difficult debugging.
+            If testing the `Hand`, I would suggest setting `nonblocking` to True for
+            the sake of easy debugging.
 
         Data is formatted as [x, y, z] per finger (15 elements, 3 per finger).
 
@@ -34,13 +34,14 @@ class Hand(BaseInput):
             >>> device = Hand(nonblocking=True)
         """
 
-        super(Hand, self).__init__(data_dims=15, **kwargs)
+        super(Hand, self).__init__(**kwargs)
 
         self._rotval = np.pi / 4.0
         self._sinval = np.sin(self._rotval)
         self._cosval = np.cos(self._rotval)
         self.nonblocking = nonblocking
         self._device = None
+        self._data_buffer = np.full(15, np.nan)
 
     def __enter__(self):
         """HAND-specific initialization.
@@ -55,18 +56,19 @@ class Hand(BaseInput):
 
     def read(self):
         """HAND-specific read function."""
-        timestamp = self.time()
         data = self._device.read(46)
+        timestamp = self.time()
         if data:
             data = struct.unpack('>LhHHHHHHHHHHHHHHHHHHHH', bytearray(data))
             data = np.array(data, dtype='d')
             data[0] /= 1000.0  # device timestamp (since power-up, in milliseconds)
-            data[1:] /= 65535.0
-            self._data_buffers[0][0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
-            self._data_buffers[0][1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
-            self._data_buffers[0][2::3] = data[4::4] + data[5::4]  # z
-            return timestamp, self._data_buffers[0]
-        return None, None
+            data[2:] /= 65535.0
+            self._data_buffer[0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
+            self._data_buffer[1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
+            self._data_buffer[2::3] = data[4::4] + data[5::4]  # z
+            return {'time': timestamp, 'data': np.copy(self._data_buffer),
+                    'device_time': data[0], 'us_deviation': data[1]}
+        return None
 
     def __exit__(self, type, value, traceback):
         """Close the HID interface."""

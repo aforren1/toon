@@ -1,10 +1,9 @@
-import numpy as np
-from toon.tests.fake_class import FakeInput
-from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
 import os
 from unittest import TestCase
 from nose.plugins.attrib import attr
-from nose.tools import assert_true
+from toon.tests.fake_class import FakeInput
+from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
+
 if os.sys.platform == 'win32':
     from toon.input import ForceTransducers
 
@@ -14,8 +13,6 @@ if 'TRAVIS' not in os.environ:
 else:
     from time import time
 
-np.set_printoptions(precision=4)
-
 def read_fn(dev):
     with dev as d:
         t0 = time()
@@ -23,19 +20,14 @@ def read_fn(dev):
         while t1 > time():
             t2 = time()
             t3 = 0.016 + t2
-            timestamps, data = d.read()
+            data = d.read()
             #print('Frame start: ', str(t2 - t0))
-            if timestamps is not None:
-                print(timestamps - t0)
+            if data is not None:
                 print(data)
             while t3 > time():
                 pass
-    if isinstance(data, list):
-        assert_true(all([sh != 0 for sh in data[0].shape]))
-    else:
-        assert_true(all([sh != 0 for sh in data.shape]))
 
-single_data = FakeInput(data_dims=5, read_delay=0.001, clock_source=time)
+single_data = FakeInput(data_dims=[[5]], read_delay=0.001, clock_source=time)
 
 multi_data = FakeInput(data_dims=[[5], [3, 2]], clock_source=time, read_delay=0.001)
 
@@ -66,7 +58,7 @@ class TestRealDevices(TestCase):
         hand = Hand()
         read_fn(hand)
         mp_hand = MultiprocessInput(hand)
-        read_fn(hand)
+        read_fn(mp_hand)
 
     def test_force(self):
         ft = ForceTransducers()
