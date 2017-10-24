@@ -34,7 +34,8 @@ class ForceTransducers(BaseInput):
             terminal_config=TerminalConfiguration.RSE
         )
 
-        self._device.timing.cfg_samp_clk_timing(200, sample_mode=AcquisitionType.CONTINUOUS)
+        self._device.timing.cfg_samp_clk_timing(200, sample_mode=AcquisitionType.CONTINUOUS,
+                                                samps_per_chan=10)
         self._reader = AnalogMultiChannelReader(self._device.in_stream)
         self._device.start()
         return self
