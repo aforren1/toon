@@ -88,7 +88,7 @@ Generally, input devices can be used as follows::
 
      with dev as d:
          while not done:
-             timestamp, data = d.read()
+             data = d.read()
              ...
 
 You can perform a sanity check for existing devices via::
