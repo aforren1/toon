@@ -3,6 +3,7 @@ from ctypes import c_uint
 import gc
 import psutil
 
+
 class MultiprocessInput(object):
     def __init__(self, device=None, priority='high',
                  disable_gc=True, _sampling_period=0):
@@ -53,10 +54,8 @@ class MultiprocessInput(object):
             expected_count = self._counter.value
             self._counter.value = 0
         if expected_count > 0:
-            data = [self.local.recv() for i in range(expected_count)]
-            return data
+            return [self.local.recv() for i in range(expected_count)]
         return None
-
 
     def _mp_worker(self, remote, remote_ready, stop_remote, counter):
         """
@@ -65,7 +64,6 @@ class MultiprocessInput(object):
             remote: The 'sending' end of the multiprocessing Pipe.
             remote_ready: Used to tell the original process that the remote is ready to sample.
             stop_remote: Used to tell the remote process to stop sampling.
-
         """
         if self._disable_gc:
             gc.disable()
@@ -80,7 +78,7 @@ class MultiprocessInput(object):
                         counter.value += 1
                     while dev.time() < t0:
                         pass
-                t0 = dev.time() + self._sampling_period
+                    t0 = dev.time() + self._sampling_period
 
     def _clear_pipe(self):
         """Clear any pending data."""

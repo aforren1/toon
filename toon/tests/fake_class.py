@@ -1,6 +1,7 @@
 import numpy as np
 from toon.input.base_input import BaseInput
 
+
 class FakeInput(BaseInput):
     def __init__(self, read_delay=0, **kwargs):
         self.data_dims = kwargs.pop('data_dims', 3)
