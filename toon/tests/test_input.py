@@ -1,6 +1,10 @@
 import os
+import itertools
 from unittest import TestCase
 from nose.plugins.attrib import attr
+from nose.tools import assert_less
+import numpy as np
+from numpy.testing import assert_allclose
 from toon.tests.fake_class import FakeInput
 from toon.input import BlamBirds, Hand, Keyboard, MultiprocessInput
 
@@ -11,9 +15,11 @@ if 'TRAVIS' not in os.environ:
     from psychopy.clock import monotonicClock
     time = monotonicClock.getTime
 else:
-    from time import time
+    from timeit import default_timer
+    time = default_timer
 
 def read_fn(dev):
+    out = []
     with dev as d:
         t0 = time()
         t1 = t0 + 3
@@ -21,29 +27,40 @@ def read_fn(dev):
             t2 = time()
             t3 = 0.016 + t2
             data = d.read()
-            #print('Frame start: ', str(t2 - t0))
             if data is not None:
-                print(data)
+                if isinstance(data, list):
+                    out.extend(data)
+                else:
+                    out.append(data)
             while t3 > time():
                 pass
+    return out
 
-single_data = FakeInput(data_dims=[[5]], read_delay=0.001, clock_source=time)
-
-multi_data = FakeInput(data_dims=[[5], [3, 2]], clock_source=time, read_delay=0.001)
-
-# if you want an idea of how fast the remote process spins,
-# try setting the read_delay to 0 and looking at the period
-# between readings
-single_mp = MultiprocessInput(single_data)
-
-multi_mp = MultiprocessInput(multi_data)
 
 @attr(travis='yes')
 def test_reads():
-    read_fn(single_data)
-    read_fn(multi_data)
-    read_fn(single_mp)
-    read_fn(multi_mp)
+    delays = [0.01, 0.001, 0.0005]
+    data_dims = [[[5]], [[2,3], [4,5]]]
+    priority = ['norm', 'high']
+    garbage = [True, False]
+    for i in list(itertools.product(data_dims, delays, priority, garbage)):
+        print('Testing: ' + str(i))
+        dev = FakeInput(data_dims=i[0], read_delay=i[1])
+        mpdev = MultiprocessInput(dev, priority=i[2], disable_gc=i[3])
+        out = read_fn(dev)
+        delta = np.diff([o['time'] for o in out])[1:]
+        print(np.median(delta))
+        print(np.var(delta))
+        assert_allclose(np.median(delta), 0.016, atol=1e-4)
+        assert_less(np.var(delta), 1e-6)
+        # out = read_fn(mpdev)
+        # print(out)
+        # delta = np.diff([o['time'] for o in out])[1:]
+        # print(np.median(delta))
+        # print(np.var(delta))
+        # assert_allclose(np.median(delta), i[1], atol=1e-4)
+        # assert_less(np.var(delta), 1e-6)
+
 
 @attr(interactive=True)
 class TestRealDevices(TestCase):
