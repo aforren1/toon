@@ -20,9 +20,9 @@ class FakeInput(BaseInput):
         for i in self.data_dims:
             data.append(np.random.random(i))
         t0 = self.time()
-        while self.time() < self.t1:
-            pass
         if len(data) == 1:
             data = data[0]
+        while self.time() < self.t1:
+            pass
         self.t1 = self.time() + self.read_delay
         return {'time': t0, 'data': data}

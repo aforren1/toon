@@ -1,6 +1,7 @@
 import abc
 from timeit import default_timer
 
+
 class BaseInput(object):
     """
     Base class for devices compatible with :function:`Input`.

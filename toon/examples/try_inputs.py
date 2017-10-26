@@ -1,4 +1,3 @@
-from time import sleep
 import sys
 from distutils import util
 import argparse

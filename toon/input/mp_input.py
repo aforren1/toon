@@ -1,7 +1,9 @@
 import multiprocessing as mp
+import multiprocessing.connection as conn
 from ctypes import c_uint
 import gc
 import psutil
+conn.BUFSIZE = 2 ** 16 # up the size of the pipe buffer (for windows)
 
 
 class MultiprocessInput(object):
