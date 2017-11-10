@@ -24,6 +24,15 @@ class LslDevice(object):
         self.source_id = source_id
 
     def __enter__(self):
+        """
+        If the device is specified (i.e. local), then spawn a new process and
+        poll the device on that.
+
+        Otherwise, assume the device is already spitting data out elsewhere,
+        and just read chunks continuously.
+
+        TODO: Check if we need to handle metadata
+        """
         if self._device:
             self.flag.clear()
             self.remote_ready.clear()
@@ -57,11 +66,12 @@ class LslDevice(object):
         return self.inlet.pull_sample(timeout=0.0)
 
     def _worker(self, flag, remote_ready):
+        """This method does the grunt work on the remote process."""
         dev = self._device(**self._device_args)
         with dev as d:
             remote_ready.set()
             while not flag.is_set():
-                d.read()
+                d.read() # read data from the device
 
 
 class BaseInput(object):
@@ -94,7 +104,8 @@ class BaseInput(object):
 
 
     @abc.abstractmethod
-    def __init__(self, clock_source=local_clock,
+    def __init__(self,
+                 clock_source=local_clock,
                  source_id='',
                  nominal_srate=IRREGULAR_RATE,
                  channel_format='float32'):
@@ -115,12 +126,14 @@ class BaseInput(object):
                                self.nominal_srate,
                                self.channel_format,
                                self.source_id)
+        self.outlet = StreamOutlet(self.info)
+        # Extra setup here
         return self
 
     @abc.abstractmethod
     def read(self):
         """
-        Call `self.outlet.push_sample(data, time)`
+        Call `self.outlet.push_sample(data, time)` at the end
         """
         pass
 
