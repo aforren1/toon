@@ -36,24 +36,25 @@ class LslDevice(object):
         if self._device:
             self.flag.clear()
             self.remote_ready.clear()
-            self.proc = mp.Process(target=self._worker, args=(self.flag, self.remote_ready))
+            self.proc = mp.Process(target=self._worker,
+                                   args=(self.flag,
+                                         self.remote_ready,
+                                         self._device,
+                                         self.source_id,
+                                         self._device_args))
             self.proc.daemon = True
             self.proc.start()
             self.remote_ready.wait()
-            streams = resolve_stream('name', self._device.name,
-                                     'type', self._device.type,
-                                     'source_id', self._device.source_id)
+            streams = resolve_stream('source_id', self.source_id)
         else:
-            streams = resolve_stream('name', self.name,
-                                     'type', self.type,
-                                     'source_id', self.source_id)
+            streams = resolve_stream('source_id', self.source_id)
         self.inlet = StreamInlet(streams[0])
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.inlet.close_stream()
-        if self._device:
-            self.flag.set()
+        self.inlet = None
+        self.flag.set()
 
     def read(self):
         """Read multiple samples (returns (None, None) if nothing)
@@ -65,9 +66,10 @@ class LslDevice(object):
         """Read single sample (returns (None, None) if nothing)"""
         return self.inlet.pull_sample(timeout=0.0)
 
-    def _worker(self, flag, remote_ready):
+    @staticmethod
+    def _worker(flag, remote_ready, device, source_id, device_args):
         """This method does the grunt work on the remote process."""
-        dev = self._device(**self._device_args)
+        dev = device(source_id=source_id, **device_args)
         with dev as d:
             remote_ready.set()
             while not flag.is_set():
@@ -127,8 +129,6 @@ class BaseInput(object):
                                self.channel_format,
                                self.source_id)
         self.outlet = StreamOutlet(self.info)
-        # Extra setup here
-        return self
 
     @abc.abstractmethod
     def read(self):
