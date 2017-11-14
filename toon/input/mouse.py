@@ -1,4 +1,6 @@
 from toon.input.lsl_wrapper import BaseInput
+from pynput import mouse
+
 
 class Mouse(BaseInput):
     name = 'ToonMouse'
@@ -8,7 +10,6 @@ class Mouse(BaseInput):
     def __init__(self, **kwargs):
         super(Mouse, self).__init__(channel_format='int32', **kwargs)
     def __enter__(self):
-        from pynput import mouse
         super(Mouse, self).__enter__()
         self.dev = mouse.Listener(on_move=self.on_move)
         self.dev.start()

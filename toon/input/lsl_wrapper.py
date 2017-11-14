@@ -12,7 +12,10 @@ class LslDevice(object):
     """
     Either pass in device or name/type/source id (and don't spawn device)
 
-    kwargs are passed to the device"""
+    kwargs are passed to the device
+
+    TODO: add priority stuff (on master branch of prev implementation)
+    """
     def __init__(self, device=None, name='default', type='', source_id='', **kwargs):
         self.flag = mp.Event()
         self.remote_ready = mp.Event()

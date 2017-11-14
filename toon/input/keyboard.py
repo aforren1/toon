@@ -1,59 +1,35 @@
-from toon.input.base_input import BaseInput
+from toon.input.lsl_wrapper import BaseInput
 from pynput import keyboard
 
 class Keyboard(BaseInput):
+    name = 'ToonKeyboard'
+    type = 'Keyboard'
+    channel_count = 2
     def __init__(self, keys=None, **kwargs):
-        """
-
-        Args:
-            keys: (list): List of keys of interest, e.g. ['a', 's', 'd', 'f'].
-            **kwargs: Passed to :class:BaseInput.
-
-        Notes:
-            Read function returns only the press, not the release (for now).
-            Both the character and the index (position in the list provided) are
-            returned in the dict, as well as the type of event (press vs. release).
-        """
-
         self._keys = keys
-        if not isinstance(self._keys, list):
-            raise ValueError('`keys` must be a list of keys of interest.')
-        BaseInput.__init__(self, **kwargs)
-        self._events = list()
-        self._on = list()
-
+        super(Keyboard, self).__init__(channel_format='int32', **kwargs)
     def __enter__(self):
-        self._device = keyboard.Listener(on_press=self._on_press,
-                                         on_release=self._on_release)
-        self._device.start()
-        self._device.wait()
+        super(Keyboard, self).__enter__()
+        self._on = []
+        self.dev = keyboard.Listener(on_press=self.on_press,
+                                     on_release=self.on_release)
+        self.dev.start()
+        self.dev.wait()
         return self
-
-    def read(self):
-        send_data = self._events[:]
-        self._events.clear()
-        if send_data:
-            return send_data[0]  # only return first press (to fix later)
-        return None
-
-    def __exit__(self, type, value, traceback):
-        self._device.stop()
-        self._device.join()
-
-    def _on_press(self, key):
-        time = self.time()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.dev.stop()
+        self.dev.join()
+    def on_press(self, key):
+        ts = self.time()
         if not isinstance(key, keyboard.Key):
             if key.char in self._keys and key.char not in self._on:
                 index = self._keys.index(key.char)
-                data = {'time': time, 'index': index, 'char': key.char, 'type': 'press'}
-                self._events.append(data)
+                self.outlet.push_sample([index, 1], ts)
                 self._on.append(key.char)
-
-    def _on_release(self, key):
-        time = self.time()
+    def on_release(self, key):
+        ts = self.time()
         if not isinstance(key, keyboard.Key):
             if key.char in self._keys and key.char in self._on:
                 index = self._keys.index(key.char)
-                data = {'time': time, 'index': index, 'char': key.char, 'type': 'release'}
-                self._events.append(data)
+                self.outlet.push_sample([index, 0], ts)
                 self._on.remove(key.char)
