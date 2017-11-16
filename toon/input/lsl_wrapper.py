@@ -48,9 +48,9 @@ class LslDevice(object):
             self.proc.daemon = True
             self.proc.start()
             self.remote_ready.wait()
-            streams = resolve_stream('source_id', self.source_id)
+            streams = resolve_stream('name', self._device.name)
         else:
-            streams = resolve_stream('source_id', self.source_id)
+            streams = resolve_stream('name', self.name)
         self.inlet = StreamInlet(streams[0])
         return self
 
