@@ -41,7 +41,7 @@ class Hand(BaseInput):
             data = np.array(data, dtype='d')
             data[0] /= 1000.0
             data[2:] /= 65535.0
-            self._data_buffer[0::3] = -(data[2::4] * self._cosrot - data[3::4] * self._sinrot)  # x
+            self._data_buffer[0::3] = data[2::4] * self._cosrot - data[3::4] * self._sinrot  # x
             self._data_buffer[1::3] = data[2::4] * self._sinrot + data[3::4] * self._cosrot  # y
             self._data_buffer[2::3] = data[4::4] + data[5::4]  # z
             self.outlet.push_sample(self._data_buffer, time)
