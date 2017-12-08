@@ -1,3 +1,7 @@
 [run]
 source = toon
-include = */toon/*
+branch = True
+omit =
+    toon/input/*
+    toon/examples/*
+    toon/tests/*
