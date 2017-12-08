@@ -56,7 +56,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
         A 1-dimensional numpy array.
 
     Notes:
-        There's a 500 millisecond pause before the *center* of the first beep.
+        There's a 100 millisecond pause before the *center* of the first beep.
 
     Example:
         To generate four beeps of different frequency and spaced by half a second,
@@ -69,7 +69,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
         click_freq = [click_freq] * num_clicks
     beeps = [beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
     space = np.zeros(int((inter_click_interval * sample_rate) - len(beeps[0])))
-    out = np.zeros((int(sample_rate * 0.5 - len(beeps[0]) / 2)))
+    out = np.zeros((int(sample_rate * 0.1 - len(beeps[0]) / 2)))
     out = np.append(out, beeps[0])
     for i in range(num_clicks - 1):
         out = np.append(out, space)
