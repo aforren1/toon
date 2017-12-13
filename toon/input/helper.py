@@ -26,10 +26,10 @@ def check_and_fix_dims(input):
         raise ValueError('Something is wrong with the input.')
     return input
 
-def shared_to_numpy(mp_arr, dims):
+def shared_to_numpy(mp_arr, dims, dtype):
     """Convert a :class:`multiprocessing.Array` to a numpy array.
     Helper function to allow use of a :class:`multiprocessing.Array` as a numpy array.
     Derived from the answer at:
     <https://stackoverflow.com/questions/7894791/use-numpy-array-in-shared-memory-for-multiprocessing>
     """
-    return np.frombuffer(mp_arr.get_obj()).reshape(dims)
+    return np.frombuffer(mp_arr.get_obj(), dtype=dtype).reshape(dims)

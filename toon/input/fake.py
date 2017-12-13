@@ -1,5 +1,5 @@
 import numpy as np
-from toon.input.mp_input import BaseInput
+from toon.input.base_input import BaseInput
 from ctypes import c_double
 
 class FakeInput(BaseInput):
@@ -15,6 +15,8 @@ class FakeInput(BaseInput):
     def read(self):
         time = self.clock()
         dat = [np.random.random(ds) for ds in self.data_shape]
+        if len(self.data_shape) == 1:
+            dat = dat[0]
         while self.clock() < self.t1:
             pass
         self.t1 = self.clock() + (1/self.sampling_frequency)
@@ -24,4 +26,4 @@ class FakeInput(BaseInput):
     def data_shapes(**kwargs):
         return kwargs.get('data_shape', [[5]])
     def data_types(**kwargs):
-        pass
+        return [c_double]

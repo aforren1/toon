@@ -1,6 +1,7 @@
-from ctypes import c_int32
-from toon.input.mp_input import BaseInput
+from ctypes import c_double
+from toon.input.base_input import BaseInput
 from pynput import mouse
+import numpy as np
 
 class Mouse(BaseInput):
     def samp_freq(**kwargs):
@@ -8,7 +9,7 @@ class Mouse(BaseInput):
     def data_shapes(**kwargs):
         return [[2]]
     def data_types(**kwargs):
-        return [c_int32]
+        return [c_double]
     def __init__(self, sampling_frequency=100, **kwargs):
         super(Mouse, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
     def __enter__(self):
@@ -23,9 +24,13 @@ class Mouse(BaseInput):
         self.dev.join()
     def on_move(self, x, y):
         self.times.append(self.clock())
-        self.readings.append([x, y])
+        self.readings.append(np.array([x, y]))
     def read(self):
+        if not self.readings:
+            return None, None
+        time2 = []
         read2 = []
+        time2[:] = self.times
         read2[:] = self.readings
         self.readings = []
-        return read2
+        return time2[-1], read2[-1] # hack until multi-datapoint
