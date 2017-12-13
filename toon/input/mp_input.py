@@ -15,11 +15,11 @@ class MultiprocessInput(object):
         self.remote_ready = mp.Event()
         self.kill_remote = mp.Event()
         data_dims = check_and_fix_dims(self.device.data_shapes(**self.device_args))
-        self.not_time_axis = [tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims] # confusing
+        self.not_time_axis = [tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims]  # TODO: unclear, change later
         # if not manually overridden, preallocate 10*sampling freq
         nrow = self.nrow
         if not nrow:
-            nrow = int(self.device.samp_freq(**self.device_args) * 10)
+            nrow = int((self.device.samp_freq(**self.device_args) * 10)/60)
 
         # preallocate data arrays (shared arrays, numpy equivalents, and local copies)
         data_types = self.device.data_types(**self.device_args)
@@ -63,7 +63,9 @@ class MultiprocessInput(object):
             np.copyto(self.local_time_array, self.np_time_array)
             for local_data, remote_data in zip(self.local_data_arrays, self.np_data_arrays):
                 np.copyto(local_data, remote_data)
-            self.clear_shared_arrays()
+            self.np_time_array.fill(np.nan)
+            for i in self.np_data_arrays:
+                i.fill(np.nan)
         if np.isnan(self.local_time_array).all():
             return None, None
         dims = self.not_time_axis
@@ -71,7 +73,8 @@ class MultiprocessInput(object):
         if len(dims) == 1:
             data = self.local_data_arrays[0][~np.isnan(self.local_data_arrays[0]).any(axis=dims[0])]
         else:
-            data = [local_data[~np.isnan(local_data).any(axis=dim)] for local_data, dim in zip(self.local_data_arrays, dims)]
+            data = [local_data[~np.isnan(local_data).any(axis=dim)] for
+                    local_data, dim in zip(self.local_data_arrays, dims)]
         return time, data
 
 
@@ -92,8 +95,8 @@ class MultiprocessInput(object):
                 timestamp, data = d.read()
                 if timestamp is not None:
                     with shared_lock:
-                        current_nans = np.isnan(np_time_array).any()
-                        if current_nans.any(): # nans to fill in
+                        current_nans = np.isnan(np_time_array)
+                        if current_nans.any():  # nans to fill in
                             next_index = np.where(current_nans)[0][0]
                             if isinstance(data, list):
                                 for np_data, new_data in zip(np_data_arrays, data):
@@ -114,10 +117,3 @@ class MultiprocessInput(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.kill_remote.set()
-
-    def clear_shared_arrays(self):
-        self.np_time_array.fill(np.nan)
-        for i in self.np_data_arrays:
-            i.fill(np.nan)
-
-
