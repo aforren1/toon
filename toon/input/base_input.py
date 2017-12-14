@@ -1,8 +1,10 @@
+import six
 import abc
 from timeit import default_timer
 
 
-class BaseInput(abc.ABC):
+@six.add_metaclass(abc.ABC)
+class BaseInput(object):
     @abc.abstractmethod
     def __init__(self, clock=default_timer, sampling_frequency=None, **kwargs):
         self.clock = clock
