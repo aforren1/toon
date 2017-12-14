@@ -1,14 +1,20 @@
 import multiprocessing as mp
 import ctypes
+import gc
+import psutil
 import numpy as np
 from toon.input.helper import check_and_fix_dims, shared_to_numpy
 
+
 class MultiprocessInput(object):
-    def __init__(self, device=None, nrow=None, **kwargs):
+    def __init__(self, device=None, high_priority=True, no_gc=True,
+                 nrow=None, **kwargs):
         """_nrow overrides default size (10*sampling_frequency)"""
         self.device = device
         self.device_args = kwargs
         self.nrow = nrow
+        self.high_priority = high_priority
+        self.no_gc = no_gc
 
     def __enter__(self):
         self.shared_lock = mp.Lock()
@@ -16,10 +22,10 @@ class MultiprocessInput(object):
         self.kill_remote = mp.Event()
         data_dims = check_and_fix_dims(self.device.data_shapes(**self.device_args))
         self.not_time_axis = [tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims]  # TODO: unclear, change later
-        # if not manually overridden, preallocate 10*sampling freq
+        # if not manually overridden, preallocate 10*whatever we would expect in a single frame
         nrow = self.nrow
         if not nrow:
-            nrow = int((self.device.samp_freq(**self.device_args) * 10)/60)
+            nrow = int((self.device.samp_freq(**self.device_args) * 10) / 60)
 
         # preallocate data arrays (shared arrays, numpy equivalents, and local copies)
         data_types = self.device.data_types(**self.device_args)
@@ -52,9 +58,13 @@ class MultiprocessInput(object):
                                         self.kill_remote,
                                         self.mp_time_array,
                                         self.mp_data_arrays,
-                                        nrow, data_dims, data_types))
+                                        nrow, data_dims, data_types, self.no_gc))
         self.process.daemon = True
         self.process.start()
+        self.ps_process = psutil.Process(self.process.pid)
+        self.original_nice = self.ps_process.nice()
+        self.set_high_priority(self.high_priority)
+
         self.remote_ready.wait()
         return self
 
@@ -77,10 +87,11 @@ class MultiprocessInput(object):
                     local_data, dim in zip(self.local_data_arrays, dims)]
         return time, data
 
-
     @staticmethod
     def worker(device, device_args, shared_lock, remote_ready, kill_remote, mp_time_array, mp_data_arrays,
-               nrow, data_dims, data_types):
+               nrow, data_dims, data_types, no_gc):
+        if no_gc:
+            gc.disable()
         dev = device(**device_args)
         np_time_array = shared_to_numpy(mp_time_array, nrow, ctypes.c_double)
         np_time_array.fill(np.nan)
@@ -104,7 +115,7 @@ class MultiprocessInput(object):
                             else:
                                 np_data_arrays[0][next_index, :] = data
                             np_time_array[next_index] = timestamp
-                        else: # replace oldest data with newest data
+                        else:  # replace oldest data with newest data
                             if isinstance(data, list):
                                 for np_data, new_data in zip(np_data_arrays, data):
                                     np_data[:] = np.roll(np_data, -1, axis=0)
@@ -116,4 +127,17 @@ class MultiprocessInput(object):
                             np_time_array[-1] = timestamp
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.set_high_priority(False)
         self.kill_remote.set()
+
+    def set_high_priority(self, val):
+        try:
+            if val:
+                if psutil.WINDOWS:
+                    self.ps_process.nice(psutil.HIGH_PRIORITY_CLASS)
+                else:
+                    self.ps_process.nice(-10)
+            else:
+                self.ps_process.nice(self.original_nice)
+        except psutil.AccessDenied:
+            pass
