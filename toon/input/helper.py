@@ -1,6 +1,7 @@
 from numbers import Number
 import numpy as np
 
+
 def check_and_fix_dims(input):
     """
     Helper function to ensure data dimensions are consistent and unambiguous.
@@ -25,6 +26,7 @@ def check_and_fix_dims(input):
     else:
         raise ValueError('Something is wrong with the input.')
     return input
+
 
 def shared_to_numpy(mp_arr, dims, dtype):
     """Convert a :class:`multiprocessing.Array` to a numpy array.

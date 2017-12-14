@@ -1,6 +1,7 @@
 from unittest import TestCase
 from toon.audio import beep, beep_sequence
 
+
 class TestAudio(TestCase):
     def test_beep(self):
         b1 = beep(440, 1, sample_rate=44100)

@@ -1,11 +1,3 @@
-"""
-.. module:: tools
-     :platform: Unix, Windows
-     :synopsis: Tools for manipulating coordinates.
-
-.. moduleauthor:: Alexander Forrence <aforren1@jhu.edu>
-
-"""
 import numpy as np
 
 
