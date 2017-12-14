@@ -17,15 +17,16 @@ class MultiprocessInput(object):
         self.no_gc = no_gc
 
     def __enter__(self):
-        self.shared_lock = mp.Lock()
+        self.shared_lock = mp.RLock()
         self.remote_ready = mp.Event()
         self.kill_remote = mp.Event()
+        self.sample_count = mp.Value(ctypes.c_uint32, 0, lock=self.shared_lock)  # sample counter
         data_dims = check_and_fix_dims(self.device.data_shapes(**self.device_args))
         self.not_time_axis = [tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims]  # TODO: unclear, change later
         # if not manually overridden, preallocate 10*whatever we would expect in a single frame
         nrow = self.nrow
         if not nrow:
-            nrow = int((self.device.samp_freq(**self.device_args) * 10) / 60)
+            nrow = int(np.ceil(self.device.samp_freq(**self.device_args) / 60) * 10)
 
         # preallocate data arrays (shared arrays, numpy equivalents, and local copies)
         data_types = self.device.data_types(**self.device_args)
@@ -58,7 +59,8 @@ class MultiprocessInput(object):
                                         self.kill_remote,
                                         self.mp_time_array,
                                         self.mp_data_arrays,
-                                        nrow, data_dims, data_types, self.no_gc))
+                                        nrow, data_dims, data_types, self.no_gc,
+                                        self.sample_count))
         self.process.daemon = True
         self.process.start()
         self.ps_process = psutil.Process(self.process.pid)
@@ -70,45 +72,40 @@ class MultiprocessInput(object):
 
     def read(self):
         with self.shared_lock:
+            count = self.sample_count.value
+            self.sample_count.value = 0
             np.copyto(self.local_time_array, self.np_time_array)
             for local_data, remote_data in zip(self.local_data_arrays, self.np_data_arrays):
                 np.copyto(local_data, remote_data)
-            self.np_time_array.fill(np.nan)
-            for i in self.np_data_arrays:
-                i.fill(np.nan)
-        if np.isnan(self.local_time_array).all():
+        if not count:
             return None, None
         dims = self.not_time_axis
-        time = self.local_time_array[~np.isnan(self.local_time_array)]
+        time = self.local_time_array[0:count]
         if len(dims) == 1:
-            data = self.local_data_arrays[0][~np.isnan(self.local_data_arrays[0]).any(axis=dims[0])]
+            data = self.local_data_arrays[0][0:count, :]
         else:
-            data = [local_data[~np.isnan(local_data).any(axis=dim)] for
-                    local_data, dim in zip(self.local_data_arrays, dims)]
+            data = [local_data[0:count, :] for local_data, dim in zip(self.local_data_arrays, dims)]
         return time, data
 
     @staticmethod
-    def worker(device, device_args, shared_lock, remote_ready, kill_remote, mp_time_array, mp_data_arrays,
-               nrow, data_dims, data_types, no_gc):
+    def worker(device, device_args, shared_lock, remote_ready,
+               kill_remote, mp_time_array, mp_data_arrays,
+               nrow, data_dims, data_types, no_gc, sample_count):
         if no_gc:
             gc.disable()
         dev = device(**device_args)
         np_time_array = shared_to_numpy(mp_time_array, nrow, ctypes.c_double)
-        np_time_array.fill(np.nan)
         np_data_arrays = []
         for data, dims, types in zip(mp_data_arrays, data_dims, data_types):
             np_data_arrays.append(shared_to_numpy(data, dims, types))
-        for i in np_data_arrays:
-            i.fill(np.nan)
         with dev as d:
             remote_ready.set()
             while not kill_remote.is_set():
                 timestamp, data = d.read()
                 if timestamp is not None:
                     with shared_lock:
-                        current_nans = np.isnan(np_time_array)
-                        if current_nans.any():  # nans to fill in
-                            next_index = np.where(current_nans)[0][0]
+                        if sample_count.value <= nrow:  # nans to fill in
+                            next_index = sample_count.value
                             if isinstance(data, list):
                                 for np_data, new_data in zip(np_data_arrays, data):
                                     np_data[next_index, :] = new_data
@@ -125,6 +122,7 @@ class MultiprocessInput(object):
                                 np_data_arrays[0][-1, :] = data
                             np_time_array[:] = np.roll(np_time_array, -1, axis=0)
                             np_time_array[-1] = timestamp
+                        sample_count.value += 1
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.set_high_priority(False)
