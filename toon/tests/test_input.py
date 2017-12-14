@@ -8,15 +8,16 @@ import matplotlib.pyplot as plt
 
 np.set_printoptions(precision=5, suppress=True)
 #dev = MPI(Mouse)
-dev = MPI(FakeInput, sampling_frequency=1000, data_shape=[[5, 2], [20]],
+dev = MPI(FakeInput, sampling_frequency=10000, data_shape=[[20]],
           data_type=[ctypes.c_double, ctypes.c_double])
 
 read_times = []
 num_samples = []
 last_sample_and_ret = []
+diffs = []
 with dev as d:
     t0 = default_timer()
-    t1 = t0 + 10
+    t1 = t0 + 30
     t2 = 0
     while default_timer() < t1:
         t0 = default_timer()
@@ -26,7 +27,7 @@ with dev as d:
         if time is not None:
             num_samples.append(len(time))
             last_sample_and_ret.append(t3 - time[-1])
-            print(data)
+            diffs.extend(np.diff(time))
         while default_timer() < t2:
             pass
         t2 = default_timer() + 0.01
