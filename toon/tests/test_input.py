@@ -1,6 +1,7 @@
 from toon.input.mp_input import MultiprocessInput as MpI
 from toon.input.mouse import Mouse
 from toon.input.keyboard import Keyboard
+from toon.input.hand import Hand
 from toon.input.fake import FakeInput
 from timeit import default_timer
 import numpy as np
@@ -9,14 +10,15 @@ import matplotlib.pyplot as plt
 
 np.set_printoptions(precision=5, suppress=True)
 # dev = MpI(Mouse)
-dev = MpI(Keyboard, keys=['a', 's', 'd', 'f'])
+# dev = MpI(Keyboard, keys=['a', 's', 'd', 'f'])
+dev = MpI(Hand)
 # dev = MPI(FakeInput, sampling_frequency=10000, data_shape=[[5]], data_type=[ctypes.c_double])
 
 read_times = []
 diffs = []
 with dev as d:
     t0 = default_timer()
-    t1 = t0 + 5
+    t1 = t0 + 10
     t2 = 0
     while default_timer() < t1:
         t0 = default_timer()
@@ -24,7 +26,7 @@ with dev as d:
         t3 = default_timer()
         read_times.append(t3 - t0)
         if time is not None:
-            print(time)
+            print(data)
             diffs.extend(np.diff(time))
         while default_timer() < t2:
             pass

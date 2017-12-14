@@ -1,18 +1,22 @@
 import struct
 import numpy as np
 import hid
-from toon.input.lsl_wrapper import BaseInput
+from toon.input.base_input import BaseInput
+from ctypes import c_double
 
 
 class Hand(BaseInput):
-    name = 'ToonHand'
-    type = 'HAND'
-    channel_count = 15
+    def samp_freq(**kwargs):
+        return kwargs.get('sampling_frequency', 1000)
 
-    def __init__(self, nonblocking=False, **kwargs):
-        super(Hand, self).__init__(nominal_srate=1000.0,
-                                   channel_format='float32',
-                                   **kwargs)
+    def data_shapes(**kwargs):
+        return [[15]]
+
+    def data_types(**kwargs):
+        return [c_double]
+
+    def __init__(self, nonblocking=False, sampling_frequency=1000, **kwargs):
+        super(Hand, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
         self._rot = np.pi / 4.0
         self._sinrot = np.sin(self._rot)
         self._cosrot = np.cos(self._rot)
@@ -21,8 +25,8 @@ class Hand(BaseInput):
         self._data_buffer = np.full(15, np.nan)
 
     def __enter__(self):
-        super(Hand, self).__enter__()
         self._device = hid.device()
+        dev_path = ''
         for d in hid.enumerate():
             if d['product_id'] == 1158 and d['usage'] == 512:
                 dev_path = d['path']
@@ -35,7 +39,7 @@ class Hand(BaseInput):
 
     def read(self):
         data = self._device.read(46)
-        time = self.time()
+        time = self.clock()
         if data:
             data = struct.unpack('>LhHHHHHHHHHHHHHHHHHHHH', bytearray(data))
             data = np.array(data, dtype='d')
@@ -44,4 +48,4 @@ class Hand(BaseInput):
             self._data_buffer[0::3] = data[2::4] * self._cosrot - data[3::4] * self._sinrot  # x
             self._data_buffer[1::3] = data[2::4] * self._sinrot + data[3::4] * self._cosrot  # y
             self._data_buffer[2::3] = data[4::4] + data[5::4]  # z
-            self.outlet.push_sample(self._data_buffer, time)
+            return time, self._data_buffer
