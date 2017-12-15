@@ -1,10 +1,10 @@
+import ctypes
+from time import sleep
+import numpy as np
 from unittest import TestCase
 from toon.input.fake import FakeInput
 from toon.input import MultiprocessInput as MpI
 from tests.mock_devices import HetInput
-import ctypes
-from time import sleep
-import numpy as np
 
 
 class TestFake(TestCase):
@@ -85,7 +85,7 @@ class TestMpInput(TestCase):
         self.assertEqual(data.shape, (2, 5))
         diff = np.diff(time)
         print(time)
-        self.assertTrue(np.isclose(diff, 0.001, rtol=1e-2))
+        self.assertTrue(np.isclose(diff, 0.001, atol=1e-3))
 
     def test_multi_devices(self):
         dev1 = MpI(FakeInput)

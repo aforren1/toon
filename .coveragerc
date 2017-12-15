@@ -2,3 +2,8 @@
 source = toon
 branch = True
 include = toon/*
+omit =
+    toon/input/hand.py
+    toon/input/force_transducers.py
+    toon/input/keyboard.py
+    toon/input/mouse.py
