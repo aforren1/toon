@@ -12,6 +12,6 @@ class TestAudio(TestCase):
                            inter_click_interval=0.5,
                            num_clicks=3,
                            dur_clicks=0.1)
-        self.assertEqual(len(b3), 68355)
+        self.assertEqual(len(b3), 50715)
         with self.assertRaises(ValueError):
             beep_sequence([330, 440], num_clicks = 100)

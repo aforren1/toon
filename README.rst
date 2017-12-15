@@ -96,7 +96,7 @@ Generally, input devices can be used as follows::
              ...
 
 
-See `toon/tests/test_input.py` for usage examples.
+See `tests/test_input.py` for usage examples (not packaged).
 
 Tools
 ~~~~
