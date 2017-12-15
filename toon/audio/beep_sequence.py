@@ -1,11 +1,3 @@
-"""
-.. module:: audio
-     :platform: Unix, Windows
-     :synopsis: Tools for generating auditory stimuli.
-
-.. moduleauthor:: Alexander Forrence <aforren1@jhu.edu>
-
-"""
 from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -66,7 +58,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
     if len(click_freq) != 1 and len(click_freq) != num_clicks:
         raise ValueError('click_freq must be either 1 or match the num_clicks.')
     if len(click_freq) == 1:
-        click_freq = [click_freq] * num_clicks
+        click_freq = click_freq * num_clicks
     beeps = [beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
     space = np.zeros(int((inter_click_interval * sample_rate) - len(beeps[0])))
     out = np.zeros((int(sample_rate * 0.1 - len(beeps[0]) / 2)))
