@@ -4,12 +4,16 @@ from ctypes import c_bool, c_uint16, c_char
 
 
 class Keyboard(BaseInput):
+
+    @staticmethod
     def samp_freq(**kwargs):
         return kwargs.get('sampling_frequency', 100)
 
+    @staticmethod
     def data_shapes(**kwargs):
         return [[1], [1], [1]]
 
+    @staticmethod
     def data_types(**kwargs):
         return [c_bool, c_uint16, c_char]
 

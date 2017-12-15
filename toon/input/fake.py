@@ -25,11 +25,14 @@ class FakeInput(BaseInput):
         self.t1 = self.clock() + (1 / self.sampling_frequency)
         return time, dat
 
+    @staticmethod
     def samp_freq(**kwargs):
         return kwargs.get('sampling_frequency', 100)
 
+    @staticmethod
     def data_shapes(**kwargs):
         return kwargs.get('data_shape', [[5]])
 
+    @staticmethod
     def data_types(**kwargs):
         return kwargs.get('data_type', [c_double])

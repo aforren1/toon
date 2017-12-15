@@ -6,12 +6,16 @@ from ctypes import c_double
 
 
 class Hand(BaseInput):
+
+    @staticmethod
     def samp_freq(**kwargs):
         return kwargs.get('sampling_frequency', 1000)
 
+    @staticmethod
     def data_shapes(**kwargs):
         return [[15]]
 
+    @staticmethod
     def data_types(**kwargs):
         return [c_double]
 
@@ -34,7 +38,7 @@ class Hand(BaseInput):
         self._device.set_nonblocking(self.nonblocking)
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self._device.close()
 
     def read(self):

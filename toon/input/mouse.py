@@ -5,12 +5,16 @@ import numpy as np
 
 
 class Mouse(BaseInput):
+
+    @staticmethod
     def samp_freq(**kwargs):
         return kwargs.get('sampling_frequency', 100)
 
+    @staticmethod
     def data_shapes(**kwargs):
         return [[2]]
 
+    @staticmethod
     def data_types(**kwargs):
         return [c_int32]
 

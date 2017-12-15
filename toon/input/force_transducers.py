@@ -10,12 +10,16 @@ system = nidaqmx.system.System.local()
 
 class ForceTransducers(BaseInput):
     """1D transducers."""
+
+    @staticmethod
     def samp_freq(**kwargs):
         return kwargs.get('sampling_frequency', 200)
 
+    @staticmethod
     def data_shapes(**kwargs):
         return [[10]]
 
+    @staticmethod
     def data_types(**kwargs):
         return [c_double]
 
@@ -47,6 +51,6 @@ class ForceTransducers(BaseInput):
         self.t1 = self.clock() + self.period
         return time, np.copy(data)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self._device.stop()
         self._device.close()
