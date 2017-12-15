@@ -4,9 +4,10 @@ from ctypes import c_double
 
 
 class FakeInput(BaseInput):
-    def __init__(self, sampling_frequency=1000, **kwargs):
-        super(FakeInput, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
+    def __init__(self, **kwargs):
+        super(FakeInput, self).__init__(**kwargs)
         self.data_shape = FakeInput.data_shapes(**kwargs)
+        self.sampling_frequency = FakeInput.samp_freq(**kwargs)
 
     def __enter__(self):
         self.t1 = self.clock()

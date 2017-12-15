@@ -18,8 +18,8 @@ class Mouse(BaseInput):
     def data_types(**kwargs):
         return [c_int32]
 
-    def __init__(self, sampling_frequency=100, **kwargs):
-        super(Mouse, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
+    def __init__(self, **kwargs):
+        super(Mouse, self).__init__(**kwargs)
 
     def __enter__(self):
         self.dev = mouse.Listener(on_move=self.on_move)

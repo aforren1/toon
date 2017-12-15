@@ -20,12 +20,13 @@ class ForceTransducers(BaseInput):
     def data_types(**kwargs):
         return [c_double]
 
-    def __init__(self, sampling_frequency=200, **kwargs):
-        super(ForceTransducers, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
+    def __init__(self, **kwargs):
+        super(ForceTransducers, self).__init__(**kwargs)
+        self.sampling_frequency = ForceTransducers.samp_freq(**kwargs)
         self._device_name = nidaqmx.system.System.local().devices[0].name  # assume first NI DAQ is the one we want
         self._channels = [self._device_name + '/ai' + str(n) for n in
                           [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
-        self.period = 1/sampling_frequency
+        self.period = 1/self.sampling_frequency
         self.t1 = 0
 
     def __enter__(self):

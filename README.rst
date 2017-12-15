@@ -72,14 +72,14 @@ This module allows us to sample from external devices on a secondary process at 
 
 Generally useful input devices include:
 
-- Keyboard (for changes in keyboard state) via `Keyboard`
-- Mouse (for mouse position) via `Mouse`
+- Keyboard (for changes in keyboard state) via :code:`Keyboard`
+- Mouse (for mouse position) via :code:`Mouse`
 
 The following are in-house devices, which may not be generally useful but could serve as examples
 of how to implement additional devices:
 
-- HAND (custom force measurement device) by class `Hand`
-- Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only, due to `nidaqmx` requirement.)
+- HAND (custom force measurement device) by class :code:`Hand`
+- Force Transducers (predecessor to HAND) by class :code:`ForceTransducers` (Windows only, due to :code:`nidaqmx` requirement.)
 
 Generally, input devices can be used as follows::
 
@@ -96,19 +96,19 @@ Generally, input devices can be used as follows::
              ...
 
 
-See `tests/test_input.py <https://github.com/aforren1/toon/blob/master/docs/input.md>`_ for usage examples (not packaged).
+See `demos/try_input.py <https://github.com/aforren1/toon/blob/master/demos/try_input.md>`_ for usage examples (not packaged).
 
 Tools
 ~~~~
 
-These tools are extensions of the ones provided in `psychopy.tools.coordinatetools`, allowing for conversion between cartesian<->polar coordinates when the reference point is not (0, 0) in cartesian space.
+These tools are extensions of the ones provided in :code:`psychopy.tools.coordinatetools`, allowing for conversion between cartesian<->polar coordinates when the reference point is not (0, 0) in cartesian space.
 
 Current tools:
 
-- cart2pol
-- pol2cart
-- cart2sph
-- sph2cart
+- :code:`cart2pol`
+- :code:`pol2cart`
+- :code:`cart2sph`
+- :code:`sph2cart`
 
 For example,::
 

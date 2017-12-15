@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # dev = MpI(Keyboard, keys=['a', 's', 'd', 'f'])
     # dev = MpI(Hand)
     # dev = MpI(ForceTransducers)
-    dev = MpI(FakeInput, sampling_frequency=10000, data_shape=[[5]], data_type=[ctypes.c_double])
+    dev = MpI(FakeInput, sampling_frequency=1000, data_shape=[[5]], data_type=[ctypes.c_double])
 
     read_times = []
     diffs = []

@@ -19,8 +19,8 @@ class Hand(BaseInput):
     def data_types(**kwargs):
         return [c_double]
 
-    def __init__(self, nonblocking=False, sampling_frequency=1000, **kwargs):
-        super(Hand, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
+    def __init__(self, nonblocking=False, **kwargs):
+        super(Hand, self).__init__(**kwargs)
         self._rot = np.pi / 4.0
         self._sinrot = np.sin(self._rot)
         self._cosrot = np.cos(self._rot)

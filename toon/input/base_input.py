@@ -3,45 +3,58 @@ from timeit import default_timer
 
 
 class BaseInput(abc.ABC):
-
+    """Abstract base class for input devices."""
     @abc.abstractmethod
-    def __init__(self, clock=default_timer, sampling_frequency=None, **kwargs):
+    def __init__(self, clock=default_timer, **kwargs):
+        """
+        Args:
+            clock: A function that returns the current time. Defaults to :obj:`timeit.default_timer`.
+            **kwargs: Device-specific keyword arguments. These can also be used to infer the sampling frequency,
+                shape of the data, and type of data.
+        """
         self.clock = clock
-        self.sampling_frequency = sampling_frequency
 
     @abc.abstractmethod
     def __enter__(self):
+        """Start communication with the device here."""
         pass
 
     @abc.abstractmethod
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Gracefully clean up the device here (if necessary)."""
         pass
 
     @abc.abstractmethod
     def read(self):
+        """Read a single measurement from the input device.
+
+        Returns:
+            (timestamp, data) tuple. See examples for details.
+        """
         pass
 
     @staticmethod
     @abc.abstractmethod
     def samp_freq(**kwargs):
-        # if it's directly a kwarg, can just do
-        # kwargs.get('sampling_frequency', 100)?
-        # I don't think setting directly would be the best
-        # (we use this to calculate how big the shared array should be)
+        """Infer the sampling frequency from keyword arguments."""
         pass
 
     @staticmethod
     @abc.abstractmethod
     def data_shapes(**kwargs):
-        # must be list of lists, e.g.
-        # [[2,3], [8]]
+        """Infer the shape of the data from keyword arguments.
+
+        Must be a list of lists, e.g. [[2, 3], [8]] or [[5]].
+        """
         pass
 
     @staticmethod
     @abc.abstractmethod
     def data_types(**kwargs):
-        # list, e.g.
-        # [ctypes.c_int32, ctypes.c_double]
-        # [ctypes.c_char]
-        # if single element, will be coerced to list
+        """Infer the type of the data from keyword arguments.
+
+        Please use types from :obj:`ctypes`.
+
+        Must be a list, e.g. [ctypes.c_int32, ctypes.c_double] or [ctypes.c_char].
+        """
         pass

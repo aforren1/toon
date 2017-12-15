@@ -17,9 +17,9 @@ class Keyboard(BaseInput):
     def data_types(**kwargs):
         return [c_bool, c_uint16, c_char]
 
-    def __init__(self, keys=None, sampling_frequency=100, **kwargs):
+    def __init__(self, keys=None, **kwargs):
         self.keys = keys
-        super(Keyboard, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
+        super(Keyboard, self).__init__(**kwargs)
 
     def __enter__(self):
         self._on = []
