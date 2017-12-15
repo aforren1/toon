@@ -104,7 +104,7 @@ class MultiprocessInput(object):
                 timestamp, data = d.read()
                 if timestamp is not None:
                     with shared_lock:
-                        if sample_count.value <= nrow:  # nans to fill in
+                        if sample_count.value < nrow:  # nans to fill in
                             next_index = sample_count.value
                             if isinstance(data, list):
                                 for np_data, new_data in zip(np_data_arrays, data):

@@ -2,10 +2,7 @@ from ctypes import c_double
 import numpy as np
 from toon.input.base_input import BaseInput
 import nidaqmx
-import nidaqmx.system
 from nidaqmx.constants import AcquisitionType, TerminalConfiguration
-
-system = nidaqmx.system.System.local()
 
 
 class ForceTransducers(BaseInput):
@@ -25,7 +22,7 @@ class ForceTransducers(BaseInput):
 
     def __init__(self, sampling_frequency=200, **kwargs):
         super(ForceTransducers, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
-        self._device_name = system.devices[0].name  # Assume the first NIDAQ-mx device is the one we want
+        self._device_name = nidaqmx.system.System.local().devices[0].name  # assume first NI DAQ is the one we want
         self._channels = [self._device_name + '/ai' + str(n) for n in
                           [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
         self.period = 1/sampling_frequency

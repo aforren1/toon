@@ -70,9 +70,6 @@ I've worked out a few examples, which cover straightforward implementations (`Ha
  - This was a good test of returning different data types.
 
 
-
-
-
 ## Limitations
 
 ### Batched data sources
