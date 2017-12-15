@@ -84,7 +84,6 @@ class TestMpInput(TestCase):
             time, data = d.read()
         self.assertEqual(data.shape, (2, 5))
         diff = np.diff(time)
-        print(time)
         self.assertTrue(np.isclose(diff, 0.001, atol=1e-3))
 
     def test_multi_devices(self):
