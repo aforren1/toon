@@ -4,4 +4,4 @@ branch = True
 include = */toon/*
 omit =
     toon/input/*
-    toon/tests/*
+    tests/*
