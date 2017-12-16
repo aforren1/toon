@@ -3,8 +3,9 @@ import ctypes
 
 
 class HetInput(BaseInput):
-    def __init__(self, sampling_frequency=100, **kwargs):
-        super(HetInput, self).__init__(sampling_frequency=sampling_frequency, **kwargs)
+    def __init__(self, **kwargs):
+        super(HetInput, self).__init__(**kwargs)
+        self.sampling_frequency = HetInput.samp_freq(**kwargs)
 
     def __enter__(self):
         self.t1 = self.clock()
