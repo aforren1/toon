@@ -53,7 +53,7 @@ Audio
 
 This module provides simple helper functions for generating beeps and beep seqeuences.
 
-This sample generates a four-beep metronome for the timed response experiment.::
+This sample generates a three-beep metronome for the timed response experiment.::
 
      import numpy as np
      import toon.audio as ta
