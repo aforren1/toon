@@ -1,52 +1,37 @@
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import absolute_import
-
-from builtins import super
-from future import standard_library
-standard_library.install_aliases()
 import struct
 import numpy as np
-from toon.input.base_input import BaseInput
 import hid
+from toon.input.base_input import BaseInput
+from ctypes import c_double
+
 
 class Hand(BaseInput):
-    """Interface to HAND.
+    """Hand Articulation Neuro-Training Device (HAND)."""
 
-    This provides an interface to HAND, which is developed by members of
-    Kata and the BLAM Lab.
+    @staticmethod
+    def samp_freq(**kwargs):
+        return kwargs.get('sampling_frequency', 1000)
 
-    """
+    @staticmethod
+    def data_shapes(**kwargs):
+        return [[15]]
+
+    @staticmethod
+    def data_types(**kwargs):
+        return [c_double]
+
     def __init__(self, nonblocking=False, **kwargs):
-        """
-        Args:
-            nonblocking (bool): Whether the HID interface blocks for input.
-        Notes:
-            If testing the `Hand`, I would suggest setting `nonblocking` to True for
-            the sake of easy debugging.
-
-        Data is formatted as [x, y, z] per finger (15 elements, 3 per finger).
-
-        Examples:
-            Initialization should be straightforward.
-
-            >>> device = Hand(nonblocking=True)
-        """
-
         super(Hand, self).__init__(**kwargs)
-
-        self._rotval = np.pi / 4.0
-        self._sinval = np.sin(self._rotval)
-        self._cosval = np.cos(self._rotval)
+        self._rot = np.pi / 4.0
+        self._sinrot = np.sin(self._rot)
+        self._cosrot = np.cos(self._rot)
         self.nonblocking = nonblocking
         self._device = None
         self._data_buffer = np.full(15, np.nan)
 
     def __enter__(self):
-        """HAND-specific initialization.
-        """
         self._device = hid.device()
+        dev_path = ''
         for d in hid.enumerate():
             if d['product_id'] == 1158 and d['usage'] == 512:
                 dev_path = d['path']
@@ -54,22 +39,18 @@ class Hand(BaseInput):
         self._device.set_nonblocking(self.nonblocking)
         return self
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._device.close()
+
     def read(self):
-        """HAND-specific read function."""
         data = self._device.read(46)
-        timestamp = self.time()
+        time = self.clock()
         if data:
             data = struct.unpack('>LhHHHHHHHHHHHHHHHHHHHH', bytearray(data))
             data = np.array(data, dtype='d')
-            data[0] /= 1000.0  # device timestamp (since power-up, in milliseconds)
+            data[0] /= 1000.0
             data[2:] /= 65535.0
-            self._data_buffer[0::3] = data[2::4] * self._cosval - data[3::4] * self._sinval  # x
-            self._data_buffer[1::3] = data[2::4] * self._sinval + data[3::4] * self._cosval  # y
+            self._data_buffer[0::3] = data[2::4] * self._cosrot - data[3::4] * self._sinrot  # x
+            self._data_buffer[1::3] = data[2::4] * self._sinrot + data[3::4] * self._cosrot  # y
             self._data_buffer[2::3] = data[4::4] + data[5::4]  # z
-            return {'time': timestamp, 'data': np.copy(self._data_buffer),
-                    'device_time': data[0], 'us_deviation': data[1]}
-        return None
-
-    def __exit__(self, type, value, traceback):
-        """Close the HID interface."""
-        self._device.close()
+            return time, self._data_buffer

@@ -2,35 +2,59 @@ import abc
 from timeit import default_timer
 
 
-class BaseInput(object):
-    """
-    Base class for devices compatible with :function:`Input`.
-    """
-    __metaclass__ = abc.ABCMeta
-
+class BaseInput(abc.ABC):
+    """Abstract base class for input devices."""
     @abc.abstractmethod
-    def __init__(self, clock_source=default_timer):
+    def __init__(self, clock=default_timer, **kwargs):
         """
         Args:
-            clock_source: Clock or timer that returns the current (absolute or relative) time.
+            clock: A function that returns the current time. Defaults to :obj:`timeit.default_timer`.
+            **kwargs: Device-specific keyword arguments. These can also be used to infer the sampling frequency,
+                shape of the data, and type of data.
         """
-        self.name = type(self).__name__
-        self.time = clock_source
+        self.clock = clock
 
     @abc.abstractmethod
     def __enter__(self):
-        """Start communications with the device."""
-        return self
-
-    @abc.abstractmethod
-    def read(self):
-        """
-        Return the data as a dictionary, e.g. {'timestamp': time, 'data': data}.
-        All shapes and sizes allowed.
-        """
+        """Start communication with the device here."""
         pass
 
     @abc.abstractmethod
-    def __exit__(self, type, value, traceback):
-        """Place the device in a desirable state and close the connection (if required)."""
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Gracefully clean up the device here (if necessary)."""
+        pass
+
+    @abc.abstractmethod
+    def read(self):
+        """Read a single measurement from the input device.
+
+        Returns:
+            (timestamp, data) tuple. See examples for details.
+        """
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def samp_freq(**kwargs):
+        """Infer the sampling frequency from keyword arguments."""
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def data_shapes(**kwargs):
+        """Infer the shape of the data from keyword arguments.
+
+        Must be a list of lists, e.g. [[2, 3], [8]] or [[5]].
+        """
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def data_types(**kwargs):
+        """Infer the type of the data from keyword arguments.
+
+        Please use types from :obj:`ctypes`.
+
+        Must be a list, e.g. [ctypes.c_int32, ctypes.c_double] or [ctypes.c_char].
+        """
         pass

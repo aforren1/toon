@@ -8,4 +8,4 @@ from __future__ import absolute_import
 
 from future import standard_library
 standard_library.install_aliases()
-from .beep_sequence import beep, beep_ramp, beep_sequence
+from .beep_sequence import beep, beep_sequence

@@ -51,6 +51,8 @@ Usage Overview
 Audio
 ~~~~~
 
+This module provides simple helper functions for generating beeps and beep seqeuences.
+
 This sample generates a four-beep metronome for the timed response experiment.::
 
      import numpy as np
@@ -60,22 +62,24 @@ This sample generates a four-beep metronome for the timed response experiment.::
      beeps = ta.beep_sequence([440, 880, 1220], inter_click_interval=0.4)
      beep_aud = sound.Sound(np.transpose(np.vstack((beeps, beeps))),
                             blockSize=32,
-                            hamming=False)
+                            hamming=True)
      beep_aud.play()
 
 Input
 ~~~~~
 
+This module allows us to sample from external devices on a secondary process at high rates, and efficiently move that data to the main process via the `multiprocessing` module.
+
 Generally useful input devices include:
 
-- Keyboard (for changes in keyboard state) via `Keyboard`
+- Keyboard (for changes in keyboard state) via :code:`Keyboard`
+- Mouse (for mouse position) via :code:`Mouse`
 
 The following are in-house devices, which may not be generally useful but could serve as examples
 of how to implement additional devices:
 
-- HAND (custom force measurement device) by class `Hand`
-- Flock of Birds (position tracker) by class `BlamBirds`
-- Force Transducers (predecessor to HAND) by class `ForceTransducers` (Windows only.)
+- HAND (custom force measurement device) by class :code:`Hand`
+- Force Transducers (predecessor to HAND) by class :code:`ForceTransducers` (Windows only, due to :code:`nidaqmx` requirement.)
 
 Generally, input devices can be used as follows::
 
@@ -84,41 +88,31 @@ Generally, input devices can be used as follows::
 
      timer = core.monotonicClock.getTime
 
-     dev = MultiprocessInput(<device>(clock_source=timer, <device-specific args>))
+     dev = MultiprocessInput(<device>, clock=timer, <device-specific kwargs>)
 
      with dev as d:
          while not done:
-             data = d.read()
+             time, data = d.read()
              ...
 
-You can perform a sanity check for existing devices via::
 
-     python -m toon.examples.try_inputs --dev <device> --mp True
+See `demos/try_input.py <https://github.com/aforren1/toon/blob/master/demos/try_input.md>`_ for usage examples (not packaged).
 
 Tools
 ~~~~
 
+These tools are extensions of the ones provided in :code:`psychopy.tools.coordinatetools`, allowing for conversion between cartesian<->polar coordinates when the reference point is not (0, 0) in cartesian space.
+
 Current tools:
 
-- cart2pol
-- pol2cart
-- cart2sph
-- sph2cart
+- :code:`cart2pol`
+- :code:`pol2cart`
+- :code:`cart2sph`
+- :code:`sph2cart`
 
 For example,::
 
     import toon.tools as tt
 
     x, y = tt.pol2cart(45, 3, units='deg', ref=(1, 1))
-
-Extended Examples
------------------
-
-If you have psychopy and the HAND, you can run an example via::
-
-    python -m toon.examples.psychhand
-
-If you're hooked up to the kinereach (also works with a mouse), try::
-
-    python -m toon.examples.kinereach
 

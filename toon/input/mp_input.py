@@ -1,101 +1,157 @@
 import multiprocessing as mp
-import multiprocessing.connection as conn
-from ctypes import c_uint
+import ctypes
 import gc
 import psutil
-conn.BUFSIZE = 2 ** 16 # up the size of the pipe buffer (for windows)
+import numpy as np
+from toon.input.helper import check_and_fix_dims, shared_to_numpy
 
 
 class MultiprocessInput(object):
-    def __init__(self, device=None, priority='high',
-                 disable_gc=True, _sampling_period=0):
+    def __init__(self, device=None, high_priority=True, use_gc=False,
+                 nrow=None, **kwargs):
         """
-        Allows the user poll an input device without blocking the main process.
         Args:
-            device: An input device that inherits from :class:`toon.input.BaseInput`.
-            priority (string): Priority of the remote process. Either 'high' or 'norm'.
-            disable_gc (bool): Switches off garbage collection on the remote process.
-            _sampling_period (float): Only use if the input device constantly has its
-                state available.
+            device: A class that inherits from `toon.input.base_input.BaseInput` (not an object).
+            high_priority (bool): Whether the remote process should run at high priority.
+                Silently fails if permissions are insufficient.
+            use_gc (bool): Optionally disable garbage collection on the remote process.
+            nrow: Override the inferred number of rows to store.
+                If `None`, defaults to 10x the amount expected from a single frame.
+            **kwargs: Passed to the device during instantiation.
         """
-        self._device = device
-        self.local, self.remote = mp.Pipe(duplex=False)
-        self.remote_ready = mp.Event()
-        self.stop_remote = mp.Event()
-        self._sampling_period = _sampling_period
-        self._disable_gc = disable_gc
-        self._priority = priority
-        self._counter = mp.Value(c_uint)
+        self.device = device
+        self.device_args = kwargs
+        self.nrow = nrow
+        self.high_priority = high_priority
+        self.use_gc = use_gc
 
     def __enter__(self):
-        self.remote_ready.clear()
-        self.stop_remote.clear()
-        self._counter.value = 0
-        self._process = mp.Process(target=self._mp_worker,
-                                   args=(self.remote,
-                                         self.remote_ready,
-                                         self.stop_remote,
-                                         self._counter))
-        self._process.daemon = True
-        self._clear_pipe()
-        self._process.start()
+        self.shared_lock = mp.RLock()
+        self.remote_ready = mp.Event()
+        self.kill_remote = mp.Event()
+        self.sample_count = mp.Value(ctypes.c_uint32, 0, lock=self.shared_lock)  # sample counter
+        data_dims = check_and_fix_dims(self.device.data_shapes(**self.device_args))
+        self.not_time_axis = [tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims]  # TODO: unclear, change later
+        # if not manually overridden, preallocate 10*whatever we would expect in a single frame
+        nrow = self.nrow
+        if not nrow:
+            nrow = int(np.ceil(self.device.samp_freq(**self.device_args) / 60) * 10)
+
+        # preallocate data arrays (shared arrays, numpy equivalents, and local copies)
+        data_types = self.device.data_types(**self.device_args)
+        self.mp_data_arrays = []
+        self.np_data_arrays = []
+        self.local_data_arrays = []
+        for counter, data_dim in enumerate(data_dims):
+            data_dim.insert(0, nrow)  # make axis 0 time
+            prod = int(np.prod(data_dim))
+            data_type = data_types[counter]
+            self.mp_data_arrays.append(mp.Array(data_type,
+                                                prod,
+                                                lock=self.shared_lock))
+            self.np_data_arrays.append(shared_to_numpy(self.mp_data_arrays[counter], data_dim, data_type))
+            self.np_data_arrays[counter].fill(np.nan)
+            self.local_data_arrays.append(np.copy(self.np_data_arrays[counter]))
+
+        # preallocate time array
+        self.mp_time_array = mp.Array(ctypes.c_double, nrow, lock=self.shared_lock)
+        self.np_time_array = shared_to_numpy(self.mp_time_array, nrow, ctypes.c_double)
+        self.np_time_array.fill(np.nan)
+        self.local_time_array = np.copy(self.np_time_array)
+
+        #
+        self.process = mp.Process(target=self.worker,
+                                  args=(self.device,
+                                        self.device_args,
+                                        self.shared_lock,
+                                        self.remote_ready,
+                                        self.kill_remote,
+                                        self.mp_time_array,
+                                        self.mp_data_arrays,
+                                        nrow, data_dims, data_types, self.use_gc,
+                                        self.sample_count))
+        self.process.daemon = True
+        self.process.start()
+        self.ps_process = psutil.Process(self.process.pid)
+        self.original_nice = self.ps_process.nice()
+        self.set_high_priority(self.high_priority)
+
         self.remote_ready.wait()
-        self._pid = self._process.pid
-        self._proc = psutil.Process(self._pid)
-        self._original_nice = self._proc.nice()
-        self._set_priority(self._priority)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._set_priority('norm')
-        self.stop_remote.set()
-
     def read(self):
-        """Read all pending data from the 'receiving' end of the multiprocessing Pipe."""
-        with self._counter.get_lock():
-            expected_count = self._counter.value
-            self._counter.value = 0
-        if expected_count > 0:
-            return [self.local.recv() for i in range(expected_count)]
-        return None
+        """
 
-    def _mp_worker(self, remote, remote_ready, stop_remote, counter):
+        Returns:
+            A (time, data) tuple, where time is a 1-D numpy array of timestamps, and
+                data is either a N-D array (where the 0th axis is time), or a list of
+                N-D arrays. If there is no data, returns (None, None).
         """
-        Function that runs on the remote process.
-        Args:
-            remote: The 'sending' end of the multiprocessing Pipe.
-            remote_ready: Used to tell the original process that the remote is ready to sample.
-            stop_remote: Used to tell the remote process to stop sampling.
-        """
-        if self._disable_gc:
+        with self.shared_lock:
+            count = self.sample_count.value
+            self.sample_count.value = 0
+            np.copyto(self.local_time_array, self.np_time_array)
+            for local_data, remote_data in zip(self.local_data_arrays, self.np_data_arrays):
+                np.copyto(local_data, remote_data)
+        if not count:
+            return None, None
+        dims = self.not_time_axis
+        time = self.local_time_array[0:count]
+        if len(dims) == 1:
+            data = self.local_data_arrays[0][0:count, :]
+        else:
+            data = [local_data[0:count, :] for local_data, dim in zip(self.local_data_arrays, dims)]
+        return time, data
+
+    @staticmethod
+    def worker(device, device_args, shared_lock, remote_ready,
+               kill_remote, mp_time_array, mp_data_arrays,
+               nrow, data_dims, data_types, use_gc, sample_count):
+        if not use_gc:
             gc.disable()
-        with self._device as dev:
+        dev = device(**device_args)
+        np_time_array = shared_to_numpy(mp_time_array, nrow, ctypes.c_double)
+        np_data_arrays = []
+        for data, dims, types in zip(mp_data_arrays, data_dims, data_types):
+            np_data_arrays.append(shared_to_numpy(data, dims, types))
+        with dev as d:
             remote_ready.set()
-            t0 = dev.time() + self._sampling_period  # first sampling period will be off
-            while not stop_remote.is_set():
-                data = dev.read()
-                if data is not None:
-                    remote.send(data)
-                    with counter.get_lock():
-                        counter.value += 1
-                    while dev.time() < t0:
-                        pass
-                    t0 = dev.time() + self._sampling_period
+            while not kill_remote.is_set():
+                timestamp, data = d.read()
+                if timestamp is not None:
+                    with shared_lock:
+                        if sample_count.value < nrow:  # nans to fill in
+                            next_index = sample_count.value
+                            if isinstance(data, list):
+                                for np_data, new_data in zip(np_data_arrays, data):
+                                    np_data[next_index, :] = new_data
+                            else:
+                                np_data_arrays[0][next_index, :] = data
+                            np_time_array[next_index] = timestamp
+                        else:  # replace oldest data with newest data
+                            if isinstance(data, list):
+                                for np_data, new_data in zip(np_data_arrays, data):
+                                    np_data[:] = np.roll(np_data, -1, axis=0)
+                                    np_data[-1, :] = new_data
+                            else:
+                                np_data_arrays[0][:] = np.roll(np_data_arrays[0], -1, axis=0)
+                                np_data_arrays[0][-1, :] = data
+                            np_time_array[:] = np.roll(np_time_array, -1, axis=0)
+                            np_time_array[-1] = timestamp
+                        sample_count.value += 1
 
-    def _clear_pipe(self):
-        """Clear any pending data."""
-        while self.local.poll():
-            self.local.recv()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.set_high_priority(False)
+        self.kill_remote.set()
 
-    def _set_priority(self, val):
-        """Helper function to set priority. Inflexible."""
+    def set_high_priority(self, val):
         try:
-            if val == 'high':
+            if val:
                 if psutil.WINDOWS:
-                    self._proc.nice(psutil.HIGH_PRIORITY_CLASS)
+                    self.ps_process.nice(psutil.HIGH_PRIORITY_CLASS)
                 else:
-                    self._proc.nice(-10)
+                    self.ps_process.nice(-10)
             else:
-                self._proc.nice(self._original_nice)
+                self.ps_process.nice(self.original_nice)
         except psutil.AccessDenied:
             pass
