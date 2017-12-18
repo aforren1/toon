@@ -4,6 +4,7 @@ from ctypes import c_bool, c_uint16, c_char
 
 
 class Keyboard(BaseInput):
+    """Keyboard interface."""
 
     @staticmethod
     def samp_freq(**kwargs):
@@ -18,6 +19,11 @@ class Keyboard(BaseInput):
         return [c_bool, c_uint16, c_char]
 
     def __init__(self, keys=None, **kwargs):
+        """
+        Args:
+            keys (list): Keys of interest, e.g. `['a', 's', 'd', 'f']`
+            **kwargs: Keyword arguments passed to `toon.input.base_input.BaseInput`.
+        """
         self.keys = keys
         super(Keyboard, self).__init__(**kwargs)
 
@@ -38,6 +44,11 @@ class Keyboard(BaseInput):
         self.dev.join()
 
     def read(self):
+        """Returns all key press/release events since the last `read()` call.
+
+        The first data element is boolean (whether key event was press or release),
+        the second element is the position of the key in the `keys` list provided at instantiation,
+        and the third element is the character representation of the key."""
         if not self.times:
             return None, None
         time2 = []

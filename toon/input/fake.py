@@ -4,6 +4,7 @@ from ctypes import c_double
 
 
 class FakeInput(BaseInput):
+    """Device used for testing."""
     def __init__(self, **kwargs):
         super(FakeInput, self).__init__(**kwargs)
         self.data_shape = FakeInput.data_shapes(**kwargs)

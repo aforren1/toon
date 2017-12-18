@@ -6,6 +6,7 @@ from ctypes import c_double
 
 
 class Hand(BaseInput):
+    """Hand Articulation Neuro-Training Device (HAND)."""
 
     @staticmethod
     def samp_freq(**kwargs):

@@ -10,7 +10,6 @@ class MultiprocessInput(object):
     def __init__(self, device=None, high_priority=True, use_gc=False,
                  nrow=None, **kwargs):
         """
-
         Args:
             device: A class that inherits from `toon.input.base_input.BaseInput` (not an object).
             high_priority (bool): Whether the remote process should run at high priority.

@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Mouse(BaseInput):
-
+    """Mouse interface."""
     @staticmethod
     def samp_freq(**kwargs):
         return kwargs.get('sampling_frequency', 100)
@@ -42,6 +42,7 @@ class Mouse(BaseInput):
         self.y_prev = y
 
     def read(self):
+        """Returns the *change* in mouse position, not the absolute position."""
         if not self.readings:
             return None, None
         time2 = []
