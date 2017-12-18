@@ -7,14 +7,24 @@ from toon.input.helper import check_and_fix_dims, shared_to_numpy
 
 
 class MultiprocessInput(object):
-    def __init__(self, device=None, high_priority=True, no_gc=True,
+    def __init__(self, device=None, high_priority=True, use_gc=False,
                  nrow=None, **kwargs):
-        """_nrow overrides default size (10*sampling_frequency)"""
+        """
+
+        Args:
+            device: A class that inherits from `toon.input.base_input.BaseInput` (not an object).
+            high_priority (bool): Whether the remote process should run at high priority.
+                Silently fails if permissions are insufficient.
+            use_gc (bool): Optionally disable garbage collection on the remote process.
+            nrow: Override the inferred number of rows to store.
+                If `None`, defaults to 10x the amount expected from a single frame.
+            **kwargs: Passed to the device during instantiation.
+        """
         self.device = device
         self.device_args = kwargs
         self.nrow = nrow
         self.high_priority = high_priority
-        self.no_gc = no_gc
+        self.use_gc = use_gc
 
     def __enter__(self):
         self.shared_lock = mp.RLock()
@@ -59,7 +69,7 @@ class MultiprocessInput(object):
                                         self.kill_remote,
                                         self.mp_time_array,
                                         self.mp_data_arrays,
-                                        nrow, data_dims, data_types, self.no_gc,
+                                        nrow, data_dims, data_types, self.use_gc,
                                         self.sample_count))
         self.process.daemon = True
         self.process.start()
@@ -71,6 +81,13 @@ class MultiprocessInput(object):
         return self
 
     def read(self):
+        """
+
+        Returns:
+            A (time, data) tuple, where time is a 1-D numpy array of timestamps, and
+                data is either a N-D array (where the 0th axis is time), or a list of
+                N-D arrays. If there is no data, returns (None, None).
+        """
         with self.shared_lock:
             count = self.sample_count.value
             self.sample_count.value = 0
@@ -90,8 +107,8 @@ class MultiprocessInput(object):
     @staticmethod
     def worker(device, device_args, shared_lock, remote_ready,
                kill_remote, mp_time_array, mp_data_arrays,
-               nrow, data_dims, data_types, no_gc, sample_count):
-        if no_gc:
+               nrow, data_dims, data_types, use_gc, sample_count):
+        if not use_gc:
             gc.disable()
         dev = device(**device_args)
         np_time_array = shared_to_numpy(mp_time_array, nrow, ctypes.c_double)

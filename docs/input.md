@@ -79,4 +79,9 @@ Currently, I don't have a great way to handle devices that send batched data (i.
 There also isn't structure for devices that can return data from multiple (independent) sources, e.g. computer mice. However, if the state is returned in lock-step (i.e. we get the button states, position, and scroll wheel state simultaneously), then we can just specify multiple `data_shapes`/`data_types` when writing our new device.
 
 ## How `MultiprocessInput` Works
-(TODO: write)
+
+`MultiprocessInput` takes a device defined as above, and polls it incessantly until the main process signals to stop. Data is added to one or multiple `multiprocessing.Array`s, and access to the data is controlled via a single `multiprocessing.RLock`. The default size of the shared array is `ceil(10 * (device sampling rate/60)) * <product of all other dims>`, which is ~10x the amount of data we would expect in a single frame. If that size is not sufficient, you can manually set the number of rows by the `nrow` argument during initialization. For convenience, we interpret the shared array as a numpy array via `numpy.frombuffer`, which allows us to use indexing/functions from numpy.
+
+If the shared array is filled, we replace the oldest data with the newest (via `numpy.roll`). When the user wants to retrieve data, the `read` function returns a (timestamp, data) tuple, where timestamp is a 1-D numpy array, and data is either a single numpy array of arbitrary shape (except dimension 0 tracks time), or a list of numpy arrays (following the same rules). After the data is copied from shared arrays to local ones, we copy the value of and reset the counter used to track how many readings have occurred since the last `read()` call. We then use the copied value of the counter to subset our timestamps and data (anything beyond being garbage). If no data has come in, we return a `(None, None)` tuple.
+
+We also try to bump the priority of the remote process and disable garbage collection by default, which ??may?? lead to better performance. I *think* the priority bump will fail if not running with elevated privileges, but it'll just silently fail.

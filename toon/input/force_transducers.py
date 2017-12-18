@@ -6,7 +6,7 @@ from nidaqmx.constants import AcquisitionType, TerminalConfiguration
 
 
 class ForceTransducers(BaseInput):
-    """1D transducers."""
+    """1-DoF force transducers."""
 
     @staticmethod
     def samp_freq(**kwargs):
@@ -28,6 +28,7 @@ class ForceTransducers(BaseInput):
                           [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
         self.period = 1/self.sampling_frequency
         self.t1 = 0
+        self._data_buffer = np.full(ForceTransducers.data_shapes(**kwargs)[0], np.nan)
 
     def __enter__(self):
         self._device = nidaqmx.Task()
@@ -44,10 +45,11 @@ class ForceTransducers(BaseInput):
     def read(self):
         data = self._device.read()
         time = self.clock()
+        np.copyto(self._data_buffer, data)
         while self.clock() < self.t1:
             pass
         self.t1 = self.clock() + self.period
-        return time, np.copy(data)
+        return time, self._data_buffer
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._device.stop()
