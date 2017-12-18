@@ -1,0 +1,5 @@
+name: toon
+
+dependencies:
+  - python=3.5
+  - numpy
