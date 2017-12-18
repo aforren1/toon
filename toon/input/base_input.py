@@ -1,8 +1,10 @@
 import abc
+import six
 from timeit import default_timer
 
 
-class BaseInput(abc.ABC):
+@six.add_metaclass(abc.ABC)
+class BaseInput():
     """Abstract base class for input devices."""
     @abc.abstractmethod
     def __init__(self, clock=default_timer, **kwargs):
@@ -33,13 +35,11 @@ class BaseInput(abc.ABC):
         """
         pass
 
-    @staticmethod
     @abc.abstractmethod
     def samp_freq(**kwargs):
         """Infer the sampling frequency from keyword arguments."""
         pass
 
-    @staticmethod
     @abc.abstractmethod
     def data_shapes(**kwargs):
         """Infer the shape of the data from keyword arguments.
@@ -48,7 +48,6 @@ class BaseInput(abc.ABC):
         """
         pass
 
-    @staticmethod
     @abc.abstractmethod
     def data_types(**kwargs):
         """Infer the type of the data from keyword arguments.
