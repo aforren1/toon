@@ -96,7 +96,7 @@ Generally, input devices can be used as follows::
              ...
 
 
-See `demos/try_input.py <https://github.com/aforren1/toon/blob/master/demos/try_input.md>`_ for usage examples (not packaged).
+See `demos/try_input.py <https://github.com/aforren1/toon/blob/master/demos/try_input.py>`_ for usage examples (not packaged).
 
 Tools
 ~~~~
