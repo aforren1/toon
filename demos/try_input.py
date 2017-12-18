@@ -1,8 +1,8 @@
 import os
-from toon.input.mp_input import MultiprocessInput as MpI
-from toon.input.mouse import Mouse
-from toon.input.keyboard import Keyboard
-from toon.input.hand import Hand
+from toon.input import MultiprocessInput as MpI
+from toon.input import Mouse
+from toon.input import Keyboard
+from toon.input import Hand
 from toon.input.fake import FakeInput
 from timeit import default_timer
 import numpy as np
@@ -10,7 +10,7 @@ import ctypes
 # import matplotlib.pyplot as plt
 
 if os.name == 'nt':
-    from toon.input.force_transducers import ForceTransducers
+    from toon.input import ForceTransducers
 
 
 np.set_printoptions(precision=5, suppress=True)
