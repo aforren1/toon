@@ -3,7 +3,7 @@ import six
 from timeit import default_timer
 
 
-@six.add_metaclass(abc.ABC)
+@six.add_metaclass(abc.ABCMeta)
 class BaseInput():
     """Abstract base class for input devices."""
     @abc.abstractmethod
