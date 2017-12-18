@@ -35,7 +35,7 @@ class MultiprocessInput(object):
         # if not manually overridden, preallocate 10*whatever we would expect in a single frame
         nrow = self.nrow
         if not nrow:
-            nrow = int(np.ceil(self.device.samp_freq(**self.device_args) / 60) * 10)
+            nrow = int(np.ceil(self.device.samp_freq(**self.device_args) / 60.0) * 10)
 
         # preallocate data arrays (shared arrays, numpy equivalents, and local copies)
         data_types = self.device.data_types(**self.device_args)
@@ -60,7 +60,7 @@ class MultiprocessInput(object):
         self.local_time_array = np.copy(self.np_time_array)
 
         #
-        self.process = mp.Process(target=self.worker,
+        self.process = mp.Process(target=worker,
                                   args=(self.device,
                                         self.device_args,
                                         self.shared_lock,
@@ -103,43 +103,6 @@ class MultiprocessInput(object):
             data = [local_data[0:count, :] for local_data, dim in zip(self.local_data_arrays, dims)]
         return time, data
 
-    @staticmethod
-    def worker(device, device_args, shared_lock, remote_ready,
-               kill_remote, mp_time_array, mp_data_arrays,
-               nrow, data_dims, data_types, use_gc, sample_count):
-        if not use_gc:
-            gc.disable()
-        dev = device(**device_args)
-        np_time_array = shared_to_numpy(mp_time_array, nrow, ctypes.c_double)
-        np_data_arrays = []
-        for data, dims, types in zip(mp_data_arrays, data_dims, data_types):
-            np_data_arrays.append(shared_to_numpy(data, dims, types))
-        with dev as d:
-            remote_ready.set()
-            while not kill_remote.is_set():
-                timestamp, data = d.read()
-                if timestamp is not None:
-                    with shared_lock:
-                        if sample_count.value < nrow:  # nans to fill in
-                            next_index = sample_count.value
-                            if isinstance(data, list):
-                                for np_data, new_data in zip(np_data_arrays, data):
-                                    np_data[next_index, :] = new_data
-                            else:
-                                np_data_arrays[0][next_index, :] = data
-                            np_time_array[next_index] = timestamp
-                        else:  # replace oldest data with newest data
-                            if isinstance(data, list):
-                                for np_data, new_data in zip(np_data_arrays, data):
-                                    np_data[:] = np.roll(np_data, -1, axis=0)
-                                    np_data[-1, :] = new_data
-                            else:
-                                np_data_arrays[0][:] = np.roll(np_data_arrays[0], -1, axis=0)
-                                np_data_arrays[0][-1, :] = data
-                            np_time_array[:] = np.roll(np_time_array, -1, axis=0)
-                            np_time_array[-1] = timestamp
-                        sample_count.value += 1
-
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.set_high_priority(False)
         self.kill_remote.set()
@@ -155,3 +118,40 @@ class MultiprocessInput(object):
                 self.ps_process.nice(self.original_nice)
         except psutil.AccessDenied:
             pass
+
+
+def worker(device, device_args, shared_lock, remote_ready,
+           kill_remote, mp_time_array, mp_data_arrays,
+           nrow, data_dims, data_types, use_gc, sample_count):
+    if not use_gc:
+        gc.disable()
+    dev = device(**device_args)
+    np_time_array = shared_to_numpy(mp_time_array, nrow, ctypes.c_double)
+    np_data_arrays = []
+    for data, dims, types in zip(mp_data_arrays, data_dims, data_types):
+        np_data_arrays.append(shared_to_numpy(data, dims, types))
+    with dev as d:
+        remote_ready.set()
+        while not kill_remote.is_set():
+            timestamp, data = d.read()
+            if timestamp is not None:
+                with shared_lock:
+                    if sample_count.value < nrow:  # nans to fill in
+                        next_index = sample_count.value
+                        if isinstance(data, list):
+                            for np_data, new_data in zip(np_data_arrays, data):
+                                np_data[next_index, :] = new_data
+                        else:
+                            np_data_arrays[0][next_index, :] = data
+                        np_time_array[next_index] = timestamp
+                    else:  # replace oldest data with newest data
+                        if isinstance(data, list):
+                            for np_data, new_data in zip(np_data_arrays, data):
+                                np_data[:] = np.roll(np_data, -1, axis=0)
+                                np_data[-1, :] = new_data
+                        else:
+                            np_data_arrays[0][:] = np.roll(np_data_arrays[0], -1, axis=0)
+                            np_data_arrays[0][-1, :] = data
+                        np_time_array[:] = np.roll(np_time_array, -1, axis=0)
+                        np_time_array[-1] = timestamp
+                    sample_count.value += 1
