@@ -56,7 +56,7 @@ class TestMpInput(TestCase):
         self.assertEqual(type(time), np.ndarray)
 
     def test_low_freq(self):
-        dev = MpI(FakeInput, sampling_frequency=1)
+        dev = MpI(FakeInput, sampling_frequency=5)
         with dev as d:
             sleep(5)
             time, data = d.read()
