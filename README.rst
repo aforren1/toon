@@ -10,6 +10,9 @@ toon
 .. image:: https://img.shields.io/travis/aforren1/toon.svg
      :target: https://travis-ci.org/aforren1/toon
 
+.. image:: https://img.shields.io/appveyor/ci/aforren1/toon.svg
+     :target: https://ci.appveyor.com/project/aforren1/toon
+
 .. image:: https://img.shields.io/coveralls/aforren1/toon.svg
      :target: https://coveralls.io/github/aforren1/toon
 
