@@ -1,5 +1,5 @@
 
-evironment:
+environment:
   NOSETEST: nosetests
   APPVEYOR_SAVE_CACHE_ON_ERROR: true
 
