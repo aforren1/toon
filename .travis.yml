@@ -27,7 +27,7 @@ install:
   - pip install python-coveralls coverage
   - pip install .[full]
 script:
-  - nosetests --with-coverage
+  - xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" nosetests --with-coverage
 after_success:
   - coveralls --config_file .coveragerc
 notifications:
