@@ -5,7 +5,6 @@ import psutil
 import numpy as np
 from toon.input.helper import check_and_fix_dims, shared_to_numpy
 
-
 class MultiprocessInput(object):
     def __init__(self, device=None, high_priority=True, use_gc=False,
                  nrow=None, **kwargs):
@@ -26,6 +25,7 @@ class MultiprocessInput(object):
         self.use_gc = use_gc
 
     def __enter__(self):
+        mp.set_start_method('spawn')
         self.shared_lock = mp.RLock()
         self.remote_ready = mp.Event()
         self.kill_remote = mp.Event()
