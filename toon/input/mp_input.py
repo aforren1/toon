@@ -25,7 +25,11 @@ class MultiprocessInput(object):
         self.use_gc = use_gc
 
     def __enter__(self):
-        mp.set_start_method('spawn')
+        # Use spawn, rather than fork, when possible (for Macs)
+        try:
+            mp.set_start_method('spawn')
+        except (AttributeError, RuntimeError):
+            pass
         self.shared_lock = mp.RLock()
         self.remote_ready = mp.Event()
         self.kill_remote = mp.Event()
