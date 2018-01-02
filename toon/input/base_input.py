@@ -1,13 +1,12 @@
 import abc
 import six
-from timeit import default_timer
-
+from toon.input.clock import mono_clock
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseInput():
     """Abstract base class for input devices."""
     @abc.abstractmethod
-    def __init__(self, clock=default_timer, **kwargs):
+    def __init__(self, clock=mono_clock.get_time, **kwargs):
         """
         Args:
             clock: A function that returns the current time. Defaults to :obj:`timeit.default_timer`.
