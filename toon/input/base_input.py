@@ -9,7 +9,7 @@ class BaseInput():
     def __init__(self, clock=mono_clock.get_time, **kwargs):
         """
         Args:
-            clock: A function that returns the current time. Defaults to :obj:`timeit.default_timer`.
+            clock: A function that returns the current time. Defaults to :obj:`toon.input.clock.mono_clock.get_time`.
             **kwargs: Device-specific keyword arguments. These can also be used to infer the sampling frequency,
                 shape of the data, and type of data.
         """
