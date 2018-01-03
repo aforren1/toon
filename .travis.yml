@@ -8,15 +8,18 @@ matrix:
     - os: linux
       python: 2.7
       env: DISPLAY=:99.0
+
     - os: linux
       python: 3.6
       env: DISPLAY=:99.0
-    - os: osx
-      python: 2.7
-      env: DISPLAY=:99.0
-    - os: osx
-      python: 3.6
-      env: DISPLAY=:99.0
+
+#    - os: osx
+#      python: 2.7
+#      env: DISPLAY=:99.0
+#
+#    - os: osx
+#      python: 3.6
+#      env: DISPLAY=:99.0
 
 install:
   - pip install -r requirements.txt
