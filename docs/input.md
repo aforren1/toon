@@ -27,7 +27,7 @@ with dev as d:
 There are four methods necessary for a complete device (and enforced via the `abc` module).
 
 - `__init__()`
-  - Can specify a different clock source here (via the `clock` keyword argument). The default `timeit.default_timer` is pretty good, but I *suspect* `psychopy.clock.monotonicClock.getTime` might be better on Windows (untested, but a peek at the source suggests they're both based around `QueryPerformanceCounter`).
+  - Can specify a different clock source here (via the `clock` keyword argument). I've borrowed `psychopy`'s `clock.MontonicClock` (minus the pyglet import) to use as the default.
   - Pass in other keyword args too, like sampling frequency, various device-specific flags, etc.
 - `__enter__()`
   - Start communication with the device here.

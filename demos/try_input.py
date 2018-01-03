@@ -4,7 +4,7 @@ from toon.input import Mouse
 from toon.input import Keyboard
 from toon.input import Hand
 from toon.input.fake import FakeInput
-from timeit import default_timer
+from toon.input.clock import mono_clock
 import numpy as np
 import ctypes
 # import matplotlib.pyplot as plt
@@ -16,17 +16,17 @@ if os.name == 'nt':
 np.set_printoptions(precision=5, suppress=True)
 
 if __name__ == '__main__':
-    dev = MpI(Mouse)
+    default_timer = mono_clock.get_time
+    dev = MpI(Mouse, clock=default_timer)
     # dev = MpI(Keyboard, keys=['a', 's', 'd', 'f'])
     # dev = MpI(Hand)
     # dev = MpI(ForceTransducers)
     # dev = MpI(FakeInput, sampling_frequency=1000, data_shape=[[5]], data_type=[ctypes.c_double])
-
     read_times = []
     diffs = []
     with dev as d:
         t0 = default_timer()
-        t1 = t0 + 30
+        t1 = t0 + 10
         t2 = 0
         while default_timer() < t1:
             t0 = default_timer()
@@ -34,7 +34,8 @@ if __name__ == '__main__':
             t3 = default_timer()
             read_times.append(t3 - t0)
             if time is not None:
-                print(data)
+                print('Frame time: ' + str(t0))
+                print(time)
                 diffs.extend(np.diff(time))
             while default_timer() < t2:
                 pass
