@@ -30,6 +30,11 @@ def decay_beep(frequency, duration, div=5, coef=0.01, sample_rate=44100):
     ramp_up = np.flipud(ramp_down)
     beep[:prop] *= ramp_up
     beep[-prop:] *= ramp_down
+    # apply hanning window
+    hw_size = int(min(sample_rate // 200, len(beep) // 15))
+    hw = np.hanning(2 * hw_size + 1)
+    beep[:hw_size] *= hw[:hw_size]
+    beep[-hw_size:] *= hw[hw_size + 1:]
     return beep
 
 def beep_sequence(click_freq=(440, 660, 880, 1220),
