@@ -19,13 +19,18 @@ def beep(frequency, duration, sample_rate=44100):
 
         >>> my_beep = beep(440, 0.5, 44100)
     """
-    sample = np.sin(2 * np.pi * frequency * (np.arange(0, duration * sample_rate)) / sample_rate)
-    hw_size = int(min(sample_rate // 20, len(sample) // 15))
-    hw = np.hanning(2 * hw_size + 1)
-    sample[:hw_size] *= hw[:hw_size]
-    sample[-hw_size:] *= hw[hw_size + 1:]
+    sample = np.sin(2 * np.pi * frequency * (np.arange(0, int(duration * sample_rate))) / sample_rate)
     return sample
 
+def decay_beep(frequency, duration, div=5, coef=0.01, sample_rate=44100):
+    len_samples = int(duration * sample_rate)
+    prop = len_samples // div
+    beep = np.sin(2 * np.pi * frequency * (np.arange(0, len_samples)) / sample_rate)
+    ramp_down = np.exp(-0.01 * np.arange(0, prop))
+    ramp_up = np.flipud(ramp_down)
+    beep[:prop] *= ramp_up
+    beep[-prop:] *= ramp_down
+    return beep
 
 def beep_sequence(click_freq=(440, 660, 880, 1220),
                   inter_click_interval=0.5,
@@ -56,7 +61,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
         raise ValueError('click_freq must be either 1 or match the num_clicks.')
     if len(click_freq) == 1:
         click_freq = click_freq * num_clicks
-    beeps = [beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
+    beeps = [decay_beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
     space = np.zeros(int((inter_click_interval * sample_rate) - len(beeps[0])))
     out = np.zeros((int(sample_rate * 0.1 - len(beeps[0]) / 2)))
     out = np.append(out, beeps[0])
