@@ -20,7 +20,7 @@ def beep(frequency, duration, sample_rate=44100):
         >>> my_beep = beep(440, 0.5, 44100)
     """
     sample = np.sin(2 * np.pi * frequency * (np.arange(0, duration * sample_rate)) / sample_rate)
-    hw_size = int(min(sample_rate // 200, len(sample) // 15))
+    hw_size = int(min(sample_rate // 400, len(sample) // 15))
     hw = np.hanning(2 * hw_size + 1)
     sample[:hw_size] *= hw[:hw_size]
     sample[-hw_size:] *= hw[hw_size + 1:]
