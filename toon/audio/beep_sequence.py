@@ -36,8 +36,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
                   inter_click_interval=0.5,
                   num_clicks=4,
                   dur_clicks=0.04,
-                  sample_rate=44100,
-                  type='norm'):
+                  sample_rate=44100):
     """Generate a series of linearly ramped sine waves.
 
     Kwargs:
