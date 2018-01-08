@@ -25,21 +25,8 @@ def beep(frequency, duration, sample_rate=44100, hanning=True):
     return sample
 
 
-def decay_beep(frequency, duration, div=3, coef=0.01, sample_rate=44100, hanning=True):
-    len_samples = int(duration * sample_rate)
-    prop = len_samples // div
-    sample = np.sin(2 * np.pi * frequency * (np.arange(0, len_samples)) / sample_rate)
-    ramp_down = np.exp(-coef * np.arange(0, prop))
-    ramp_up = np.flipud(ramp_down)
-    sample[:prop] *= ramp_up
-    sample[-prop:] *= ramp_down
-    if hanning:
-        apply_hanning(sample, sample_rate)
-    return sample
-
-
 def apply_hanning(sample, sample_rate):
-    hw_size = int(min(sample_rate // 200, len(sample) // 15))
+    hw_size = int(min(sample_rate // 100, len(sample) // 15))
     hw = np.hanning(2 * hw_size + 1)
     sample[:hw_size] *= hw[:hw_size]
     sample[-hw_size:] *= hw[hw_size + 1:]
@@ -49,7 +36,8 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
                   inter_click_interval=0.5,
                   num_clicks=4,
                   dur_clicks=0.04,
-                  sample_rate=44100):
+                  sample_rate=44100,
+                  type='norm'):
     """Generate a series of linearly ramped sine waves.
 
     Kwargs:
@@ -74,7 +62,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
         raise ValueError('click_freq must be either 1 or match the num_clicks.')
     if len(click_freq) == 1:
         click_freq = click_freq * num_clicks
-    beeps = [decay_beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
+    beeps = [beep(n, duration=dur_clicks, sample_rate=sample_rate) for n in click_freq]
     space = np.zeros(int((inter_click_interval * sample_rate) - len(beeps[0])))
     out = np.zeros((int(sample_rate * 0.1 - len(beeps[0]) / 2)))
     out = np.append(out, beeps[0])
