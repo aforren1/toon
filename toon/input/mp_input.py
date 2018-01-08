@@ -5,6 +5,7 @@ import psutil
 import numpy as np
 from toon.input.helper import check_and_fix_dims, shared_to_numpy
 
+
 class MultiprocessInput(object):
     def __init__(self, device=None, high_priority=True, use_gc=False,
                  nrow=None, **kwargs):

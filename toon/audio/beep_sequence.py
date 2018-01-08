@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def beep(frequency, duration, sample_rate=44100):
+def beep(frequency, duration, sample_rate=44100, hanning=True):
     """Generates a sine wave.
 
     Args:
@@ -20,22 +20,30 @@ def beep(frequency, duration, sample_rate=44100):
         >>> my_beep = beep(440, 0.5, 44100)
     """
     sample = np.sin(2 * np.pi * frequency * (np.arange(0, int(duration * sample_rate))) / sample_rate)
+    if hanning:
+        apply_hanning(sample, sample_rate)
     return sample
 
-def decay_beep(frequency, duration, div=5, coef=0.01, sample_rate=44100):
+
+def decay_beep(frequency, duration, div=3, coef=0.01, sample_rate=44100, hanning=True):
     len_samples = int(duration * sample_rate)
     prop = len_samples // div
-    beep = np.sin(2 * np.pi * frequency * (np.arange(0, len_samples)) / sample_rate)
-    ramp_down = np.exp(-0.01 * np.arange(0, prop))
+    sample = np.sin(2 * np.pi * frequency * (np.arange(0, len_samples)) / sample_rate)
+    ramp_down = np.exp(-coef * np.arange(0, prop))
     ramp_up = np.flipud(ramp_down)
-    beep[:prop] *= ramp_up
-    beep[-prop:] *= ramp_down
-    # apply hanning window
-    hw_size = int(min(sample_rate // 200, len(beep) // 15))
+    sample[:prop] *= ramp_up
+    sample[-prop:] *= ramp_down
+    if hanning:
+        apply_hanning(sample, sample_rate)
+    return sample
+
+
+def apply_hanning(sample, sample_rate):
+    hw_size = int(min(sample_rate // 200, len(sample) // 15))
     hw = np.hanning(2 * hw_size + 1)
-    beep[:hw_size] *= hw[:hw_size]
-    beep[-hw_size:] *= hw[hw_size + 1:]
-    return beep
+    sample[:hw_size] *= hw[:hw_size]
+    sample[-hw_size:] *= hw[hw_size + 1:]
+
 
 def beep_sequence(click_freq=(440, 660, 880, 1220),
                   inter_click_interval=0.5,
