@@ -36,8 +36,9 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
                   inter_click_interval=0.5,
                   num_clicks=4,
                   dur_clicks=0.04,
-                  sample_rate=44100):
-    """Generate a series of linearly ramped sine waves.
+                  sample_rate=44100,
+                  stereo=True):
+    """Generate a series of sine waves, similar to a metronome.
 
     Kwargs:
         click_freq (list, tuple, or 1d numpy array): The frequency of each beep.
@@ -45,6 +46,7 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
         num_clicks (int): Number of clicks.
         dur_clicks (int or float): Float or int, duration of each beep in seconds.
         sample_rate (int or float): Sampling rate for the wave.
+        stereo (bool): Generate audio for two channels.
 
     Returns:
         A 1-dimensional numpy array.
@@ -68,4 +70,6 @@ def beep_sequence(click_freq=(440, 660, 880, 1220),
     for i in range(num_clicks - 1):
         out = np.append(out, space)
         out = np.append(out, beeps[i + 1])
+    if stereo:
+        out = np.transpose(np.vstack((out, out)))
     return out
