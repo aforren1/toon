@@ -30,6 +30,10 @@ class MonoClock(object):
         """Returns the current time on this clock in secs (sub-ms precision)
         """
         return get_time() - self._start_time
+    def getTime(self):
+        """Alias get_time so we can set the default psychopy clock
+        """
+        return self.get_time()
     @property
     def start_time(self):
         return self._start_time
