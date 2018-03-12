@@ -1,8 +1,11 @@
 from ctypes import c_double
-import numpy as np
-from toon.input.base_input import BaseInput
+
 import nidaqmx
+import numpy as np
 from nidaqmx.constants import AcquisitionType, TerminalConfiguration
+from nidaqmx.stream_readers import AnalogMultiChannelReader
+
+from toon.input.base_input import BaseInput
 
 
 class ForceTransducers(BaseInput):
@@ -23,29 +26,27 @@ class ForceTransducers(BaseInput):
     def __init__(self, **kwargs):
         super(ForceTransducers, self).__init__(**kwargs)
         self.sampling_frequency = ForceTransducers.samp_freq(**kwargs)
-        self._device_name = nidaqmx.system.System.local().devices[0].name  # assume first NI DAQ is the one we want
-        self._channels = [self._device_name + '/ai' + str(n) for n in
-                          [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
         self.period = 1/self.sampling_frequency
         self.t1 = 0
         self._data_buffer = np.full(ForceTransducers.data_shapes(**kwargs)[0], np.nan)
 
     def __enter__(self):
+        # assume first NI DAQ is the one we want
+        self._device_name = nidaqmx.system.System.local().devices[0].name
+        self._channels = [self._device_name + '/ai' + str(n) for n in
+                          [2, 9, 1, 8, 0, 10, 3, 11, 4, 12]]
         self._device = nidaqmx.Task()
         self._device.ai_channels.add_ai_voltage_chan(
             ','.join(self._channels),
             terminal_config=TerminalConfiguration.RSE
         )
-        self._device.timing.cfg_samp_clk_timing(self.sampling_frequency,
-                                                sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=1)
+        self._reader = AnalogMultiChannelReader(self._device.in_stream)
         self._device.start()
         return self
 
     def read(self):
-        data = self._device.read()
+        self._reader.read_one_sample(self._data_buffer)
         time = self.clock()
-        np.copyto(self._data_buffer, data)
         while self.clock() < self.t1:
             pass
         self.t1 = self.clock() + self.period
