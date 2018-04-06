@@ -82,7 +82,7 @@ The following are in-house devices, which may not be generally useful but could 
 of how to implement additional devices:
 
 - HAND (custom force measurement device) by class :code:`Hand`
-- Force Transducers (predecessor to HAND) by class :code:`ForceTransducers` (Windows only, due to :code:`nidaqmx` requirement.)
+- Force Keyboard (predecessor to HAND) by class :code:`ForceKeyboard` (Windows only, due to :code:`nidaqmx` requirement.)
 
 Generally, input devices can be used as follows::
 

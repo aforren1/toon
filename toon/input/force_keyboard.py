@@ -8,7 +8,7 @@ from nidaqmx.stream_readers import AnalogMultiChannelReader
 from toon.input.base_input import BaseInput
 
 
-class ForceTransducers(BaseInput):
+class ForceKeyboard(BaseInput):
     """1-DoF force transducers."""
 
     @staticmethod
@@ -24,11 +24,11 @@ class ForceTransducers(BaseInput):
         return [c_double]
 
     def __init__(self, **kwargs):
-        super(ForceTransducers, self).__init__(**kwargs)
-        self.sampling_frequency = ForceTransducers.samp_freq(**kwargs)
+        super(ForceKeyboard, self).__init__(**kwargs)
+        self.sampling_frequency = ForceKeyboard.samp_freq(**kwargs)
         self.period = 1/self.sampling_frequency
         self.t1 = 0
-        self._data_buffer = np.full(ForceTransducers.data_shapes(**kwargs)[0], np.nan)
+        self._data_buffer = np.full(ForceKeyboard.data_shapes(**kwargs)[0], np.nan)
 
     def __enter__(self):
         # assume first NI DAQ is the one we want

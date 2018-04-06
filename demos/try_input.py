@@ -1,8 +1,8 @@
 import os
 from toon.input import MultiprocessInput as MpI
-from toon.input import Mouse
-from toon.input import Keyboard
-from toon.input import Hand
+from toon.input.mouse import Mouse
+from toon.input.keyboard import Keyboard
+from toon.input.hand import Hand
 from toon.input.fake import FakeInput
 from toon.input.clock import mono_clock
 import numpy as np
@@ -10,7 +10,7 @@ import ctypes
 # import matplotlib.pyplot as plt
 
 if os.name == 'nt':
-    from toon.input import ForceTransducers
+    from toon.input.force_keyboard import ForceKeyboard
 
 
 np.set_printoptions(precision=5, suppress=True)
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     dev = MpI(Mouse, clock=default_timer)
     # dev = MpI(Keyboard, keys=['a', 's', 'd', 'f'])
     # dev = MpI(Hand)
-    # dev = MpI(ForceTransducers)
+    # dev = MpI(ForceKeyboard)
     # dev = MpI(FakeInput, sampling_frequency=1000, data_shape=[[5]], data_type=[ctypes.c_double])
     read_times = []
     diffs = []

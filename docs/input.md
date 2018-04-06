@@ -48,13 +48,13 @@ There are also three static methods that take all keyword arguments. These are u
 
 We use the context manager construct for input devices, so that in the case of catastrophic failure, our device can be returned to a desirable state. This doesn't matter for all devices; for example, the mouse and keyboard don't have any particular state, so we leave our `__exit__()` method blank. However, devices like the Flock of Birds **do** have idle/sampling states to toggle, and leaving them configured and running after failure of the experiment can lead to headaches when restarting/reconnecting.
 
-I've worked out a few examples, which cover straightforward implementations (`Hand`), and slightly hairier situations (`ForceTransducers`, `Mouse` and `Keyboard`).
+I've worked out a few examples, which cover straightforward implementations (`Hand`), and slightly hairier situations (`ForceKeyboard`, `Mouse` and `Keyboard`).
 
 `Hand`:
  - One of our in-house devices, which gives us 3-DoF isometric forces for all fingers via a human interface device (HID).
  - Nothing too tricky--single data source, minimal configuration (at time of writing), and easy cleanup.
 
-`ForceTransducers`:
+`ForceKeyboard`:
  - A predecessor to `Hand`; gives us 1-DoF forces and communication via a National Instruments DAQ.
  - `nidaqmx.Task` is already a context manager, so we need to subsume that machinery into our own. We end up calling `start()`, `stop()`, and `close()` manually from our own `__enter__()` and `__exit__()`.
  
