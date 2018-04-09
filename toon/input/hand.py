@@ -33,7 +33,7 @@ class Hand(BaseInput):
         self._device = hid.device()
         dev_path = ''
         for d in hid.enumerate():
-            if d['product_id'] == 1158 and d['usage'] == 512:
+            if d['product_id'] == 1158 and d['interface_number'] == 0:
                 dev_path = d['path']
         self._device.open_path(dev_path)
         self._device.set_nonblocking(self.nonblocking)
