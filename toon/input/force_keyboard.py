@@ -52,6 +52,6 @@ class ForceKeyboard(BaseInput):
         self.t1 = self.clock() + self.period
         return time, self._data_buffer
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args):
         self._device.stop()
         self._device.close()

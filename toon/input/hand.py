@@ -31,22 +31,19 @@ class Hand(BaseInput):
 
     def __enter__(self):
         self._device = hid.device()
-        dev_path = ''
-        for d in hid.enumerate():
-            if d['product_id'] == 1158 and d['interface_number'] == 0:
-                dev_path = d['path']
+        dev_path = next((dev for dev in hid.enumerate() if dev['vendor_id'] == 0x16c0 and dev['interface_number'] == 0), None)['path']
         self._device.open_path(dev_path)
         self._device.set_nonblocking(self.nonblocking)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args):
         self._device.close()
 
     def read(self):
         data = self._device.read(46)
         time = self.clock()
         if data:
-            data = struct.unpack('>LhHHHHHHHHHHHHHHHHHHHH', bytearray(data))
+            data = struct.unpack('>Lh' + 'H'*20, bytearray(data)) # Timestamp, deviation, and 20 unsigned ints
             data = np.array(data, dtype='d')
             data[0] /= 1000.0
             data[2:] /= 65535.0

@@ -108,7 +108,7 @@ class MultiprocessInput(object):
             data = [local_data[0:count, :] for local_data, dim in zip(self.local_data_arrays, dims)]
         return time, data
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args):
         self.set_high_priority(False)
         self.kill_remote.set()
 

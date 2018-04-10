@@ -11,7 +11,7 @@ class HetInput(BaseInput):
         self.t1 = self.clock()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args):
         pass
 
     def read(self):

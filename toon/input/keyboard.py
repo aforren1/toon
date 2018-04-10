@@ -39,7 +39,7 @@ class Keyboard(BaseInput):
         self.dev.wait()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args):
         self.dev.stop()
         self.dev.join()
 

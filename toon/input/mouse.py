@@ -31,7 +31,7 @@ class Mouse(BaseInput):
         self.y_prev = 0
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args):
         self.dev.stop()
         self.dev.join()
 
