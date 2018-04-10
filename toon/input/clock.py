@@ -20,7 +20,6 @@ class MonoClock(object):
     I wanted to avoid importing pyglet on the remote process, in case that causes any headache.
     """
     def __init__(self, start_time=None):
-        super(MonoClock, self).__init__()
         if not start_time:
             # this is sub-millisec timer in python
             self._start_time = get_time()
