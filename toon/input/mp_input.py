@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import ctypes
 import gc
+import os
 import psutil
 import numpy as np
 from toon.input.helper import check_and_fix_dims, shared_to_numpy
@@ -74,7 +75,8 @@ class MultiprocessInput(object):
                                         self.mp_time_array,
                                         self.mp_data_arrays,
                                         nrow, data_dims, data_types, self.use_gc,
-                                        self.sample_count))
+                                        self.sample_count,
+                                        os.getpid()))
         self.process.daemon = True
         self.process.start()
         self.ps_process = psutil.Process(self.process.pid)
@@ -127,7 +129,8 @@ class MultiprocessInput(object):
 
 def worker(device, device_args, shared_lock, remote_ready,
            kill_remote, mp_time_array, mp_data_arrays,
-           nrow, data_dims, data_types, use_gc, sample_count):
+           nrow, data_dims, data_types, use_gc, sample_count,
+           parent_pid):
     if not use_gc:
         gc.disable()
     dev = device(**device_args)
@@ -137,7 +140,7 @@ def worker(device, device_args, shared_lock, remote_ready,
         np_data_arrays.append(shared_to_numpy(data, dims, types))
     with dev as d:
         remote_ready.set()
-        while not kill_remote.is_set():
+        while (not kill_remote.is_set()) or psutil.pid_exists(parent_pid):
             timestamp, data = d.read()
             if timestamp is not None:
                 with shared_lock:
