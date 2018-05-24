@@ -80,7 +80,7 @@ class TestMpInput(TestCase):
     def test_small_buffer(self):
         dev = MpI(FakeInput, nrow=2, sampling_frequency=1000)
         with dev as d:
-            sleep(0.5)
+            sleep(1)
             time, data = d.read()
         self.assertEqual(data.shape, (2, 5))
         diff = np.diff(time)
