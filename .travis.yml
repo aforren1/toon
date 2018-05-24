@@ -13,13 +13,13 @@ matrix:
       python: 3.6
       env: DISPLAY=:99.0
 
-#    - os: osx
-#      python: 2.7
-#      env: DISPLAY=:99.0
-#
-#    - os: osx
-#      python: 3.6
-#      env: DISPLAY=:99.0
+   - os: osx
+     python: 2.7
+     env: DISPLAY=:99.0
+
+   - os: osx
+     python: 3.6
+     env: DISPLAY=:99.0
 
 install:
   - pip install -r requirements.txt
@@ -27,9 +27,7 @@ install:
   - pip install python-coveralls coverage
   - pip install .[full]
 script:
-  - xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" nosetests --with-coverage
-after_success:
-  - coveralls --config_file .coveragerc
+  - xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" nosetests
 notifications:
   email: false
 addons:
