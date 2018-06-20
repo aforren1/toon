@@ -2,6 +2,8 @@
 source = toon
 branch = True
 omit =
+    home/*
+    tests/*
     toon/input/hand.py
     toon/input/force_transducers.py
     toon/input/keyboard.py
