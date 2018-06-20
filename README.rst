@@ -93,10 +93,11 @@ Generally, input devices can be used as follows::
 
      dev = MultiprocessInput(<device>, clock=timer, <device-specific kwargs>)
 
-     with dev as d:
-         while not done:
-             time, data = d.read()
-             ...
+     dev.start()
+     while not done:
+         time, data = d.read()
+         ...
+     dev.stop()
 
 
 See `demos/try_input.py <https://github.com/aforren1/toon/blob/master/demos/try_input.py>`_ for usage examples (not packaged).
