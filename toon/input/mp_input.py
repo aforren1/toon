@@ -26,7 +26,7 @@ class MultiprocessInput(object):
         self.high_priority = high_priority
         self.use_gc = use_gc
 
-    def __enter__(self):
+    def start(self):
         # Use spawn, rather than fork, when possible (for Macs)
         try:
             mp.set_start_method('spawn')
@@ -35,13 +35,18 @@ class MultiprocessInput(object):
         self.shared_lock = mp.RLock()
         self.remote_ready = mp.Event()
         self.kill_remote = mp.Event()
-        self.sample_count = mp.Value(ctypes.c_uint32, 0, lock=self.shared_lock)  # sample counter
-        data_dims = check_and_fix_dims(self.device.data_shapes(**self.device_args))
-        self.not_time_axis = [tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims]  # TODO: unclear, change later
+        self.sample_count = mp.Value(
+            ctypes.c_uint32, 0, lock=self.shared_lock)  # sample counter
+        data_dims = check_and_fix_dims(
+            self.device.data_shapes(**self.device_args))
+        # TODO: unclear, change later
+        self.not_time_axis = [
+            tuple(range(-1, -(len(dd) + 1), -1)) for dd in data_dims]
         # if not manually overridden, preallocate 10*whatever we would expect in a single frame
         nrow = self.nrow
         if not nrow:
-            nrow = int(np.ceil(self.device.samp_freq(**self.device_args) / 60.0) * 10)
+            nrow = int(np.ceil(self.device.samp_freq(
+                **self.device_args) / 60.0) * 10)
 
         # preallocate data arrays (shared arrays, numpy equivalents, and local copies)
         data_types = self.device.data_types(**self.device_args)
@@ -55,13 +60,17 @@ class MultiprocessInput(object):
             self.mp_data_arrays.append(mp.Array(data_type,
                                                 prod,
                                                 lock=self.shared_lock))
-            self.np_data_arrays.append(shared_to_numpy(self.mp_data_arrays[counter], data_dim, data_type))
+            self.np_data_arrays.append(shared_to_numpy(
+                self.mp_data_arrays[counter], data_dim, data_type))
             self.np_data_arrays[counter].fill(np.nan)
-            self.local_data_arrays.append(np.copy(self.np_data_arrays[counter]))
+            self.local_data_arrays.append(
+                np.copy(self.np_data_arrays[counter]))
 
         # preallocate time array
-        self.mp_time_array = mp.Array(ctypes.c_double, nrow, lock=self.shared_lock)
-        self.np_time_array = shared_to_numpy(self.mp_time_array, nrow, ctypes.c_double)
+        self.mp_time_array = mp.Array(
+            ctypes.c_double, nrow, lock=self.shared_lock)
+        self.np_time_array = shared_to_numpy(
+            self.mp_time_array, nrow, ctypes.c_double)
         self.np_time_array.fill(np.nan)
         self.local_time_array = np.copy(self.np_time_array)
 
@@ -82,9 +91,7 @@ class MultiprocessInput(object):
         self.ps_process = psutil.Process(self.process.pid)
         self.original_nice = self.ps_process.nice()
         self.set_high_priority(self.high_priority)
-
         self.remote_ready.wait()
-        return self
 
     def read(self):
         """
@@ -107,10 +114,11 @@ class MultiprocessInput(object):
         if len(dims) == 1:
             data = self.local_data_arrays[0][0:count, :]
         else:
-            data = [local_data[0:count, :] for local_data, dim in zip(self.local_data_arrays, dims)]
+            data = [local_data[0:count, :]
+                    for local_data, dim in zip(self.local_data_arrays, dims)]
         return time, data
 
-    def __exit__(self, *args):
+    def stop(self, *args):
         self.set_high_priority(False)
         self.kill_remote.set()
 
@@ -123,7 +131,7 @@ class MultiprocessInput(object):
                     self.ps_process.nice(-10)
             else:
                 self.ps_process.nice(self.original_nice)
-        except psutil.AccessDenied:
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
 
 
@@ -140,7 +148,7 @@ def worker(device, device_args, shared_lock, remote_ready,
         np_data_arrays.append(shared_to_numpy(data, dims, types))
     with dev as d:
         remote_ready.set()
-        while (not kill_remote.is_set()) or psutil.pid_exists(parent_pid):
+        while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
             timestamp, data = d.read()
             if timestamp is not None:
                 with shared_lock:
@@ -158,7 +166,8 @@ def worker(device, device_args, shared_lock, remote_ready,
                                 np_data[:] = np.roll(np_data, -1, axis=0)
                                 np_data[-1, :] = new_data
                         else:
-                            np_data_arrays[0][:] = np.roll(np_data_arrays[0], -1, axis=0)
+                            np_data_arrays[0][:] = np.roll(
+                                np_data_arrays[0], -1, axis=0)
                             np_data_arrays[0][-1, :] = data
                         np_time_array[:] = np.roll(np_time_array, -1, axis=0)
                         np_time_array[-1] = timestamp
