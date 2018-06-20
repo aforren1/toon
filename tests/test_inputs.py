@@ -53,6 +53,7 @@ class TestMpInput(TestCase):
         with dev as d:
             sleep(0.5)
             time, data = d.read()
+        print(time)
         self.assertEqual(type(time), np.ndarray)
 
     def test_low_freq(self):
