@@ -95,7 +95,7 @@ Generally, input devices can be used as follows::
 
      dev.start()
      while not done:
-         time, data = d.read()
+         time, data = dev.read()
          ...
      dev.stop()
 
