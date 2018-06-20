@@ -97,7 +97,7 @@ class TestMpInput(TestCase):
         print(time)
         print(data)
         dev.stop()
-        self.assertTrue(np.isclose(diff, 0.001, atol=1e-3))
+        self.assertTrue(np.isclose(diff, 0.001, atol=1e-2))
 
     def test_multi_devices(self):
         dev1 = MpI(FakeInput)
