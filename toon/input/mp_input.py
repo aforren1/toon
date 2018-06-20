@@ -91,9 +91,7 @@ class MultiprocessInput(object):
         self.ps_process = psutil.Process(self.process.pid)
         self.original_nice = self.ps_process.nice()
         self.set_high_priority(self.high_priority)
-
         self.remote_ready.wait()
-        return self
 
     def read(self):
         """
@@ -123,7 +121,6 @@ class MultiprocessInput(object):
     def stop(self, *args):
         self.set_high_priority(False)
         self.kill_remote.set()
-        self.process.join()
 
     def set_high_priority(self, val):
         try:
@@ -134,7 +131,7 @@ class MultiprocessInput(object):
                     self.ps_process.nice(-10)
             else:
                 self.ps_process.nice(self.original_nice)
-        except psutil.AccessDenied:
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
 
 
