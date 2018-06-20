@@ -24,22 +24,23 @@ if __name__ == '__main__':
     # dev = MpI(FakeInput, sampling_frequency=1000, data_shape=[[5]], data_type=[ctypes.c_double])
     read_times = []
     diffs = []
-    with dev as d:
+    dev.start()
+    t0 = default_timer()
+    t1 = t0 + 10
+    t2 = 0
+    while default_timer() < t1:
         t0 = default_timer()
-        t1 = t0 + 10
-        t2 = 0
-        while default_timer() < t1:
-            t0 = default_timer()
-            time, data = d.read()
-            t3 = default_timer()
-            read_times.append(t3 - t0)
-            if time is not None:
-                print('Frame time: ' + str(t0))
-                print(time)
-                diffs.extend(np.diff(time))
-            while default_timer() < t2:
-                pass
-            t2 = default_timer() + 0.01
+        time, data = dev.read()
+        t3 = default_timer()
+        read_times.append(t3 - t0)
+        if time is not None:
+            print('Frame time: ' + str(t0))
+            print(time)
+            diffs.extend(np.diff(time))
+        while default_timer() < t2:
+            pass
+        t2 = default_timer() + 0.01
+    dev.stop()
 
 # plt.plot(read_times)
 # plt.show()
