@@ -8,7 +8,8 @@ from toon.input.helper import check_and_fix_dims, shared_to_numpy
 
 
 class MultiprocessInput(object):
-    def __init__(self, device=None, high_priority=True, use_gc=False,
+    def __init__(self, device=None,
+                 high_priority=True, use_gc=False,
                  nrow=None, **kwargs):
         """
         Args:
@@ -133,6 +134,12 @@ class MultiprocessInput(object):
                 self.ps_process.nice(self.original_nice)
         except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self):
+        self.stop()
 
 
 def worker(device, device_args, shared_lock, remote_ready,
