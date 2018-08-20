@@ -138,7 +138,7 @@ class MultiprocessInput(object):
     def __enter__(self):
         self.start()
 
-    def __exit__(self):
+    def __exit__(self, *args):
         self.stop()
 
 
