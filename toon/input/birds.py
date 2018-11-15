@@ -10,6 +10,10 @@ from toon.input.device import BaseDevice, Obs
 # reference (most recent):
 # https://github.com/aforren1/toon/blob/455d06827082ae30ec4ae3b2605185cb4d291c92/toon/input/birds.py
 
+# TODO: allow subsetting, so that we can talk to the 2 birds we care about
+# after configuring all (which seems necessary?)
+# with two birds, we can also try putting it in group mode & get adequate data rates
+
 
 class BlamBirds(BaseDevice):
     class LeftPos(Obs):
@@ -34,7 +38,7 @@ class BlamBirds(BaseDevice):
     def __enter__(self):
         # timeout set so that we should always have data available
         self._birds = [serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS,
-                                     xonxoff=0, rtscts=0, timeout=0.001) for port in self.ports]
+                                     xonxoff=0, rtscts=0, timeout=0.05) for port in self.ports]
 
         for bird in self._birds:
             bird.reset_input_buffer()
@@ -87,24 +91,25 @@ class BlamBirds(BaseDevice):
 
     def read(self):
         lst = []
+        # busy wait until first byte available
+        while not self._birds[0].in_waiting:
+            pass
         time = self.clock()
         for bird in self._birds:
             lst.append(bird.read(6))  # assumes position data
-        if all([x for x in lst]):
-            lst = [decode(msg) for msg in lst]
-            data = np.array(lst).reshape((12,))  # position data for all 4 birds
-            data[:] = data[[1, 2, 0, 4, 5, 3, 7, 8, 6, 10, 11, 9]]  # fiddle with order of axes
-            # rotate
-            tmp_x = data[::3]
-            tmp_y = data[1::3]
-            data[::3] = tmp_x * self.cos_const - tmp_y * self.sin_const
-            data[1::3] = tmp_y * self.sin_const + tmp_y * self.cos_const
+        lst = [decode(msg) for msg in lst]
+        data = np.array(lst).reshape((12,))  # position data for all 4 birds
+        data[:] = data[[1, 2, 0, 4, 5, 3, 7, 8, 6, 10, 11, 9]]  # fiddle with order of axes
+        # rotate
+        tmp_x = data[::3]
+        tmp_y = data[1::3]
+        data[::3] = tmp_x * self.cos_const - tmp_y * self.sin_const
+        data[1::3] = tmp_y * self.sin_const + tmp_y * self.cos_const
 
-            # translate
-            data[::3] += 61.35
-            data[1::3] += 17.69
-            return self.Returns(self.LeftPos(time, data[0:3]), self.RightPos(time, data[6:9]))
-        return self.Returns()
+        # translate
+        data[::3] += 61.35
+        data[1::3] += 17.69
+        return self.Returns(self.LeftPos(time, data[0:3]), self.RightPos(time, data[6:9]))
 
     def __exit__(self, *args):
         for bird in self._birds:
@@ -139,10 +144,16 @@ if __name__ == '__main__':
     from toon.input.mpdevice import MpDevice
     dev = MpDevice(BlamBirds, ports=['/dev/ttyUSB0', '/dev/ttyUSB1',
                                      '/dev/ttyUSB2', '/dev/ttyUSB3'])
+    times = []
     with dev:
         start = time.time()
         while time.time() - start < 30:
             dat = dev.read()
             if dat.any():
-                print(dat.leftpos.data)
+                print(np.diff(dat.leftpos.time))
+                times.append(np.diff(dat.leftpos.time))
             time.sleep(0.016)
+
+    import matplotlib.pyplot as plt
+    plt.plot(np.hstack(times))
+    plt.show()
