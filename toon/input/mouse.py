@@ -67,6 +67,6 @@ if __name__ == '__main__':
         start = time.time()
         while time.time() - start < 10:
             dat = dev.read()
-            if any([x.time is not None for x in dat]):
+            if dat.any():
                 print(dat)
-            time.sleep(0.016)  # approximate a screen
+            time.sleep(0.016)  # pretend to have a screen

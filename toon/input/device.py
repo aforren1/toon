@@ -43,7 +43,6 @@ class BaseDevice(abc.ABC):
     def __init__(self, clock=mono_clock.get_time, **kwargs):
         _obs = self.__class__.get_obs()
         self.Returns = BaseDevice.build_named_tuple(_obs)
-        self.Returns.__new__.__defaults__ = (None,) * len(self.Returns._fields)
         self.clock = clock
 
     def __enter__(self):
@@ -72,7 +71,13 @@ class BaseDevice(abc.ABC):
     @classmethod
     def build_named_tuple(cls, obs):
         if obs:
-            return namedtuple('Returns', [x.__name__.lower() for x in obs])
+            class Returns(namedtuple('Returns', [x.__name__.lower() for x in obs])):
+                def any(self):
+                    # simplify user checking of whether there's any data
+                    return any([x.time is not None and x.data is not None for x in self])
+            # default values of namedtuple to None (see mouse.py for example why)
+            Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
+            return Returns
         return None
 
 
