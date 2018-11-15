@@ -50,7 +50,7 @@ class Mouse(BaseDevice):
         self.data.append(rets)
 
     def on_scroll(self, x, y, dx, dy):
-        rets = self.Returns(self.Scroll(self.clock(), dy))
+        rets = self.Returns(scroll=self.Scroll(self.clock(), dy))
         self.data.append(rets)
 
     def __exit__(self, *args):
