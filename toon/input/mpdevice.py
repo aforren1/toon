@@ -194,14 +194,14 @@ class DataGlob(object):
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
-        self._mp_data = obs(time=mp.Array(ctypes.c_float, self.nrow, lock=lock),
+        self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=lock),
                             data=mp.Array(ctype, prod, lock=lock))
         self.counter = mp.Value(ctypes.c_uint, 0, lock=lock)
         self.generate_np_version()
         self.generate_local_version()
 
     def generate_np_version(self):
-        self.np_data = obs(time=shared_to_numpy(self._mp_data.time, (self.nrow,), ctypes.c_float),
+        self.np_data = obs(time=shared_to_numpy(self._mp_data.time, (self.nrow,), ctypes.c_double),
                            data=shared_to_numpy(self._mp_data.data, self.new_dims, self.ctype))
 
     def generate_local_version(self):

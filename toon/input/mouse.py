@@ -59,15 +59,6 @@ class Mouse(BaseDevice):
 
 
 if __name__ == '__main__':
-    # from time import time
-
-    # dev = Mouse()
-    # with dev:
-    #     start = time()
-    #     while time() - start < 10:
-    #         dat = dev.read()
-    #         if dat:
-    #             print(dat)
     import time
     from toon.input.mpdevice import MpDevice
     dev = MpDevice(Mouse)
@@ -77,3 +68,4 @@ if __name__ == '__main__':
             dat = dev.read()
             if any([x.time is not None for x in dat]):
                 print(dat)
+            time.sleep(0.016)  # approximate a screen
