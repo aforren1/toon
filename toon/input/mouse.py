@@ -6,7 +6,7 @@ from pynput import mouse
 class Mouse(BaseDevice):
     class Pos(Obs):
         shape = (2,)
-        ctype = ctypes.c_uint
+        ctype = ctypes.c_int
 
     class Clicks(Obs):
         shape = (1,)
@@ -40,9 +40,10 @@ class Mouse(BaseDevice):
 
     def on_move(self, x, y):
         # relative mouse position
-        print((x, y))
         rets = self.Returns(pos=self.Pos(self.clock(), (x - self.x_prev,
                                                         y - self.y_prev)))
+        self.x_prev = x
+        self.y_prev = y
         self.data.append(rets)
 
     def on_click(self, x, y, button, pressed):
