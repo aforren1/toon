@@ -46,6 +46,7 @@ class MpDevice(object):
             self.shared_locks.append(mp.RLock())
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
+        self.remote_done = mp.Event()
         self.current_buffer_index = mp.Value(ctypes.c_bool, 0, lock=False)  # shouldn't need a lock
 
         # figure out number of observations to save between reads
@@ -75,7 +76,7 @@ class MpDevice(object):
         self.process = mp.Process(target=remote,
                                   args=(self.device, self.device_kwargs, self._data,
                                         self.remote_ready, self.kill_remote, os.getpid(),
-                                        self.current_buffer_index))
+                                        self.current_buffer_index, self.remote_done))
         self.process.daemon = True
         self.process.start()
         self.ps_process = psutil.Process(self.process.pid)
@@ -106,6 +107,7 @@ class MpDevice(object):
     def stop(self):
         self.set_high_priority(False)
         self.kill_remote.set()
+        self.remote_done.wait()
 
     def __enter__(self):
         self.start()
@@ -130,7 +132,7 @@ class MpDevice(object):
 def remote(device, device_kwargs, shared_data,
            # extras
            remote_ready, kill_remote, parent_pid,
-           current_buffer_index):
+           current_buffer_index, remote_done):
 
     def process_data():
         shared = shared_data[buffer_index][counter]  # alias
@@ -181,6 +183,7 @@ def remote(device, device_kwargs, shared_data,
                                 process_data()
                 finally:
                     lck.release()
+    remote_done.set()
 
 
 # make sure this is visible for pickleability
