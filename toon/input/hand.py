@@ -1,8 +1,9 @@
-from device import BaseDevice, Obs
 from ctypes import c_double
-import hid
 
 import numpy as np
+
+import hid
+from toon.input.device import BaseDevice, Obs
 
 
 class Hand(BaseDevice):
@@ -23,6 +24,7 @@ class Hand(BaseDevice):
         # TODO: we may have different endpoints, make more robust?
         self._device.open(0x16c0, 0x486)
         self._device.set_nonblocking(not self.blocking)
+        return self
 
     def __exit__(self):
         self._device.close()

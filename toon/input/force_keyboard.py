@@ -5,30 +5,22 @@ import numpy as np
 from nidaqmx.constants import AcquisitionType, TerminalConfiguration
 from nidaqmx.stream_readers import AnalogMultiChannelReader
 
-from toon.input.base_input import BaseInput
+from toon.input.device import BaseDevice, Obs
 
 
-class ForceKeyboard(BaseInput):
-    """1-DoF force transducers."""
+class ForceKeyboard(BaseDevice):
+    class Forces(Obs):
+        shape = (10,)
+        ctype = c_double
 
-    @staticmethod
-    def samp_freq(**kwargs):
-        return kwargs.get('sampling_frequency', 200)
+    sampling_frequency = 100
 
-    @staticmethod
-    def data_shapes(**kwargs):
-        return [[10]]
-
-    @staticmethod
-    def data_types(**kwargs):
-        return [c_double]
-
-    def __init__(self, **kwargs):
+    def __init__(self, sampling_frequency=100, **kwargs):
         super(ForceKeyboard, self).__init__(**kwargs)
-        self.sampling_frequency = ForceKeyboard.samp_freq(**kwargs)
+        self.sampling_frequency = sampling_frequency
         self.period = 1/self.sampling_frequency
         self.t1 = 0
-        self._data_buffer = np.full(ForceKeyboard.data_shapes(**kwargs)[0], np.nan)
+        self._buffer = np.full(self.Forces.shape, np.nan)
 
     def __enter__(self):
         # assume first NI DAQ is the one we want
@@ -45,12 +37,13 @@ class ForceKeyboard(BaseInput):
         return self
 
     def read(self):
-        self._reader.read_one_sample(self._data_buffer)
+        self._reader.read_one_sample(self._buffer)
         time = self.clock()
-        while self.clock() < self.t1:
+        ret = self.Returns(forces=self.Forces(time, self._buffer))
+        while self.clock() - t1 < self.period:
             pass
-        self.t1 = self.clock() + self.period
-        return time, self._data_buffer
+        self.t1 = self.clock()
+        return ret
 
     def __exit__(self, *args):
         self._device.stop()

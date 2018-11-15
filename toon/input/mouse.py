@@ -1,4 +1,4 @@
-from device import BaseDevice, Obs
+from toon.input.device import BaseDevice, Obs
 import ctypes
 from pynput import mouse
 
@@ -10,7 +10,7 @@ class Mouse(BaseDevice):
 
     class Clicks(Obs):
         shape = (1,)
-        ctype = ctypes.c_uint
+        ctype = ctypes.c_bool
 
     class Scroll(Obs):
         shape = (1,)
@@ -30,6 +30,7 @@ class Mouse(BaseDevice):
         self.x_prev = 0
         self.y_prev = 0
         self.data = []
+        return self
 
     def read(self):
         if not self.data:
@@ -47,7 +48,7 @@ class Mouse(BaseDevice):
         self.data.append(rets)
 
     def on_click(self, x, y, button, pressed):
-        rets = self.Returns(clicks=self.Clicks(self.clock(), button.value))
+        rets = self.Returns(clicks=self.Clicks(self.clock(), pressed))
         self.data.append(rets)
 
     def on_scroll(self, x, y, dx, dy):
