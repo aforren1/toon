@@ -72,16 +72,3 @@ def test_multi_devs():
 
     assert(res1.num1.time is not None)
     assert(res2.num1.time is not None)
-
-
-def test_slow():
-    # sluggish devices
-    Dummy.sampling_frequency = 0.1
-    dev = MpDevice(Dummy)
-    with dev:
-        sleep(0.15)
-        res = dev.read()
-
-    Dummy.sampling_frequency = 1000
-    # might get one reading out of the fast data...
-    assert(res.num1.time is not None)
