@@ -1,6 +1,6 @@
 
 environment:
-  NOSETEST: nosetests
+  PYTEST: pytest
   APPVEYOR_SAVE_CACHE_ON_ERROR: true
 
   matrix:
@@ -63,5 +63,5 @@ test_script:
   # Run the tests appropriate for this entry in the test matrix. Skip tests
   # if we're just updating the cache.
   - 'if not "%APPVEYOR_SCHEDULED_BUILD%" == "True" (
-          %NOSETEST%
+          %PYTEST%
     )'
