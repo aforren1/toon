@@ -30,8 +30,9 @@ setup(
     ],
     install_requires=requirements,
     extras_require={
-        'full': ['hidapi', 'pyserial', 'pynput', 'nidaqmx;platform_system=="Windows"'],
-        'hand': ['hidapi'],
+        'full': ['hidapi', 'pyusb', 'pyserial',
+                 'pynput', 'nidaqmx;platform_system=="Windows"'],
+        'hand': ['hidapi', 'pyusb'],
         'birds': ['pyserial'],
         'keyboard': ['pynput'],
         'force': ['nidaqmx;platform_system=="Windows"']
