@@ -1,8 +1,8 @@
 [run]
 branch = True
 omit =
-    /home/travis/virtualenv/*
     /usr/*
+    /home/travis/virtualenv/*
     tests/*
     toon/input/hand.py
     toon/input/force_transducers.py

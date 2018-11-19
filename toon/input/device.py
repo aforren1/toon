@@ -1,4 +1,5 @@
 import abc
+import six
 from collections import namedtuple
 import numpy as np
 from toon.input.clock import mono_clock
@@ -6,7 +7,8 @@ import inspect
 import ctypes
 
 
-class Obs(abc.ABC):
+@six.add_metaclass(abc.ABCMeta)
+class Obs():
     @property
     @abc.abstractmethod
     def shape(self):
