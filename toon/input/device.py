@@ -84,7 +84,7 @@ class BaseDevice():
         return None
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     class Mouse(BaseDevice):
 
         # data produced by this device

@@ -131,8 +131,8 @@ class MpDevice(object):
 
 def remote(device, device_kwargs, shared_data,
            # extras
-           remote_ready, kill_remote, parent_pid,
-           current_buffer_index, remote_done):
+           remote_ready, kill_remote, parent_pid,  # don't include in coverage, implicitly tested
+           current_buffer_index, remote_done):  # pragma: no cover
 
     def process_data():
         shared = shared_data[buffer_index][counter]  # alias
@@ -213,7 +213,7 @@ class DataGlob(object):
         self.local_count = 0
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     from time import time, sleep
     from timeit import default_timer
     from mockdevices import Dummy
