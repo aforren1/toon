@@ -46,7 +46,7 @@ class Hand(BaseDevice):
 
 
 # USB demo (should be phenotypically identical to above)
-class Hand(BaseDevice):
+class UsbHand(BaseDevice):
     sampling_frequency = 1000
 
     class Pos(Obs):
