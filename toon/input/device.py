@@ -41,7 +41,8 @@ class Obs():
         return '%s(time: %f, data: %s)' % (type(self).__name__, self.time, self.data)
 
 
-class BaseDevice(abc.ABC):
+@six.add_metaclass(abc.ABCMeta)
+class BaseDevice():
     def __init__(self, clock=mono_clock.get_time, **kwargs):
         _obs = self.__class__.get_obs()
         self.Returns = BaseDevice.build_named_tuple(_obs)

@@ -12,7 +12,7 @@ def test_device_single():
     # single device with two data sources
     dev = MpDevice(Dummy)
     dev.start()
-    sleep(0.01)
+    sleep(0.2)
     res = dev.read()
     dev.stop()
     assert(len(res.num1.time) > 5)
@@ -25,7 +25,7 @@ def test_device_list():
     # two observations per read on the device
     dev = MpDevice(DummyList)
     dev.start()
-    sleep(0.01)
+    sleep(0.2)
     res = dev.read()
     dev.stop()
     assert(len(res.num1.time) > 5)
@@ -39,11 +39,11 @@ def test_restart():
     # start & stop device
     dev = MpDevice(Dummy)
     dev.start()
-    sleep(0.01)
+    sleep(0.2)
     res = dev.read()
     dev.stop()
     dev.start()
-    sleep(0.01)
+    sleep(0.2)
     res2 = dev.read()
     dev.stop()
     assert(abs(len(res2.num1.time) - len(res.num1.time)) < 5)
@@ -53,7 +53,7 @@ def test_context():
     # device as context manager
     dev = MpDevice(Dummy)
     with dev:
-        sleep(0.01)
+        sleep(0.2)
         res = dev.read()
     assert(len(res.num1.time) > 5)
     assert(len(res.num1.time) == res.num1.data.shape[0])
@@ -66,7 +66,7 @@ def test_multi_devs():
     dev1 = MpDevice(Dummy)
     dev2 = MpDevice(Dummy)
     with dev1, dev2:
-        sleep(0.01)
+        sleep(0.2)
         res1 = dev1.read()
         res2 = dev2.read()
 
@@ -78,7 +78,7 @@ def test_slow():
     Dummy.sampling_frequency = 0.1
     dev = MpDevice(Dummy)
     with dev:
-        sleep(0.01)
+        sleep(0.2)
         res = dev.read()
 
     Dummy.sampling_frequency = 1000
