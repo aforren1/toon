@@ -37,7 +37,7 @@ class MpDevice(object):
             try:
                 mp.set_start_method('spawn')
             except (AttributeError, RuntimeError):
-                pass  # already started a process, ?? for other reason
+                pass  # already started a process, or on python2
 
         n_buffers = 2
         self.shared_locks = []
