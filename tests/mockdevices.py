@@ -1,5 +1,4 @@
-from device import BaseDevice
-from device import Obs
+from toon.input.device import BaseDevice, Obs
 from time import time
 import ctypes
 import numpy as np
