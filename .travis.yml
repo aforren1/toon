@@ -20,8 +20,9 @@ install:
   - pip install python-coveralls coverage
   - pip install .[full]
 script:
-  - xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" pytest
-after_success:	
+  - coverage run --source toon -m pytest -v
+  - coverage report
+after_success:
   - coveralls --config_file .coveragerc
 notifications:
   email: false
