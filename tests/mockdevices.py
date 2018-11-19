@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Dummy(BaseDevice):
-    counter = 0
+    counter = 1
     t0 = time()
 
     class Num1(Obs):

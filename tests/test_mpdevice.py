@@ -78,7 +78,7 @@ def test_slow():
     Dummy.sampling_frequency = 0.1
     dev = MpDevice(Dummy)
     with dev:
-        sleep(0.2)
+        sleep(0.01)
         res = dev.read()
 
     Dummy.sampling_frequency = 1000
