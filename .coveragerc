@@ -8,3 +8,4 @@ omit =
     toon/input/force_transducers.py
     toon/input/keyboard.py
     toon/input/mouse.py
+    toon/input/birds.py
