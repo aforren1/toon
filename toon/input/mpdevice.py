@@ -157,10 +157,10 @@ def remote(device, device_kwargs, shared_data,
             data = dev.read()  # get observation(s) from device
             buffer_index = int(current_buffer_index.value)  # can only change later
             if isinstance(data, list):  # if a list of observations, rather than a single one
-                flag = any([[d.any() for d in l] for l in data])
+                flag = any([[d is not None and d.any() for d in l] for l in data])
                 is_list = True
             else:
-                flag = any([d.any() for d in data])
+                flag = any([d is not None and d.any() for d in data])
                 is_list = False
             if flag:  # any data at all (otherwise, don't bother acquiring locks)
                 # test whether the current buffer is accessible
@@ -175,11 +175,11 @@ def remote(device, device_kwargs, shared_data,
                     if is_list:
                         for dat in data:
                             for counter, datum in enumerate(dat):
-                                if datum.any():  # if there's an observation for this one (possible to have None)
+                                if datum is not None and datum.any():  # if there's an observation for this one (possible to have None)
                                     process_data()
                     else:
                         for counter, datum in enumerate(data):
-                            if datum.any():
+                            if datum is not None and datum.any():
                                 process_data()
                 finally:
                     lck.release()
