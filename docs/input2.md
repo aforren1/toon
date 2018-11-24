@@ -2,8 +2,9 @@
 
 One of the primary goals of `toon` is to simplify the process of polling input devices.
 
-
 ## Usage
+
+See the toon/input directory for device specification and usage examples, and demos/mouse.py for a psychopy integration example.
 
 Typical use of the input module may look like:
 
@@ -83,6 +84,8 @@ class Mouse(BaseDevice):
     # ...
 ```
 
+The guts of `BaseDevice` pick out all of the `Obs`-derived attributes, and build a custom `Returns` named tuple for the device, where names are the `.lower()`ed class names. Note that the `Obs` will appear in **alphabetical** order in `Returns`, not in order of specification.
+
 The `read` method is somewhat finicky (see below for example usage).
 
 ```python
@@ -97,9 +100,6 @@ class Mouse(BaseDevice):
 
 The `clock` attribute is a reference to some time method (by default `monotonic_clock.get_time` from `toon.input.clock`, other popular ones may be `psychopy.clocks.monotonicClock.getTime` or `timeit.default_timer`). We create a new set of tuples for each input, and put all those into a final `Returns` (which is dynamically created by `BaseDevice` to match the device).
 
-The guts of `BaseDevice` pick out all of the `Obs`-derived attributes, and build a custom `Returns` named tuple for the device, where names are the `.lower()`ed class names. Note that the `Obs` will appear in **alphabetical** order in `Returns`, not in order of specification.
-
 Note that a 1D output must be in a form equivalent to `(x,)`, rather than `x` or `(x)` (though this shouldn't be *too* difficult to fix in future versions).
 
 The data type should be one provided by `ctypes` (e.g. `c_int`, `c_double`, ...). Future versions may try to map a numpy dtype or native python type to the nearest compatible ctype.
-

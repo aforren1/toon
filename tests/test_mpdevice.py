@@ -46,7 +46,7 @@ def test_restart():
     sleep(0.2)
     res2 = dev.read()
     dev.stop()
-    assert(abs(len(res2.num1.time) - len(res.num1.time)) < 5)
+    assert(res.any() and res2.any())
 
 
 def test_context():
