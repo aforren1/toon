@@ -64,14 +64,14 @@ class UsbHand(BaseDevice):
             raise ValueError('Device not found.')
         # there was definitely more to claiming the device,
         # but I can't find the ref now
-        self._ep_in = dev[0][(0, 0)][0]  # get the proper endpoint
+        self.ep_in = dev[0][(0, 0)][0]  # get the proper endpoint
         return self
 
     def __exit__(self):
         pass  # nothing to do?
 
     def read(self):
-        data = self._ep_in.read(self._ep_in.wMaxPacketSize)
+        data = self.ep_in.read(self.ep_in.wMaxPacketSize)
         time = self.clock()
         data = struct.unpack('>Lh' + 'H'  20, data[:46])
         data = np.array(data, dtype='d')

@@ -1,12 +1,12 @@
 from toon.input.device import BaseDevice, Obs
-from time import time
+from timeit import default_timer
 import ctypes
 import numpy as np
 
 
 class Dummy(BaseDevice):
     counter = 0
-    t0 = time()
+    t0 = default_timer()
 
     class Num1(Obs):
         shape = (5,)
@@ -25,9 +25,9 @@ class Dummy(BaseDevice):
         self.counter += 1
         if self.counter % 10 == 0:
             dat = np.random.randint(5, size=(3, 3))
-        while time() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1/self.sampling_frequency):
             pass
-        self.t0 = time()
+        self.t0 = default_timer()
         t = self.clock()
         return self.Returns(num1=self.Num1(t, np.random.random((5,))),
                             num2=self.Num2.new_obs(t, dat))
@@ -35,7 +35,7 @@ class Dummy(BaseDevice):
 
 class DummyList(BaseDevice):
     counter = 0
-    t0 = time()
+    t0 = default_timer()
 
     class Num1(Obs):
         shape = (5,)
@@ -50,9 +50,9 @@ class DummyList(BaseDevice):
         self.counter += 1
         if self.counter % 10 == 0:
             dat = np.random.randint(5, size=(3, 3))
-        while time() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1/self.sampling_frequency):
             pass
-        self.t0 = time()
+        self.t0 = default_timer()
         t = self.clock()
         return [self.Returns(num1=self.Num1(t, np.random.random((5,))),
                              num2=self.Num2.new_obs(t, dat)),
