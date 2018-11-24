@@ -4,6 +4,7 @@ import multiprocessing as mp
 import os
 from collections import namedtuple
 from copy import copy
+from itertools import compress
 from sys import platform
 
 import numpy as np
@@ -157,10 +158,12 @@ def remote(device, device_kwargs, shared_data,
             data = dev.read()  # get observation(s) from device
             buffer_index = int(current_buffer_index.value)  # can only change later
             if isinstance(data, list):  # if a list of observations, rather than a single one
-                flag = any([[d is not None and d.any() for d in l] for l in data])
+                inds = [[d is not None and d.any() for d in l] for l in data]
+                flag = any([any(d) for d in inds])
                 is_list = True
             else:
-                flag = any([d is not None and d.any() for d in data])
+                inds = [d is not None and d.any() for d in data]
+                flag = any(inds)
                 is_list = False
             if flag:  # any data at all (otherwise, don't bother acquiring locks)
                 # test whether the current buffer is accessible
@@ -173,14 +176,12 @@ def remote(device, device_kwargs, shared_data,
                     lck.acquire()
                 try:
                     if is_list:
-                        for dat in data:
-                            for counter, datum in enumerate(dat):
-                                if datum is not None and datum.any():  # if there's an observation for this one (possible to have None)
-                                    process_data()
-                    else:
-                        for counter, datum in enumerate(data):
-                            if datum is not None and datum.any():
+                        for dat, ind in zip(data, inds):
+                            for counter, datum in enumerate(compress(dat, ind)):
                                 process_data()
+                    else:
+                        for counter, datum in enumerate(compress(data, inds)):
+                            process_data()
                 finally:
                     lck.release()
     remote_done.set()
@@ -211,28 +212,3 @@ class DataGlob(object):
         self.local_data = obs(time=self.np_data.time.copy(),
                               data=self.np_data.data.copy())
         self.local_count = 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    from time import time, sleep
-    from timeit import default_timer
-    from mockdevices import Dummy
-    import matplotlib.pyplot as plt
-    Dummy.sampling_frequency = 1000
-    dev = MpDevice(Dummy)
-    times = []
-    with dev:
-        start = time()
-        while time() - start < 10:
-            t0 = default_timer()
-            dat = dev.read()
-            t1 = default_timer()
-            if dat.num1.data is not None:
-                dff = t1 - t0
-                # print(dff)
-                # print(dat.num1.data.shape)
-                # print(np.diff(dat.num1.time))
-                times.append(np.diff(dat.num1.time))
-                sleep(0.016)
-    plt.plot(np.hstack(times))
-    plt.show()

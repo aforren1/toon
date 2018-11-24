@@ -58,3 +58,29 @@ class DummyList(BaseDevice):
                              num2=self.Num2(t, dat)),
                 self.Returns(num1=self.Num1(t, np.random.random((5,))),
                              num2=self.Num2(t, dat))]
+
+
+if __name__ == '__main__':  # pragma: no cover
+    from time import time, sleep
+    from timeit import default_timer
+    import matplotlib.pyplot as plt
+    from toon.input.mpdevice import MpDevice
+    Dummy.sampling_frequency = 1000
+    dev = MpDevice(DummyList)
+    times = []
+    with dev:
+        start = time()
+        while time() - start < 10:
+            t0 = default_timer()
+            dat = dev.read()
+            t1 = default_timer()
+            if dat[0].data is not None:
+                dff = t1 - t0
+                # print(dff)
+                # print(dat.num1.data.shape)
+                # print(np.diff(dat.num1.time))
+                print(dat.num2.time)
+                times.append(np.diff(dat[0].time[::2]))
+                sleep(0.016)
+    plt.plot(np.hstack(times))
+    plt.show()
