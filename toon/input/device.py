@@ -31,7 +31,7 @@ class Obs():
             self.data = None
 
     def __repr__(self):
-        return 'type: %s\ntime: %f, data: %s\nshape: %s, dtype: %s' % (type(self).__name__, self.time, self.data, self.shape, self.ctype)
+        return 'type: %s\ntime: %f\ndata: %s\nshape: %s\nctype: %s' % (type(self).__name__, self.time, self.data, self.shape, self.ctype)
 
     def __str__(self):
         return '%s(time: %f, data: %s)' % (type(self).__name__, self.time, self.data)
@@ -81,31 +81,3 @@ class BaseDevice():
             Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
             return Returns
         return None
-
-
-if __name__ == '__main__':  # pragma: no cover
-    class Mouse(BaseDevice):
-
-        # data produced by this device
-        class Pos(Obs):
-            # i.e. x, y
-            shape = (2,)
-            ctype = ctypes.c_int
-
-        class Clicks(Obs):
-            # e.g. left, center, right
-            shape = (3,)
-            ctype = ctypes.c_bool
-
-        sampling_frequency = 100
-
-        # other methods
-        def __init__(self, **kwargs):
-            # Gotcha: need to pass the class as first arg
-            super(Mouse, self).__init__(**kwargs)
-
-        def read(self):
-            return self.Returns(pos=self.Pos(2.3, (4.3, 100)),
-                                clicks=self.Click(2.3, (True, False, 1)))
-
-    mouse = Mouse()

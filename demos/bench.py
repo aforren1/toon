@@ -11,7 +11,7 @@ class Dummy(BaseDevice):
     t0 = default_timer()
 
     class Num(Obs):
-        shape = (10,)
+        shape = (100,)
         ctype = c_double
 
     def read(self):
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     from statistics import median
     from toon.input.mpdevice import MpDevice
 
-    Dummy.sampling_frequency = 100
+    Dummy.sampling_frequency = 1000
     dev = MpDevice(Dummy)
 
     vals = []
@@ -42,7 +42,7 @@ if __name__ == '__main__':
             dat = dev.read()
             if dat.any():
                 vals.append(default_timer() - t1)
-                print(dat[0].data)
+                # print(dat[0].data)
                 sleep(0.016)
     vals = vals[10:]  # first couple are pathological
     print('Worst case: %f' % max(vals))
