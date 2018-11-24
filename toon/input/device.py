@@ -20,25 +20,24 @@ class Obs():
         return None
     # single observation
 
-    @classmethod
-    def new_obs(cls, time, data):
-        # use this class method to handle cases where no data for a particular stream
-        # doesn't handle other Falsy things that might normally work, like []
-        if time is None or data is None:
-            return None
-        return cls(time, data)
-
     def __init__(self, time, data):
-        self.time = time  # what if time is not a double?
-        # is reshape expensive? should we just trust they did it right?
-        self.data = np.asarray(data, dtype=self.ctype)
-        self.data.shape = self.shape  # will error if mismatch?
+        try:
+            self.time = float(time)  # what if time is not a double?
+            # is reshape expensive? should we just trust they did it right?
+            self.data = np.asarray(data, dtype=self.ctype)
+            self.data.shape = self.shape  # will error if mismatch?
+        except (TypeError, ValueError):  # time or data not right
+            self.time = None
+            self.data = None
 
     def __repr__(self):
         return 'type: %s\ntime: %f, data: %s\nshape: %s, dtype: %s' % (type(self).__name__, self.time, self.data, self.shape, self.ctype)
 
     def __str__(self):
         return '%s(time: %f, data: %s)' % (type(self).__name__, self.time, self.data)
+
+    def any(self):
+        return not (self.time is None or self.data is None)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -106,9 +105,7 @@ if __name__ == '__main__':  # pragma: no cover
             super(Mouse, self).__init__(**kwargs)
 
         def read(self):
-            # if it's possible that data is missing, use new_obs
-            # otherwise, just use __init__ directly (e.g. self.Pos(x, y))
-            return self.Returns(pos=self.Pos.new_obs(2.3, (4.3, 100)),
-                                clicks=self.Click.new_obs(2.3, (True, False, 1)))
+            return self.Returns(pos=self.Pos(2.3, (4.3, 100)),
+                                clicks=self.Click(2.3, (True, False, 1)))
 
     mouse = Mouse()

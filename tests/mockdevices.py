@@ -30,7 +30,7 @@ class Dummy(BaseDevice):
         self.t0 = default_timer()
         t = self.clock()
         return self.Returns(num1=self.Num1(t, np.random.random((5,))),
-                            num2=self.Num2.new_obs(t, dat))
+                            num2=self.Num2(t, dat))
 
 
 class DummyList(BaseDevice):
@@ -55,6 +55,6 @@ class DummyList(BaseDevice):
         self.t0 = default_timer()
         t = self.clock()
         return [self.Returns(num1=self.Num1(t, np.random.random((5,))),
-                             num2=self.Num2.new_obs(t, dat)),
+                             num2=self.Num2(t, dat)),
                 self.Returns(num1=self.Num1(t, np.random.random((5,))),
-                             num2=self.Num2.new_obs(t, dat))]
+                             num2=self.Num2(t, dat))]

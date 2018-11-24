@@ -12,7 +12,7 @@ Typical use of the input module may look like:
 import MyDevice
 from toon.input.mpdevice import MpDevice
 
-# specify kwargs for the device here
+# specify keyword args for the device here
 dev = MpDevice(MyDevice, foo=3, bar='baz')
 
 with dev:
@@ -36,7 +36,7 @@ Returns(clicks=obs(time=array([10.0311837]),
         scroll=obs(time=None, data=None))
 ```
 
-So to access the most recent change in `pos`, the user can use `data.pos.data[-1]`. Named tuples also splat/unpack, so you can also do something like `clicks, pos, scroll = mouse.read()`.
+So to access the most recent change in `pos`, the user can use `data.pos.data[-1]`. Named tuples also unpack, so you can also do something like `clicks, pos, scroll = mouse.read()`.
 
 The `Returns` object returned by `read()` also has an `any()` method, which allows simpler checking for any worthwhile data.
 
