@@ -11,7 +11,7 @@ class Dummy(BaseDevice):
     t0 = default_timer()
 
     class Num(Obs):
-        shape = (128,)
+        shape = (256,)
         ctype = c_double
 
     def read(self):
@@ -37,12 +37,11 @@ if __name__ == '__main__':
 
     with dev:
         t0 = default_timer()
-        while default_timer() - t0 < 10:
+        while default_timer() - t0 < 20:
             t1 = default_timer()
             dat = dev.read()
             if dat.any():
                 vals.append(default_timer() - t1)
-                print(dat[0].data)
                 sleep(0.016)
     vals = vals[10:]  # first couple are pathological
     print('Worst case: %f' % max(vals))
