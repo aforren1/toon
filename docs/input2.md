@@ -83,7 +83,7 @@ class Mouse(BaseDevice):
     # ...
 ```
 
-The `read` method is fairly strict
+The `read` method is somewhat finicky (see below for example usage).
 
 ```python
 class Mouse(BaseDevice):
@@ -95,7 +95,7 @@ class Mouse(BaseDevice):
         return self.Returns(pos=position, ...)
 ```
 
-The `clock` attribute is a reference to some time method (by default `monotonic_clock.get_time` from `toon.input.clock`, other popular ones may be `psychopy.clocks.monotonicClock.getTime` or `timeit.default_timer`). We create a new set of tuples for each 
+The `clock` attribute is a reference to some time method (by default `monotonic_clock.get_time` from `toon.input.clock`, other popular ones may be `psychopy.clocks.monotonicClock.getTime` or `timeit.default_timer`). We create a new set of tuples for each input, and put all those into a final `Returns` (which is dynamically created by `BaseDevice` to match the device).
 
 The guts of `BaseDevice` pick out all of the `Obs`-derived attributes, and build a custom `Returns` named tuple for the device, where names are the `.lower()`ed class names. Note that the `Obs` will appear in **alphabetical** order in `Returns`, not in order of specification.
 
