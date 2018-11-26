@@ -24,10 +24,10 @@ class Birds(BaseDevice):
         shape = (3,)
         ctype = c_double
 
-    def __init__(self, indices=[1, 3], **kwargs):
+    def __init__(self, **kwargs):
         self._birds = None
         self._master = None
-        self.indices = indices
+        self.indices = [1, 3]
         self.read_from = []
         self.cos_const = np.cos(-0.01938)
         self.sin_const = np.sin(0.01938)
@@ -63,7 +63,7 @@ class Birds(BaseDevice):
                 self.read_from.append(b)
         if self._master is None:
             raise ValueError('Master not found in ports provided.')
-        self.read_from.reverse()
+        self.read_from.reverse()  # TODO: fix it up so that read_from is in order of bird indices
         # init master, FBB autoconfig
         time.sleep(1)
         self._master.write(('P' + chr(0x32) + chr(len(devices))).encode('utf-8'))
