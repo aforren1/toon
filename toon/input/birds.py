@@ -15,7 +15,7 @@ from toon.input.device import BaseDevice, Obs
 # with two birds, we can also try putting it in group mode & get adequate data rates
 
 
-class BlamBirds(BaseDevice):
+class Birds(BaseDevice):
     class LeftPos(Obs):
         # x,y,z
         shape = (3,)
@@ -33,7 +33,7 @@ class BlamBirds(BaseDevice):
         self._master = None
         self.cos_const = np.cos(-0.01938)
         self.sin_const = np.sin(0.01938)
-        super(BlamBirds, self).__init__(**kwargs)
+        super(Birds, self).__init__(**kwargs)
 
     def __enter__(self):
         # timeout set so that we should always have data available
@@ -142,8 +142,8 @@ def decode_word(msg):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev = MpDevice(BlamBirds, ports=['/dev/ttyUSB0', '/dev/ttyUSB1',
-                                     '/dev/ttyUSB2', '/dev/ttyUSB3'])
+    dev = MpDevice(Birds, ports=['/dev/ttyUSB0', '/dev/ttyUSB1',
+                                 '/dev/ttyUSB2', '/dev/ttyUSB3'])
     times = []
     with dev:
         start = time.time()

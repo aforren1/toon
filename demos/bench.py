@@ -11,7 +11,7 @@ class Dummy(BaseDevice):
     t0 = default_timer()
 
     class Num(Obs):
-        shape = (100,)
+        shape = (20,)
         ctype = c_double
 
     def read(self):

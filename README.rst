@@ -29,8 +29,6 @@ Everything *should* work on Windows/Mac/Linux.
 
 See requirements.txt for dependencies.
 
-Many of the full examples require :code:`psychopy` to operate.
-
 Install
 -------
 
@@ -51,6 +49,41 @@ See setup.py for a list of those dependencies, as well as device-specific subdiv
 Usage Overview
 --------------
 
+Input
+~~~~~
+
+This module allows us to sample from external devices on a secondary process at high rates, and efficiently move that data to the main process via the `multiprocessing` module.
+
+Generally useful input devices include:
+
+- Keyboard (for changes in keyboard state) via :code:`Keyboard`
+- Mouse (for mouse position) via :code:`Mouse`
+
+The following are in-house devices, which may not be generally useful but could serve as examples
+of how to implement additional devices:
+
+- HAND (custom force measurement device using hidapi) via :code:`Hand` (for pyusb example, see :code:`USBHand`)
+- Force Keyboard (predecessor to HAND) via :code:`ForceKeyboard` (Windows only, due to :code:`nidaqmx` requirement.)
+- Flock of Birds (the 1992 vintage from Ascension) via :code:`Birds` (very specific to the KineReach setup in the BLAM Lab)
+
+Generally, input devices can be used as follows::
+
+     from toon.input.mpdevice import MpDevice
+     import <device>
+
+     dev = MultiprocessInput(<device>, <device-specific kwargs>)
+
+     with dev:
+         while not done:
+             data = dev.read()
+             if data.any():
+                 pass # do something with the data
+             ...
+
+
+See the `demos/ <https://github.com/aforren1/toon/blob/master/demos>`_ folder or snippets in the source of individual devices for usage examples.
+
+
 Audio
 ~~~~~
 
@@ -68,39 +101,6 @@ This sample generates a three-beep metronome for the timed response experiment.:
                             hamming=True)
      beep_aud.play()
 
-Input
-~~~~~
-
-This module allows us to sample from external devices on a secondary process at high rates, and efficiently move that data to the main process via the `multiprocessing` module.
-
-Generally useful input devices include:
-
-- Keyboard (for changes in keyboard state) via :code:`Keyboard`
-- Mouse (for mouse position) via :code:`Mouse`
-
-The following are in-house devices, which may not be generally useful but could serve as examples
-of how to implement additional devices:
-
-- HAND (custom force measurement device) by class :code:`Hand`
-- Force Keyboard (predecessor to HAND) by class :code:`ForceKeyboard` (Windows only, due to :code:`nidaqmx` requirement.)
-
-Generally, input devices can be used as follows::
-
-     from psychopy import core
-     from toon.input import <device>, MultiprocessInput
-
-     timer = core.monotonicClock.getTime
-
-     dev = MultiprocessInput(<device>, clock=timer, <device-specific kwargs>)
-
-     dev.start()
-     while not done:
-         time, data = dev.read()
-         ...
-     dev.stop()
-
-
-See `demos/try_input.py <https://github.com/aforren1/toon/blob/master/demos/try_input.py>`_ for usage examples (not packaged).
 
 Tools
 ~~~~
