@@ -4,14 +4,13 @@ from ctypes import c_double
 
 import numpy as np
 import serial
+from serial.tools import list_ports
 
 from toon.input.device import BaseDevice, Obs
 
 # reference (most recent):
 # https://github.com/aforren1/toon/blob/455d06827082ae30ec4ae3b2605185cb4d291c92/toon/input/birds.py
 
-# TODO: allow subsetting, so that we can talk to the 2 birds we care about
-# after configuring all (which seems necessary?)
 # with two birds, we can also try putting it in group mode & get adequate data rates
 
 
@@ -25,20 +24,20 @@ class Birds(BaseDevice):
         shape = (3,)
         ctype = c_double
 
-    def __init__(self, ports=None, **kwargs):
-        if not ports:
-            raise ValueError('Must specify serial ports to use.')
-        self.ports = ports
+    def __init__(self, indices=[1, 3], **kwargs):
         self._birds = None
         self._master = None
+        self.indices = indices
+        self.read_from = []
         self.cos_const = np.cos(-0.01938)
         self.sin_const = np.sin(0.01938)
         super(Birds, self).__init__(**kwargs)
 
     def __enter__(self):
         # timeout set so that we should always have data available
+        devices = [x.device for x in list_ports.comports() if 'Keyspan' in x.description]
         self._birds = [serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS,
-                                     xonxoff=0, rtscts=0, timeout=0.05) for port in self.ports]
+                                     xonxoff=0, rtscts=0, timeout=0.05) for port in devices]
 
         for bird in self._birds:
             bird.reset_input_buffer()
@@ -56,14 +55,18 @@ class Birds(BaseDevice):
             # query each bird for id
             b.write(b'\x4F' + b'\x15')
             res = b.read()
-            if res == b'\x01':  # master bird
+            res = struct.unpack('b', res)[0]  # convert
+            if res == 1:  # master bird
                 self._master = b
+            # figure out birds to read from
+            if self.indices and res in self.indices:
+                self.read_from.append(b)
         if self._master is None:
             raise ValueError('Master not found in ports provided.')
-
+        self.read_from.reverse()
         # init master, FBB autoconfig
         time.sleep(1)
-        self._master.write(('P' + chr(0x32) + chr(len(self.ports))).encode('utf-8'))
+        self._master.write(('P' + chr(0x32) + chr(len(devices))).encode('utf-8'))
         time.sleep(5)
 
         # set the sampling frequency
@@ -82,9 +85,9 @@ class Birds(BaseDevice):
             # first 5 bits are meaningless, B2 is 0 (AC narrow ON), B1 is 1 (AC wide OFF), B0 is 0 (DC ON)
             bird.write(b'P' + b'\x04' + b'\x02' + b'\x01')
 
-        # ready to go, start streaming from all birds
+        # ready to go, start streaming from birds whose indices were provided
         time.sleep(0.5)
-        for b in self._birds:
+        for b in self.read_from:
             b.write(b'@')
 
         return self
@@ -92,27 +95,27 @@ class Birds(BaseDevice):
     def read(self):
         lst = []
         # busy wait until first byte available
-        while not self._birds[0].in_waiting:
+        while not self.read_from[0].in_waiting:
             pass
         time = self.clock()
-        for bird in self._birds:
+        for bird in self.read_from:
             lst.append(bird.read(6))  # assumes position data
         lst = [decode(msg) for msg in lst]
-        data = np.array(lst).reshape((12,))  # position data for all 4 birds
-        data[:] = data[[1, 2, 0, 4, 5, 3, 7, 8, 6, 10, 11, 9]]  # fiddle with order of axes
+        data = np.array(lst).reshape((6,))  # position data for two birds
+        data[:] = data[[1, 2, 0, 4, 5, 3]]  # fiddle with order of axes
         # rotate
         tmp_x = data[::3]
         tmp_y = data[1::3]
         data[::3] = tmp_x * self.cos_const - tmp_y * self.sin_const
         data[1::3] = tmp_y * self.sin_const + tmp_y * self.cos_const
 
-        # translate
+        # translate (origin in lower left, I think)
         data[::3] += 61.35
         data[1::3] += 17.69
-        return self.Returns(self.LeftPos(time, data[0:3]), self.RightPos(time, data[6:9]))
+        return self.Returns(self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6]))
 
     def __exit__(self, *args):
-        for bird in self._birds:
+        for bird in self.read_from:
             bird.write(b'?')  # stop stream
         time.sleep(1)
         self._master.write(b'G')  # sleep (master only?)
@@ -142,15 +145,14 @@ def decode_word(msg):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev = MpDevice(Birds, ports=['/dev/ttyUSB0', '/dev/ttyUSB1',
-                                 '/dev/ttyUSB2', '/dev/ttyUSB3'])
+    dev = MpDevice(Birds)
     times = []
     with dev:
         start = time.time()
-        while time.time() - start < 30:
+        while time.time() - start < 20:
             dat = dev.read()
             if dat.any():
-                print(np.diff(dat.leftpos.time))
+                print(dat.leftpos.data)
                 times.append(np.diff(dat.leftpos.time))
             time.sleep(0.016)
 
