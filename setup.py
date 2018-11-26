@@ -11,7 +11,7 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.9.1',
+    version='0.10.0',
     description='Tools for neuroscience experiments',
     url='https://github.com/aforren1/toon',
     author='Alexander Forrence',
@@ -24,15 +24,16 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'
     ],
     install_requires=requirements,
     extras_require={
-        'full': ['hidapi', 'pyserial', 'pynput', 'nidaqmx;platform_system=="Windows"'],
-        'hand': ['hidapi'],
+        'full': ['hidapi', 'pyusb', 'pyserial',
+                 'pynput', 'nidaqmx;platform_system=="Windows"'],
+        'hand': ['hidapi', 'pyusb'],
         'birds': ['pyserial'],
         'keyboard': ['pynput'],
         'force': ['nidaqmx;platform_system=="Windows"']

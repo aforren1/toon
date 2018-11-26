@@ -1,53 +1,73 @@
-from ctypes import c_int32
-from toon.input.base_input import BaseInput
+from toon.input.device import BaseDevice, Obs
+import ctypes
 from pynput import mouse
-import numpy as np
 
 
-class Mouse(BaseInput):
-    """Mouse interface."""
-    @staticmethod
-    def samp_freq(**kwargs):
-        return kwargs.get('sampling_frequency', 100)
+class Mouse(BaseDevice):
+    class Pos(Obs):
+        shape = (2,)
+        ctype = ctypes.c_int
 
-    @staticmethod
-    def data_shapes(**kwargs):
-        return [[2]]
+    class Clicks(Obs):
+        shape = (1,)
+        ctype = ctypes.c_bool
 
-    @staticmethod
-    def data_types(**kwargs):
-        return [c_int32]
+    class Scroll(Obs):
+        shape = (1,)
+        ctype = ctypes.c_int
+
+    sampling_frequency = 125
 
     def __init__(self, **kwargs):
         super(Mouse, self).__init__(**kwargs)
 
     def __enter__(self):
-        self.dev = mouse.Listener(on_move=self.on_move)
+        self.dev = mouse.Listener(on_move=self.on_move,
+                                  on_click=self.on_click,
+                                  on_scroll=self.on_scroll)
         self.dev.start()
         self.dev.wait()
-        self.times = []
-        self.readings = []
         self.x_prev = 0
         self.y_prev = 0
+        self.data = []
         return self
+
+    def read(self):
+        if not self.data:
+            return self.Returns()
+        ret = self.data.copy()
+        self.data = []
+        return ret
+
+    def on_move(self, x, y):
+        # relative mouse position
+        rets = self.Returns(pos=self.Pos(self.clock(), (x - self.x_prev,
+                                                        y - self.y_prev)))
+        self.x_prev = x
+        self.y_prev = y
+        self.data.append(rets)
+
+    def on_click(self, x, y, button, pressed):
+        rets = self.Returns(clicks=self.Clicks(self.clock(), pressed))
+        self.data.append(rets)
+
+    def on_scroll(self, x, y, dx, dy):
+        rets = self.Returns(scroll=self.Scroll(self.clock(), dy))
+        self.data.append(rets)
 
     def __exit__(self, *args):
         self.dev.stop()
         self.dev.join()
 
-    def on_move(self, x, y):
-        self.times.append(self.clock())
-        self.readings.append(np.array([x - self.x_prev, y - self.y_prev]))
-        self.x_prev = x
-        self.y_prev = y
 
-    def read(self):
-        """Returns the *change* in mouse position, not the absolute position."""
-        if not self.readings:
-            return None, None
-        time2 = []
-        read2 = []
-        time2[:] = self.times
-        read2[:] = self.readings
-        self.readings = []
-        return time2[-1], read2[-1]  # hack until multi-datapoint
+if __name__ == '__main__':
+    import time
+    from toon.input.mpdevice import MpDevice
+    dev = MpDevice(Mouse)
+    with dev:
+        start = time.time()
+        while time.time() - start < 10:
+            dat = dev.read()
+            if dat.any():
+                print(dat)
+            time.sleep(0.016)  # pretend to have a screen
