@@ -9,10 +9,16 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
+# description for pypi
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+    desc = f.read()
+
 setup(
     name='toon',
     version='0.10.0',
     description='Tools for neuroscience experiments',
+    long_description=desc,
+    long_description_content_type='text/x-rst',
     url='https://github.com/aforren1/toon',
     author='Alexander Forrence',
     author_email='aforren1@jhu.edu',
