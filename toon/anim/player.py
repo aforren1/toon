@@ -61,6 +61,9 @@ class Player(object):
         for i in names:
             self.tracks[i].track.state = 'stopped'
 
+    def state(self, name):
+        return self.tracks[name].track.state
+
 
 if __name__ == '__main__':
     import numpy as np
