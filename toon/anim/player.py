@@ -10,6 +10,8 @@ class Player(object):
         self.player_state = 'stopped'
 
     def add(self, name, track, attr, obj=None, **kwargs):
+        if name in self.tracks:
+            raise ValueError('Track name already exists.')
         self.tracks.update({name: TrackAttr(copy(track), attr, obj, kwargs)})
 
     def remove(self, name):

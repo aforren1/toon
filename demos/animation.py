@@ -63,7 +63,7 @@ class SpecialRect(Player, Rect):
 rect = SpecialRect(win, width=0.2, height=0.1,
                    fillColor='orange', pos=(0.1, 0.1), opacity=1)
 
-timeline = Timeline(default_timer)
+timeline = Timeline()
 
 player = Player()
 
