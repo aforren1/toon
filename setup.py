@@ -15,7 +15,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.10.0',
+    version='0.10.5',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/x-rst',
