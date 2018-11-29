@@ -1,3 +1,4 @@
+from inspect import ismethod
 from collections import namedtuple
 from copy import copy
 
@@ -30,7 +31,17 @@ class Player(object):
     def _do_update(self, attr, val, obj, **kwargs):
         # if we get a function, call function with updated val
         if callable(attr):
-            attr(val, obj, **kwargs)
+            # if it's a method (e.g. a setter), we call that method with the val as an arg
+            if ismethod(attr):
+                if kwargs:
+                    attr(val, **kwargs)
+                else:
+                    attr(val)
+                return
+            if kwargs:
+                attr(val, obj, **kwargs)
+            else:
+                attr(val, obj)
             return
         # otherwise (user gave string), directly set the attribute
         setattr(obj, attr, val)
