@@ -19,7 +19,7 @@ class Player(object):
         return
 
     def start(self, time, names=None):
-        self.player_state = 'started'
+        self.player_state = 'playing'
         if not names:
             for i in self.tracks:
                 self.tracks[i].track.start(time)
@@ -36,7 +36,7 @@ class Player(object):
         setattr(obj, attr, val)
 
     def update(self, time):
-        if self.player_state == 'started':
+        if self.player_state == 'playing':
             for i in self.tracks:
                 # if tracks are playing, will return a val
                 val = self.tracks[i].track.update(time)
@@ -61,8 +61,8 @@ class Player(object):
         for i in names:
             self.tracks[i].track.state = 'stopped'
 
-    def track_state(self, name):
-        return self.tracks[name].track.state
+    def is_playing(self, name):
+        return self.tracks[name].track.state == 'playing'
 
 
 if __name__ == '__main__':

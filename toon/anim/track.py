@@ -16,7 +16,7 @@ class Track(object):
 
     def start(self, time):
         self.time = time
-        self.state = 'started'
+        self.state = 'playing'
 
     def update(self, time):
         if self.state == 'stopped':
