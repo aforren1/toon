@@ -22,8 +22,7 @@ Description
 Additional tools for neuroscience experiments, including:
 
 * A framework for polling input devices on a separate process.
-* Helper functions for generating auditory stimuli (read: beeps).
-* Coordinate tools (slightly modified from :code:`psychopy.tools.coordinatetools`), which additionally allow for calculations relative to points other than the origin.
+* A framework for animating elements.
 
 Everything *should* work on Windows/Mac/Linux.
 
@@ -71,7 +70,7 @@ Generally, input devices can be used as follows::
      from toon.input.mpdevice import MpDevice
      import <device>
 
-     dev = MultiprocessInput(<device>, <device-specific kwargs>)
+     dev = MpDevice(<device>, <device-specific kwargs>)
 
      with dev:
          while not done:
@@ -83,40 +82,7 @@ Generally, input devices can be used as follows::
 
 See the `demos/ <https://github.com/aforren1/toon/blob/master/demos>`_ folder or snippets in the source of individual devices for usage examples.
 
+Animation
+~~~~~~~~~
 
-Audio
-~~~~~
-
-This module provides simple helper functions for generating beeps and beep seqeuences.
-
-This sample generates a three-beep metronome for the timed response experiment.::
-
-     import numpy as np
-     import toon.audio as ta
-     from psychopy import sound
-
-     beeps = ta.beep_sequence([440, 880, 1220], inter_click_interval=0.4)
-     beep_aud = sound.Sound(np.transpose(np.vstack((beeps, beeps))),
-                            blockSize=32,
-                            hamming=True)
-     beep_aud.play()
-
-
-Tools
-~~~~
-
-These tools are extensions of the ones provided in :code:`psychopy.tools.coordinatetools`, allowing for conversion between cartesian<->polar coordinates when the reference point is not (0, 0) in cartesian space.
-
-Current tools:
-
-- :code:`cart2pol`
-- :code:`pol2cart`
-- :code:`cart2sph`
-- :code:`sph2cart`
-
-For example,::
-
-    import toon.tools as tt
-
-    x, y = tt.pol2cart(45, 3, units='deg', ref=(1, 1))
-
+See the `demos/ <https://github.com/aforren1/toon/blob/master/demos>`_ folder.

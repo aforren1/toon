@@ -15,14 +15,14 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.10.5',
+    version='0.11.0',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/x-rst',
     url='https://github.com/aforren1/toon',
     author='Alexander Forrence',
     author_email='aforren1@jhu.edu',
-    license='GPL3',
+    license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
