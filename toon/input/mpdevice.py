@@ -6,6 +6,7 @@ from collections import namedtuple
 from copy import copy
 from itertools import compress
 from sys import platform
+from toon.input.timestamped_array import TimestampedArray as TsA
 
 import numpy as np
 import psutil
@@ -101,16 +102,10 @@ class MpDevice(object):
                 datum.counter.value = 0  # reset (so that we start writing to top of array)
                 if datum.local_count > 0:
                     np.copyto(datum.local_data.time, datum.np_data.time)
-                    np.copyto(datum.local_data.data.T, datum.np_data.data.T)  # allow copying to 1D
-                    if datum.isscalar:
-                        self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
-                                                     data=datum.local_data.data[0:datum.local_count])
-                    else:
-                        self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
-                                                     data=datum.local_data.data[0:datum.local_count, :])
-
+                    np.copyto(datum.local_data.T, datum.np_data.data.T)  # allow copying to 1D
+                    self._res[counter] = datum.local_data[0:datum.local_count]
                 else:
-                    self._res[counter] = self.nt(None, None)
+                    self._res[counter] = None
         return self._return_tuple(*self._res)  # plug values into namedtuple
 
     def stop(self):
@@ -204,7 +199,7 @@ class DataGlob(object):
         self.new_dims = (nrow,) + shape
         self.ctype = ctype
         self.shape = shape
-        self.isscalar = self.shape == (1,)
+        self.is_scalar = self.shape == (1,)
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
@@ -219,12 +214,10 @@ class DataGlob(object):
                            data=shared_to_numpy(self._mp_data.data, self.new_dims, self.ctype))
 
     def generate_local_version(self):
-        self.local_data = obs(time=self.np_data.time.copy(),
-                              data=self.np_data.data.copy())
         self.local_count = 0
+        self.local_data = TsA(self.np_data.data.copy(), time=self.np_data.time.copy())
 
     def generate_squeeze(self):
         # if scalar data, give the user a 1D array (rather than 2D)
-        if self.isscalar:
-            self.local_data = obs(time=self.np_data.time.copy(),
-                                  data=np.squeeze(self.np_data.data.copy()))
+        if self.is_scalar:
+            self.local_data = TsA(np.squeeze(self.np_data.data.copy()), time=self.np_data.time.copy())

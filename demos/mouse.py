@@ -17,10 +17,10 @@ toon_cir.pos = (-1920/2, 1080/2)
 with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
     while not event.getKeys(['esc', 'escape']):
         clicks, pos, scroll = toon_mouse.read()
-        if pos.time is not None:
-            res = pos.data
-            res *= [1, -1]
-            for i in res:
+        if pos is not None:
+            print((pos[-1], pos[-1].time))
+            pos *= [1, -1]
+            for i in pos:
                 toon_cir.pos += i
         psy_cir.pos = psy_mouse.getPos()
         psy_cir.draw()
