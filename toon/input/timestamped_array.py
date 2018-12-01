@@ -23,7 +23,7 @@ class TimestampedArray(np.ndarray):
 
     def copy(self):
         self._new_time_index = slice(None, None, None)
-        return self.copy()
+        return super(TimestampedArray, self).copy()
 
     def __getitem__(self, item):
         try:
