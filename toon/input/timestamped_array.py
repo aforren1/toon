@@ -25,7 +25,7 @@ class TimestampedArray(np.ndarray):
             self._new_time_index = item
         except:
             pass
-        return super().__getitem__(item)
+        return super(TimestampedArray, self).__getitem__(item)
 
 
 def empty(shape, dtype=float, order='C'):
