@@ -84,6 +84,9 @@ class MpDevice(object):
         self.original_nice = self.ps_process.nice()
         self.set_high_priority(self.high_priority)  # lame try to set priority
         self.remote_ready.wait()  # pause until the remote says it's ready
+        for i in range(n_buffers):
+            for obs in self._data[i]:
+                obs.generate_squeeze()
 
     # @profile
     def read(self):
@@ -98,9 +101,14 @@ class MpDevice(object):
                 datum.counter.value = 0  # reset (so that we start writing to top of array)
                 if datum.local_count > 0:
                     np.copyto(datum.local_data.time, datum.np_data.time)
-                    np.copyto(datum.local_data.data, datum.np_data.data)
-                    self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
-                                                 data=datum.local_data.data[0:datum.local_count, :])
+                    np.copyto(datum.local_data.data.T, datum.np_data.data.T)  # allow copying to 1D
+                    if datum.shape == (1,):
+                        self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
+                                                     data=datum.local_data.data[0:datum.local_count])
+                    else:
+                        self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
+                                                     data=datum.local_data.data[0:datum.local_count, :])
+
                 else:
                     self._res[counter] = self.nt(None, None)
         return self._return_tuple(*self._res)  # plug values into namedtuple
@@ -177,10 +185,10 @@ def remote(device, device_kwargs, shared_data,
                 try:
                     if is_list:
                         for dat, ind in zip(data, inds):
-                            for counter, datum in enumerate(compress(dat, ind)):
+                            for counter, datum in zip(np.where(ind)[0], compress(dat, ind)):
                                 process_data()
                     else:
-                        for counter, datum in enumerate(compress(data, inds)):
+                        for counter, datum in zip(np.where(inds)[0], compress(data, inds)):
                             process_data()
                 finally:
                     lck.release()
@@ -195,6 +203,7 @@ class DataGlob(object):
     def __init__(self, ctype, shape, nrow, lock):
         self.new_dims = (nrow,) + shape
         self.ctype = ctype
+        self.shape = shape
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
@@ -212,3 +221,9 @@ class DataGlob(object):
         self.local_data = obs(time=self.np_data.time.copy(),
                               data=self.np_data.data.copy())
         self.local_count = 0
+
+    def generate_squeeze(self):
+        # if scalar data, give the user a 1D array (rather than 2D)
+        if self.shape == (1,):
+            self.local_data = obs(time=self.np_data.time.copy(),
+                                  data=np.squeeze(self.np_data.data.copy()))
