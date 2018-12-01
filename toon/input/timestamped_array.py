@@ -9,6 +9,7 @@ class TimestampedArray(np.ndarray):
     def __new__(cls, data, time=None):
         obj = np.asarray(data).view(cls)
         obj.time = np.asarray(time, dtype=c_double)
+        obj._new_time_index = slice(None, None, None)
         return obj
 
     def __array_finalize__(self, obj):
@@ -20,9 +21,16 @@ class TimestampedArray(np.ndarray):
         except:
             pass
 
+    def copy(self):
+        self._new_time_index = slice(None, None, None)
+        return self.copy()
+
     def __getitem__(self, item):
         try:
-            self._new_time_index = item
+            if isinstance(item, (slice, int)):
+                self._new_time_index = item
+            else:
+                self._new_time_index = item[0]
         except:
             pass
         return super(TimestampedArray, self).__getitem__(item)
@@ -39,3 +47,4 @@ if __name__ == '__main__':
     zz = xx[:2].copy()  # np.copy(arr) loses the time attribute
     zz == xx[:2]
     zz.time == xx[:2].time
+    tt = Obs([[1, 2, 3], [4, 5, 6], [7, 9, 10], [12, 1, 12]], time=[0.1, 0.2, 0.3, 0.4])
