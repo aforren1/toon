@@ -6,7 +6,7 @@ from collections import namedtuple
 from copy import copy
 from itertools import compress
 from sys import platform
-from toon.input.timestamped_array import TimestampedArray as TsA
+from toon.input.timestamped_array import TsArray as TsA
 
 import numpy as np
 import psutil
