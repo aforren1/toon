@@ -102,7 +102,7 @@ class MpDevice(object):
                 if datum.local_count > 0:
                     np.copyto(datum.local_data.time, datum.np_data.time)
                     np.copyto(datum.local_data.data.T, datum.np_data.data.T)  # allow copying to 1D
-                    if datum.shape == (1,):
+                    if datum.isscalar:
                         self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
                                                      data=datum.local_data.data[0:datum.local_count])
                     else:
@@ -204,6 +204,7 @@ class DataGlob(object):
         self.new_dims = (nrow,) + shape
         self.ctype = ctype
         self.shape = shape
+        self.isscalar = self.shape == (1,)
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
@@ -224,6 +225,6 @@ class DataGlob(object):
 
     def generate_squeeze(self):
         # if scalar data, give the user a 1D array (rather than 2D)
-        if self.shape == (1,):
+        if self.isscalar:
             self.local_data = obs(time=self.np_data.time.copy(),
                                   data=np.squeeze(self.np_data.data.copy()))

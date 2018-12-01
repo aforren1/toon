@@ -1,5 +1,5 @@
 import numpy as np
-
+from ctypes import c_double
 # tons of thanks to
 # https://stackoverflow.com/questions/31282764/when-subclassing-a-numpy-ndarray-how-can-i-modify-getitem-properly
 # and https://docs.scipy.org/doc/numpy/user/basics.subclassing.html
@@ -8,7 +8,7 @@ import numpy as np
 class Obs(np.ndarray):
     def __new__(cls, data, time=None):
         obj = np.asarray(data).view(cls)
-        obj.time = np.asarray(time)
+        obj.time = np.asarray(time, dtype=c_double)
         return obj
 
     def __array_finalize__(self, obj):
@@ -26,6 +26,10 @@ class Obs(np.ndarray):
         except:
             pass
         return super().__getitem__(item)
+
+
+def empty(shape, dtype=float, order='C'):
+    return Obs(np.empty(shape, dtype=dtype), empty=True)
 
 
 if __name__ == '__main__':
