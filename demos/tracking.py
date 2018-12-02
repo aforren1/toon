@@ -22,7 +22,7 @@ toon_mouse = MpDevice(Mouse)
 
 target_cir = AnimCircle(win, size=100, fillColor='white', lineColor=None)
 toon_cir = visual.Circle(win, size=20, fillColor='blue', opacity=0.5, lineColor=None)
-toon_cir.pos = (-1920/2, 1080/2)
+toon_cir.pos = (-win.size[0]/2, win.size[1]/2)
 
 times = np.arange(0, 10, 1/60)
 keyframes = np.vstack((times, (np.sin(times) * 400))).T
