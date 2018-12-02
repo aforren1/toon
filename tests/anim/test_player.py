@@ -47,7 +47,7 @@ def test_player():
         player.tracks['x3']
 
     player.stop()
-    assert(player.player_state == 'stopped')
+    assert(not player.any_playing())
     assert(all([not player.is_playing(x) for x in player.tracks]))
 
     def call(val, obj, foo):

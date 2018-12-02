@@ -27,8 +27,8 @@ toon_cir = visual.Circle(win, size=20, fillColor='blue', opacity=0.5, lineColor=
 toon_cir.pos = (-1920/2, 1080/2)
 
 times = np.arange(0, 10, 1/60)
-keyframes = np.vstack((times, (np.sin(times) * 300)/2 + (np.sin(1.9+times) * 540)/2)).T
-keyframes2 = np.vstack((times, np.cos(0.5 + times)*340)).T
+keyframes = np.vstack((times, (np.sin(times) * 400))).T
+keyframes2 = np.vstack((times, np.cos(times)*400)).T
 tar_track = Track(keyframes, easing=linear)
 tar_track2 = Track(keyframes2, easing=linear)
 
@@ -46,7 +46,7 @@ target_cir.add('y', tar_track2, change_y)
 timeline.next_frame()
 target_cir.start(timeline.frame_time)
 with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
-    while target_cir.is_playing('x') and not event.getKeys(['esc', 'escape']):
+    while target_cir.any_playing() and not event.getKeys(['esc', 'escape']):
         win.callOnFlip(timeline.next_frame)
         target_cir.update(timeline.frame_time)
         clicks, pos, scroll = toon_mouse.read()
