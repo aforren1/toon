@@ -113,7 +113,7 @@ while timeline.frame_time < 2:
     timeline.next_frame()
     player.update(timeline.frame_time)
     print(circle.x)
-    # flip screen
+    # flip window
     sleep(0.016)
 
 ```

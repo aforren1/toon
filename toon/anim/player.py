@@ -79,7 +79,7 @@ class Player(object):
                 self.tracks[i].track.state = 'stopped'
         else:
             # single key
-            self.tracks[i].track.state = 'stopped'
+            self.tracks[names].track.state = 'stopped'
         if all([self.tracks[x].track.state == 'stopped' for x in self.tracks]):
             self.player_state = 'stopped'
 

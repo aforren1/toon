@@ -28,7 +28,7 @@ def test_player():
     assert(all([player.is_playing(x) for x in player.tracks]))
     player.update(0.5)
     assert(circ.x == circ2.x)
-    player.stop(['x1'])
+    player.stop('x1')
     player.update(0.9)
     assert(player.is_playing('x2'))
     assert(circ.x < circ2.x)
@@ -54,7 +54,7 @@ def test_player():
         obj.x = val * foo
 
     player.add('x4', trk, call, circ, foo=2)
-    player.start(0, ['x4'])
+    player.start(0, 'x4')
     player.update(0.5)
     assert(circ.x == 1)
 
