@@ -76,7 +76,7 @@ class BaseDevice():
             class Returns(namedtuple('Returns', [x.__name__.lower() for x in obs])):
                 def any(self):
                     # simplify user checking of whether there's any data
-                    return any([x is not None and x.time is not None and x.data is not None for x in self])
+                    return any([x is not None and x.time is not None for x in self])
             # default values of namedtuple to None (see mouse.py for example why)
             Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
             return Returns

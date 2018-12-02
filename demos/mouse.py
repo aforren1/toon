@@ -1,12 +1,9 @@
-
 from psychopy import visual, core, event
 
 from toon.input.mpdevice import MpDevice
 from toon.input.mouse import Mouse
 
-win = visual.Window(fullscr=True, units='pix',
-                    waitBlanking=False, multiSample=True,
-                    numSamples=8)
+win = visual.Window(fullscr=True, units='pix', waitBlanking=False)
 
 psy_mouse = event.Mouse()
 toon_mouse = MpDevice(Mouse)
@@ -18,7 +15,6 @@ with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
     while not event.getKeys(['esc', 'escape']):
         clicks, pos, scroll = toon_mouse.read()
         if pos is not None:
-            print((pos[-1], pos[-1].time))
             pos *= [1, -1]
             for i in pos:
                 toon_cir.pos += i
