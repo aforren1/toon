@@ -56,21 +56,24 @@ class Player(object):
                         try:  # see if single object
                             self._do_update(self.tracks[i].attr, val,
                                             self.tracks[i].obj, **self.tracks[i].kwargs)
-                        except TypeError:  # list of objects?
-                            for i in self.tracks[i].obj:
+                        except (TypeError, AttributeError):  # list of objects?
+                            for obj in self.tracks[i].obj:
+                                print(obj)
                                 self._do_update(self.tracks[i].attr, val,
-                                                self.tracks[i].obj, **self.tracks[i].kwargs)
+                                                obj, **self.tracks[i].kwargs)
                     else:  # operate on self
                         self._do_update(self.tracks[i].attr, val, self, **self.tracks[i].kwargs)
 
     def stop(self, names=None):
-        self.player_state = 'stopped'
         if not names:
             for i in self.tracks:
                 self.tracks[i].track.state = 'stopped'
+            self.player_state = 'stopped'
             return
         for i in names:
             self.tracks[i].track.state = 'stopped'
+        if all([self.tracks[x].track.state == 'stopped' for x in self.tracks]):
+            self.player_state = 'stopped'
 
     def is_playing(self, name):
         return self.tracks[name].track.state == 'playing'
