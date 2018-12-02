@@ -1,7 +1,7 @@
 from time import sleep
 import numpy as np
 from toon.input.mpdevice import MpDevice
-from tests.mockdevices import Dummy, DummyList
+from tests.input.mockdevices import Dummy, DummyList
 
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000

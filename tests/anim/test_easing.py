@@ -13,7 +13,7 @@ easings = [linear, step,
            elastic_in, elastic_out, elastic_in_out]
 
 
-def test_easing_call():
+def test_easings():
     for i in easings:
         assert(i(0.5) != 0)
         assert(i(0) == 0)
