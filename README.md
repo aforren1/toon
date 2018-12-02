@@ -66,7 +66,7 @@ but could serve as examples of how to implement additional devices:
 Generally, input devices can be used as follows:
 
 ```python
-from toon.input.mpdevice import MpDevice
+from toon.input import MpDevice
 import <device>
 
 dev = MpDevice(<device>, <device-specific kwargs>)
@@ -90,9 +90,9 @@ A quick example:
 
 ```python
 from time import sleep
-from toon.anim.player import Player
-from toon.anim.track import Track
-from toon.anim.timeline import Timeline
+from toon.anim import Player
+from toon.anim import Track
+from toon.anim import Timeline
 from toon.anim.easing import elastic_in
 
 class Circle(object):
