@@ -40,10 +40,26 @@ def test_player():
     assert(not player.is_playing('x2'))
     # modifying a group of objects (with matching API)
     circs = [Circ() for i in range(5)]
+
     player.add('x3', trk, 'y', circs)
     player.start(0, ['x3'])
     player.update(0.5)
     assert(all([i.y == 0.5 for i in circs]))
+    player.remove('x3')
+    with pytest.raises(KeyError):
+        player.tracks['x3']
+
+    player.stop()
+    assert(player.player_state == 'stopped')
+    assert(all([not player.is_playing(x) for x in player.tracks]))
+
+    def call(val, obj, foo):
+        obj.x = val * foo
+
+    player.add('x4', trk, call, circ, foo=2)
+    player.start(0, ['x4'])
+    player.update(0.5)
+    assert(circ.x == 1)
 
 
 def test_player_mixin():

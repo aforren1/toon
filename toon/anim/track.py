@@ -37,19 +37,3 @@ class Track(object):
         new_time = rel_time - reference[0]
         time_warp = self.easing(1 - ((goal_time - new_time)/goal_time))
         return self.interpolator(reference[1], goal[1], time_warp)
-
-
-if __name__ == '__main__':
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from toon.anim.easing import elastic_in_out
-    trk = Track([(0.0, 1.0), (1.0, 1.5), (3, 0.0), (6.0, 5)],
-                easing=elastic_in_out)
-    trk.start(0)
-    vals = []
-    x = np.arange(0, 7, 1/60)
-    for i in x:
-        vals.append(trk.update(i))
-
-    plt.plot(x, vals)
-    plt.show()

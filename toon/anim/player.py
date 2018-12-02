@@ -77,36 +77,3 @@ class Player(object):
 
     def is_playing(self, name):
         return self.tracks[name].track.state == 'playing'
-
-
-if __name__ == '__main__':
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from toon.anim.track import Track
-    from toon.anim.easing import elastic_in_out
-
-    trk = Track([(0.0, 1.0), (1.0, 1.5), (3, 0.0), (6.0, 5)],
-                easing=elastic_in_out)
-
-    class Circ:
-        def __init__(self):
-            self.pos = [0, 0]
-
-    circ = Circ()
-    playa = Player()
-
-    def cb(val, obj):
-        obj.pos[0] = val
-
-    playa.add('pos', trk, cb, obj=circ)
-
-    playa.start(0)  # start all
-
-    x = np.arange(0, 7, 1/60)
-    vals = []
-    for i in x:
-        playa.update(i)
-        vals.append(circ.pos[0])
-
-    plt.plot(x, vals)
-    plt.show()
