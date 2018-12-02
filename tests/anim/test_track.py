@@ -1,6 +1,7 @@
 import pytest
 from toon.anim.track import Track
 from toon.anim.easing import *
+from toon.anim.interpolators import lerp, select
 
 
 def test_track():

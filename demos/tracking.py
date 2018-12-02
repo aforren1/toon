@@ -3,10 +3,8 @@ from psychopy import visual, core, event
 from psychopy.visual.circle import Circle
 from toon.input.mpdevice import MpDevice
 from toon.input.mouse import Mouse
-from toon.anim.easing import *
-from toon.anim.timeline import Timeline
-from toon.anim.track import Track
-from toon.anim.player import Player
+from toon.anim.easing import linear
+from toon.anim import Timeline, Track, Player
 
 
 class AnimCircle(Player, Circle):

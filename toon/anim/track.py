@@ -1,5 +1,6 @@
 from collections import namedtuple
-from toon.anim.easing import lerp, linear, select
+from toon.anim.easing import linear
+from toon.anim.interpolators import lerp, select
 
 
 class Track(object):

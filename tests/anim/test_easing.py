@@ -1,4 +1,5 @@
-from toon.anim.easing import (lerp, select, linear, step,
+from toon.anim.interpolators import lerp, select
+from toon.anim.easing import (linear, step,
                               smoothstep, smootherstep,
                               quadratic_in, quadratic_out, quadratic_in_out,
                               exponential_in, exponential_out, exponential_in_out,

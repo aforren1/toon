@@ -3,10 +3,12 @@ from timeit import default_timer
 from psychopy import core, event, visual
 from psychopy.visual.rect import Rect
 
-from toon.anim.easing import *
-from toon.anim.timeline import Timeline
-from toon.anim.track import Track
-from toon.anim.player import Player
+from toon.anim.easing import (elastic_in_out, smootherstep, smoothstep,
+                              exponential_out, linear)
+from toon.anim.interpolators import select, lerp
+from toon.anim import Timeline
+from toon.anim import Track
+from toon.anim import Player
 
 keyfr = [(0.0, -0.5),
          (2.5, 0.5),
