@@ -15,8 +15,12 @@ class Player(object):
             raise ValueError('Track name already exists.')
         self.tracks.update({name: TrackAttr(copy(track), attr, obj, kwargs)})
 
-    def remove(self, name):
-        self.tracks.pop(name, None)
+    def remove(self, names):
+        if isinstance(names, list):
+            for i in names:
+                self.tracks.pop(i, None)
+        else:
+            self.tracks.pop(names, None)
         return
 
     def start(self, time, names=None):
@@ -24,9 +28,11 @@ class Player(object):
         if not names:
             for i in self.tracks:
                 self.tracks[i].track.start(time)
-            return
-        for i in names:
-            self.tracks[i].track.start(time)
+        elif isinstance(names, list):
+            for i in names:
+                self.tracks[i].track.start(time)
+        else:
+            self.tracks[names].track.start(time)
 
     def _do_update(self, attr, val, obj, **kwargs):
         # if we get a function, call function with updated val
@@ -68,9 +74,11 @@ class Player(object):
         if not names:
             for i in self.tracks:
                 self.tracks[i].track.state = 'stopped'
-            self.player_state = 'stopped'
-            return
-        for i in names:
+        elif isinstance(names, list):
+            for i in names:
+                self.tracks[i].track.state = 'stopped'
+        else:
+            # single key
             self.tracks[i].track.state = 'stopped'
         if all([self.tracks[x].track.state == 'stopped' for x in self.tracks]):
             self.player_state = 'stopped'
