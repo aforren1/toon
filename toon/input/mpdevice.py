@@ -6,9 +6,14 @@ from collections import namedtuple
 from copy import copy
 from itertools import compress
 from sys import platform
+from toon.input.tsarray import TsArray as TsA
 
 import numpy as np
 import psutil
+
+ctypes_map = np.ctypeslib._typecodes.copy()
+ctypes_map['|S1'] = ctypes.c_char  # TODO: I have no clue if this is valid
+ctypes_map['|b1'] = ctypes.c_bool
 
 
 def shared_to_numpy(mp_arr, dims, dtype):
@@ -84,6 +89,9 @@ class MpDevice(object):
         self.original_nice = self.ps_process.nice()
         self.set_high_priority(self.high_priority)  # lame try to set priority
         self.remote_ready.wait()  # pause until the remote says it's ready
+        for i in range(n_buffers):
+            for obs in self._data[i]:
+                obs.generate_squeeze()
 
     # @profile
     def read(self):
@@ -98,11 +106,10 @@ class MpDevice(object):
                 datum.counter.value = 0  # reset (so that we start writing to top of array)
                 if datum.local_count > 0:
                     np.copyto(datum.local_data.time, datum.np_data.time)
-                    np.copyto(datum.local_data.data, datum.np_data.data)
-                    self._res[counter] = self.nt(time=datum.local_data.time[0:datum.local_count],
-                                                 data=datum.local_data.data[0:datum.local_count, :])
+                    np.copyto(datum.local_data.T, datum.np_data.data.T)  # allow copying to 1D
+                    self._res[counter] = datum.local_data[0:datum.local_count]
                 else:
-                    self._res[counter] = self.nt(None, None)
+                    self._res[counter] = None
         return self._return_tuple(*self._res)  # plug values into namedtuple
 
     def stop(self):
@@ -142,9 +149,9 @@ def remote(device, device_kwargs, shared_data,
             shared.np_data.time[next_index] = datum.time
             shared.np_data.data[next_index, :] = datum.data
         else:  # rolling buffer, had cursed my bedroom
-            shared.np_data.time[:] = np.roll(shared.np_data.time, -1, axis=0)
+            np.copyto(shared.np_data.time, np.roll(shared.np_data.time, -1, axis=0))
             shared.np_data.time[-1] = datum.time
-            shared.np_data.data[:] = np.roll(shared.np_data.data, -1, axis=0)
+            np.copyto(shared.np_data.data, np.roll(shared.np_data.data, -1, axis=0))
             shared.np_data.data[-1, :] = datum.data
         # successful read, increment the indexing counter for this stream of data
         shared.counter.value += 1
@@ -177,10 +184,10 @@ def remote(device, device_kwargs, shared_data,
                 try:
                     if is_list:
                         for dat, ind in zip(data, inds):
-                            for counter, datum in enumerate(compress(dat, ind)):
+                            for counter, datum in zip(np.where(ind)[0], compress(dat, ind)):
                                 process_data()
                     else:
-                        for counter, datum in enumerate(compress(data, inds)):
+                        for counter, datum in zip(np.where(inds)[0], compress(data, inds)):
                             process_data()
                 finally:
                     lck.release()
@@ -194,12 +201,14 @@ obs = namedtuple('obs', 'time data')
 class DataGlob(object):
     def __init__(self, ctype, shape, nrow, lock):
         self.new_dims = (nrow,) + shape
-        self.ctype = ctype
+        self.ctype = ctypes_map[np.dtype(ctype).str]
+        self.shape = shape
+        self.is_scalar = self.shape == (1,)
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
         self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=lock),
-                            data=mp.Array(ctype, prod, lock=lock))
+                            data=mp.Array(self.ctype, prod, lock=lock))
         self.counter = mp.Value(ctypes.c_uint, 0, lock=lock)
         self.generate_np_version()
         self.generate_local_version()
@@ -209,6 +218,10 @@ class DataGlob(object):
                            data=shared_to_numpy(self._mp_data.data, self.new_dims, self.ctype))
 
     def generate_local_version(self):
-        self.local_data = obs(time=self.np_data.time.copy(),
-                              data=self.np_data.data.copy())
         self.local_count = 0
+        self.local_data = TsA(self.np_data.data.copy(), time=self.np_data.time.copy())
+
+    def generate_squeeze(self):
+        # if scalar data, give the user a 1D array (rather than 2D)
+        if self.is_scalar:
+            self.local_data = TsA(np.squeeze(self.np_data.data.copy()), time=self.np_data.time.copy())

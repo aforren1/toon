@@ -109,7 +109,7 @@ class Birds(BaseDevice):
         data[::3] = tmp_x * self.cos_const - tmp_y * self.sin_const
         data[1::3] = tmp_y * self.sin_const + tmp_y * self.cos_const
 
-        # translate (origin in lower left, I think)
+        # translate to the lower left corner
         data[::3] += 61.35
         data[1::3] += 17.69
         return self.Returns(self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6]))

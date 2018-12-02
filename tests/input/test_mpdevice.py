@@ -1,7 +1,7 @@
 from time import sleep
 import numpy as np
 from toon.input.mpdevice import MpDevice
-from tests.mockdevices import Dummy, DummyList
+from tests.input.mockdevices import Dummy, DummyList
 
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
@@ -16,9 +16,9 @@ def test_device_single():
     res = dev.read()
     dev.stop()
     assert(len(res.num1.time) > 5)
-    assert(len(res.num1.time) == res.num1.data.shape[0])
-    assert(res.num1.data.shape[1] == 5)
-    assert(res.num2.data.dtype == np.int32)
+    assert(len(res.num1.time) == res.num1.shape[0])
+    assert(res.num1.shape[1] == 5)
+    assert(res.num2.dtype == np.int32)
 
 
 def test_device_list():
@@ -29,10 +29,10 @@ def test_device_list():
     res = dev.read()
     dev.stop()
     assert(len(res.num1.time) > 5)
-    assert(len(res.num1.time) == res.num1.data.shape[0])
-    assert(res.num1.data.shape[1] == 5)
-    assert(res.num2.data.dtype == np.int32)
-    assert(res.num1.data.shape[0] > res.num2.data.shape[1])
+    assert(len(res.num1.time) == res.num1.shape[0])
+    assert(res.num1.shape[1] == 5)
+    assert(res.num2.dtype == np.int32)
+    assert(res.num1.shape[0] > res.num2.shape[1])
 
 
 def test_restart():
@@ -56,9 +56,9 @@ def test_context():
         sleep(0.2)
         res = dev.read()
     assert(len(res.num1.time) > 5)
-    assert(len(res.num1.time) == res.num1.data.shape[0])
-    assert(res.num1.data.shape[1] == 5)
-    assert(res.num2.data.dtype == np.int32)
+    assert(len(res.num1.time) == res.num1.shape[0])
+    assert(res.num1.shape[1] == 5)
+    assert(res.num2.dtype == np.int32)
 
 
 def test_multi_devs():

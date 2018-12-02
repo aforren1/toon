@@ -1,4 +1,4 @@
-from tests.mockdevices import Dummy, DummyList
+from tests.input.mockdevices import Dummy, DummyList
 from toon.input.device import Obs
 
 

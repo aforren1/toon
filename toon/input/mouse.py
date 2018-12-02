@@ -6,11 +6,11 @@ from pynput import mouse
 class Mouse(BaseDevice):
     class Pos(Obs):
         shape = (2,)
-        ctype = ctypes.c_int
+        ctype = int
 
     class Clicks(Obs):
         shape = (1,)
-        ctype = ctypes.c_bool
+        ctype = bool
 
     class Scroll(Obs):
         shape = (1,)
