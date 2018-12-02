@@ -11,7 +11,7 @@ class Dummy(BaseDevice):
     t0 = default_timer()
 
     class Num(Obs):
-        shape = (20,)
+        shape = (128,)
         ctype = c_double
 
     def read(self):
@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     with dev:
         t0 = default_timer()
-        while default_timer() - t0 < 10:
+        while default_timer() - t0 < 30:
             t1 = default_timer()
             dat = dev.read()
             if dat.any():
