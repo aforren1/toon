@@ -10,7 +10,7 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
 # description for pypi
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     desc = f.read()
 
 setup(
@@ -18,7 +18,7 @@ setup(
     version='0.11.0',
     description='Tools for neuroscience experiments',
     long_description=desc,
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     url='https://github.com/aforren1/toon',
     author='Alexander Forrence',
     author_email='aforren1@jhu.edu',

@@ -2,9 +2,6 @@ import pytest
 from collections import namedtuple
 from toon.anim.player import Player
 from toon.anim.track import Track
-from toon.anim.easing import elastic_in
-
-pos = namedtuple('pos', 'x y')
 
 
 class Circ(object):
