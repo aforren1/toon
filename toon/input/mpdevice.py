@@ -145,9 +145,9 @@ def remote(device, device_kwargs, shared_data,
             shared.np_data.time[next_index] = datum.time
             shared.np_data.data[next_index, :] = datum.data
         else:  # rolling buffer, had cursed my bedroom
-            shared.np_data.time[:] = np.roll(shared.np_data.time, -1, axis=0)
+            np.copyto(shared.np_data.time, np.roll(shared.np_data.time, -1, axis=0))
             shared.np_data.time[-1] = datum.time
-            shared.np_data.data[:] = np.roll(shared.np_data.data, -1, axis=0)
+            np.copyto(shared.np_data.data, np.roll(shared.np_data.data, -1, axis=0))
             shared.np_data.data[-1, :] = datum.data
         # successful read, increment the indexing counter for this stream of data
         shared.counter.value += 1
