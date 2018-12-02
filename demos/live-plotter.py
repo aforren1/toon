@@ -17,7 +17,7 @@ class LivePlot(pg.GraphicsLayoutWidget):
             self.curves.append(self.plot.plot((0, 0), pen=pg.mkPen(color=color)))
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update)
-        self.timer.start(16)
+        self.timer.start(0)
 
     def update(self):
         clicks, pos, scroll = self.device.read()

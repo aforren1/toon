@@ -11,6 +11,10 @@ from toon.input.tsarray import TsArray as TsA
 import numpy as np
 import psutil
 
+ctypes_map = np.ctypeslib._typecodes.copy()
+ctypes_map['|S1'] = ctypes.c_char  # TODO: I have no clue if this is valid
+ctypes_map['|b1'] = ctypes.c_bool
+
 
 def shared_to_numpy(mp_arr, dims, dtype):
     """Convert a :class:`multiprocessing.Array` to a numpy array.
@@ -197,14 +201,14 @@ obs = namedtuple('obs', 'time data')
 class DataGlob(object):
     def __init__(self, ctype, shape, nrow, lock):
         self.new_dims = (nrow,) + shape
-        self.ctype = ctype
+        self.ctype = ctypes_map[np.dtype(ctype).str]
         self.shape = shape
         self.is_scalar = self.shape == (1,)
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
         self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=lock),
-                            data=mp.Array(ctype, prod, lock=lock))
+                            data=mp.Array(self.ctype, prod, lock=lock))
         self.counter = mp.Value(ctypes.c_uint, 0, lock=lock)
         self.generate_np_version()
         self.generate_local_version()
