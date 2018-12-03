@@ -20,9 +20,9 @@ class TsArray(np.ndarray):
         except:
             pass
 
-    def copy(self):
+    def copy(self, **kwargs):
         self._new_time_index = slice(None, None, None)
-        return super(TsArray, self).copy()
+        return super(TsArray, self).copy(**kwargs)
 
     def __getitem__(self, item):
         try:
