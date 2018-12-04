@@ -1,7 +1,12 @@
-from psychopy import visual, core, event
+from psychopy import visual, core, event, logging
 
-from toon.input.mpdevice import MpDevice
+from toon.input import MpDevice, mono_clock
 from toon.input.mouse import Mouse
+
+# relate toon time to psychopy time
+# conversely, feed in psychopy's clock.monotonicClock.getTime
+# as an argument to MpDevice
+logging.setDefaultClock(mono_clock)
 
 win = visual.Window(fullscr=True, units='pix', waitBlanking=False)
 

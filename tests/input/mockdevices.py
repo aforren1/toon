@@ -24,13 +24,29 @@ class Dummy(BaseDevice):
         dat = None
         self.counter += 1
         if self.counter % 10 == 0:
-            dat = np.random.randint(5, size=(3, 3))
+            dat = np.random.randint(5, size=self.Num2.shape)
         while default_timer() - self.t0 < (1/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
-        return self.Returns(num1=self.Num1(t, np.random.random((5,))),
+        return self.Returns(num1=self.Num1(t, np.random.random(self.Num1.shape)),
                             num2=self.Num2(t, dat))
+
+
+class SingleResp(BaseDevice):
+    t0 = default_timer()
+    sampling_frequency = 1000
+
+    class Num1(Obs):
+        shape = (100,)
+        ctype = float
+
+    def read(self):
+        while default_timer() - self.t0 < (1/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        return self.Returns(self.Num1(t, np.random.random(self.Num1.shape)))
 
 
 class DummyList(BaseDevice):
@@ -49,14 +65,14 @@ class DummyList(BaseDevice):
         dat = None
         self.counter += 1
         if self.counter % 10 == 0:
-            dat = np.random.randint(5, size=(3, 3))
+            dat = np.random.randint(5, size=self.Num2.shape)
         while default_timer() - self.t0 < (1/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
-        return [self.Returns(num1=self.Num1(t, np.random.random((5,))),
+        return [self.Returns(num1=self.Num1(t, np.random.random(self.Num1.shape)),
                              num2=self.Num2(t, dat)),
-                self.Returns(num1=self.Num1(t, np.random.random((5,))),
+                self.Returns(num1=self.Num1(t, np.random.random(self.Num1.shape)),
                              num2=self.Num2(t, dat))]
 
 

@@ -110,7 +110,11 @@ class MpDevice(object):
                     self._res[counter] = datum.local_data[0:datum.local_count]
                 else:
                     self._res[counter] = None
-        return self._return_tuple(*self._res)  # plug values into namedtuple
+        # if only one Obs, don't stuff into a namedtuple
+        if len(self._res) == 1:
+            return self._res[0]
+        # plug values into namedtuple
+        return self._return_tuple(*self._res)
 
     def stop(self):
         self.set_high_priority(False)

@@ -1,7 +1,7 @@
 from time import sleep
 import numpy as np
 from toon.input.mpdevice import MpDevice
-from tests.input.mockdevices import Dummy, DummyList
+from tests.input.mockdevices import Dummy, DummyList, SingleResp
 
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
@@ -19,6 +19,16 @@ def test_device_single():
     assert(len(res.num1.time) == res.num1.shape[0])
     assert(res.num1.shape[1] == 5)
     assert(res.num2.dtype == np.int32)
+
+
+def test_single_resp():
+    dev = MpDevice(SingleResp)
+    dev.start()
+    sleep(0.2)
+    res = dev.read()
+    dev.stop()
+    assert(isinstance(res, np.ndarray))
+    assert(type(res.time) is np.ndarray)
 
 
 def test_device_list():
