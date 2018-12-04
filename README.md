@@ -62,6 +62,7 @@ but could serve as examples of how to implement additional devices:
 -   Flock of Birds (the 1992 vintage from Ascension) via
     `Birds` (very specific to the KineReach setup in the
     BLAM Lab)
+-   CyberGlove I (I think? Immersion Corp. branding) via `Cyberglove`
 
 Generally, input devices can be used as follows:
 
