@@ -16,6 +16,7 @@ class Hand(BaseDevice):
         ctype = c_double
 
     def __init__(self, blocking=True, **kwargs):
+        super(Hand, self).__init__(**kwargs)
         self._sqrt2 = np.sqrt(2)
         self._device = None
         self._buffer = np.full(15, np.nan)
@@ -54,6 +55,7 @@ class UsbHand(BaseDevice):
         ctype = c_double
 
     def __init__(self, **kwargs):
+        super(UsbHand, self).__init__(**kwargs)
         self._sqrt2 = np.sqrt(2)
         self._device = None
         self._buffer = np.full(15, np.nan)

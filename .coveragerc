@@ -9,3 +9,4 @@ omit =
     toon/input/keyboard.py
     toon/input/mouse.py
     toon/input/birds.py
+    toon/input/cyberglove.py
