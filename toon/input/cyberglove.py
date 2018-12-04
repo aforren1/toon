@@ -17,6 +17,7 @@ class Cyberglove(BaseDevice):
 
     def __enter__(self):
         self.dev = serial.Serial(self.port, 115200, timeout=0.05)
+        self.dev.reset_input_buffer()
         self.dev.write(b'S')
         return self
 
