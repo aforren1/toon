@@ -61,7 +61,6 @@ class Player(object):
                                         self.tracks[i].obj, **self.tracks[i].kwargs)
                     except (TypeError, AttributeError):  # list of objects?
                         for obj in self.tracks[i].obj:
-                            print(obj)
                             self._do_update(self.tracks[i].attr, val,
                                             obj, **self.tracks[i].kwargs)
                 else:  # operate on self
