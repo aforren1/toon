@@ -8,7 +8,7 @@ TrackAttr = namedtuple('TrackAttr', 'track attr obj kwargs')
 class Player(object):
     def __init__(self, *args, **kwargs):
         self.tracks = []
-        self.player_state = 'stopped'  # 'playing', 'paused'
+        self.state = 'stopped'  # 'playing', 'paused'
         self.ref_time = None
         self.stop_pause_time = None
         self.duration = 0
@@ -19,24 +19,23 @@ class Player(object):
         self.duration = new_dur if new_dur > self.duration else self.duration
 
     def start(self, time):
-        if self.player_state == 'paused':
+        if self.state == 'paused':
             self.ref_time = time - self.ref_time
         else:
             self.ref_time = time
-        self.player_state = 'playing'
-        self.ref_time = time
+        self.state = 'playing'
 
     def pause(self, time):
-        if self.player_state != 'playing':
+        if self.state != 'playing':
             return
-        self.player_state = 'paused'
+        self.state = 'paused'
         self.stop_pause_time = time
 
     def stop(self):
-        self.player_state = 'stopped'
+        self.state = 'stopped'
 
     def resume(self, time):
-        if self.player_state == 'playing':
+        if self.state == 'playing':
             return
         self.start(time)
 
@@ -58,8 +57,10 @@ class Player(object):
         # otherwise (user gave string), directly set the attribute
         setattr(obj, attr, val)
 
-    def update(self, time):
-        if self.player_state != 'playing':
+    def advance(self, time):
+        if self.state != 'playing':
+            return
+        if time < self.ref_time:
             return
         for trk in self.tracks:
             # if tracks are playing, will return a val
@@ -76,13 +77,21 @@ class Player(object):
                 self._do_update(trk.attr, val, self, **trk.kwargs)
             # if we've gone beyond, stop playing
             if time - self.ref_time >= self.duration:
-                self.player_state = 'stopped'
+                self.state = 'stopped'
 
     def is_playing(self):
-        return self.player_state == 'playing'
+        return self.state == 'playing'
 
     def is_paused(self):
-        return self.player_state == 'paused'
+        return self.state == 'paused'
 
     def is_stopped(self):
-        return self.player_state == 'stopped'
+        return self.state == 'stopped'
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, val):
+        self._state = val

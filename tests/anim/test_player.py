@@ -26,11 +26,11 @@ def test_player():
 
     player.start(0)
     assert(player.is_playing())
-    player.update(0.5)
+    player.advance(0.5)
     assert(circ.x == circ2.x)
-    player.update(0.9)
+    player.advance(0.9)
     assert(circ.x == circ2.x)
-    player.update(1.0)
+    player.advance(1.0)
     # test if stops after track exhausted
     assert(not player.is_playing())
     # modifying a group of objects (with matching API)
@@ -38,7 +38,7 @@ def test_player():
 
     player.add(trk, 'y', circs)
     player.start(0)
-    player.update(0.5)
+    player.advance(0.5)
     assert(all([i.y == 0.5 for i in circs]))
 
     player.stop()
@@ -49,7 +49,7 @@ def test_player():
 
     player.add(trk, call, circ, foo=2)
     player.start(0)
-    player.update(0.5)
+    player.advance(0.5)
     assert(circ.x == 1)
 
 
@@ -71,5 +71,5 @@ def test_player_mixin():
     circ.add(trk, 'x', circ2)
 
     circ.start(0)
-    circ.update(0.5)
+    circ.advance(0.5)
     assert(circ.x == circ.y == circ2.x)
