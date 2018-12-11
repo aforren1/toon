@@ -104,7 +104,7 @@ circle = Circle()
 keyframes = [(0, 0), (0.5, 0.8), (1.0, 1.0)]
 track = Track(keyframes, easing=elastic_in)
 player = Player()
-player.add('x', track, 'x', circle)
+player.add(track, 'x', circle)
 
 timeline = Timeline()
 timeline.start()

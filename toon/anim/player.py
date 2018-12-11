@@ -7,30 +7,38 @@ TrackAttr = namedtuple('TrackAttr', 'track attr obj kwargs')
 
 class Player(object):
     def __init__(self, *args, **kwargs):
-        self.tracks = {}
+        self.tracks = []
+        self.player_state = 'stopped'  # 'playing', 'paused'
+        self.ref_time = None
+        self.stop_pause_time = None
+        self.duration = 0
 
-    def add(self, name, track, attr, obj=None, **kwargs):
-        if name in self.tracks:
-            raise ValueError('Track name already exists.')
-        self.tracks.update({name: TrackAttr(copy(track), attr, obj, kwargs)})
+    def add(self, track, attr, obj=None, **kwargs):
+        self.tracks.append(TrackAttr(copy(track), attr, obj, kwargs))
+        new_dur = track.duration()
+        self.duration = new_dur if new_dur > self.duration else self.duration
 
-    def remove(self, names):
-        if isinstance(names, list):
-            for i in names:
-                self.tracks.pop(i, None)
+    def start(self, time):
+        if self.player_state == 'paused':
+            self.ref_time = time - self.ref_time
         else:
-            self.tracks.pop(names, None)
-        return
+            self.ref_time = time
+        self.player_state = 'playing'
+        self.ref_time = time
 
-    def start(self, time, names=None):
-        if not names:
-            for i in self.tracks:
-                self.tracks[i].track.start(time)
-        elif isinstance(names, list):
-            for i in names:
-                self.tracks[i].track.start(time)
-        else:
-            self.tracks[names].track.start(time)
+    def pause(self, time):
+        if self.player_state != 'playing':
+            return
+        self.player_state = 'paused'
+        self.stop_pause_time = time
+
+    def stop(self):
+        self.player_state = 'stopped'
+
+    def resume(self, time):
+        if self.player_state == 'playing':
+            return
+        self.start(time)
 
     def _do_update(self, attr, val, obj, **kwargs):
         # if we get a function, call function with updated val
@@ -51,34 +59,30 @@ class Player(object):
         setattr(obj, attr, val)
 
     def update(self, time):
-        for i in self.tracks:
+        if self.player_state != 'playing':
+            return
+        for trk in self.tracks:
             # if tracks are playing, will return a val
-            val = self.tracks[i].track.update(time)
-            if val is not None:
-                if self.tracks[i].obj:  # object or list provided, so we'll manipulate them
-                    try:  # see if single object
-                        self._do_update(self.tracks[i].attr, val,
-                                        self.tracks[i].obj, **self.tracks[i].kwargs)
-                    except (TypeError, AttributeError):  # list of objects?
-                        for obj in self.tracks[i].obj:
-                            self._do_update(self.tracks[i].attr, val,
-                                            obj, **self.tracks[i].kwargs)
-                else:  # operate on self
-                    self._do_update(self.tracks[i].attr, val, self, **self.tracks[i].kwargs)
+            val = trk.track.at(time - self.ref_time)
+            if trk.obj:  # object or list provided, so we'll manipulate them
+                try:  # see if single object
+                    self._do_update(trk.attr, val,
+                                    trk.obj, **trk.kwargs)
+                except (TypeError, AttributeError):  # list of objects?
+                    for obj in trk.obj:
+                        self._do_update(trk.attr, val,
+                                        obj, **trk.kwargs)
+            else:  # operate on self
+                self._do_update(trk.attr, val, self, **trk.kwargs)
+            # if we've gone beyond, stop playing
+            if time - self.ref_time >= self.duration:
+                self.player_state = 'stopped'
 
-    def stop(self, names=None):
-        if not names:
-            for i in self.tracks:
-                self.tracks[i].track.state = 'stopped'
-        elif isinstance(names, list):
-            for i in names:
-                self.tracks[i].track.state = 'stopped'
-        else:
-            # single key
-            self.tracks[names].track.state = 'stopped'
+    def is_playing(self):
+        return self.player_state == 'playing'
 
-    def is_playing(self, name):
-        return self.tracks[name].track.state == 'playing'
+    def is_paused(self):
+        return self.player_state == 'paused'
 
-    def any_playing(self):
-        return any([self.tracks[x].track.state == 'playing' for x in self.tracks])
+    def is_stopped(self):
+        return self.player_state == 'stopped'

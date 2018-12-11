@@ -20,41 +20,35 @@ def test_player():
 
     player = Player()
     # directly access an attribute
-    player.add('x1', trk, 'x', circ)
+    player.add(trk, 'x', circ)
     # callback
-    player.add('x2', trk, change_val, circ2)
+    player.add(trk, change_val, circ2)
 
     player.start(0)
-    assert(all([player.is_playing(x) for x in player.tracks]))
+    assert(player.is_playing())
     player.update(0.5)
     assert(circ.x == circ2.x)
-    player.stop('x1')
     player.update(0.9)
-    assert(player.is_playing('x2'))
-    assert(circ.x < circ2.x)
+    assert(circ.x == circ2.x)
     player.update(1.0)
     # test if stops after track exhausted
-    assert(not player.is_playing('x2'))
+    assert(not player.is_playing())
     # modifying a group of objects (with matching API)
     circs = [Circ() for i in range(5)]
 
-    player.add('x3', trk, 'y', circs)
-    player.start(0, ['x3'])
+    player.add(trk, 'y', circs)
+    player.start(0)
     player.update(0.5)
     assert(all([i.y == 0.5 for i in circs]))
-    player.remove('x3')
-    with pytest.raises(KeyError):
-        player.tracks['x3']
 
     player.stop()
-    assert(not player.any_playing())
-    assert(all([not player.is_playing(x) for x in player.tracks]))
+    assert(not player.is_playing())
 
     def call(val, obj, foo):
         obj.x = val * foo
 
-    player.add('x4', trk, call, circ, foo=2)
-    player.start(0, 'x4')
+    player.add(trk, call, circ, foo=2)
+    player.start(0)
     player.update(0.5)
     assert(circ.x == 1)
 
@@ -70,14 +64,12 @@ def test_player_mixin():
     circ = CircMix()
     circ2 = Circ()
     # change directly
-    circ.add('x', trk, 'x')
+    circ.add(trk, 'x')
     # callback
-    circ.add('y', trk, change_y)
+    circ.add(trk, change_y)
     # drive another object
-    circ.add('x2', trk, 'x', circ2)
+    circ.add(trk, 'x', circ2)
 
     circ.start(0)
     circ.update(0.5)
     assert(circ.x == circ.y == circ2.x)
-    with pytest.raises(ValueError):
-        circ.add('x', trk, change_y)
