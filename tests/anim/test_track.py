@@ -31,3 +31,10 @@ def test_other_interp():
     track = Track(kfs, interpolator=select)
     assert(track.at(0.499) == 0)
     assert(track.at(0.5) == 1)
+
+
+def test_outside_bounds():
+    kfs = [(0.5, 1), (1, 2), (2, 3)]
+    track = Track(kfs)
+    assert(track.at(0.2) == 1)
+    assert(track.at(100) == 3)
