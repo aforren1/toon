@@ -17,6 +17,9 @@ class Track(object):
     def at(self, time):
         # find the two keyframes to interpolate between
         # rel_time is the time relative to the start
+        if time < self.data[0][0]:
+            # TODO: extrapolation (currently equivalent to constant)
+            return self.data[0][1]
         try:
             index, goal = next((i, x) for i, x in enumerate(self.data) if x[0] > time)
         except StopIteration:
