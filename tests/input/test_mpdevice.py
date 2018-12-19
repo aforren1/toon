@@ -40,7 +40,7 @@ def test_have_all_data():
     times = []
     with dev:
         for i in range(100):
-            sleep(0.016)
+            sleep(0.2)
             data = dev.read()
             if data is not None:
                 datae.append(deepcopy(data))
