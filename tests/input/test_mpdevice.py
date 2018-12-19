@@ -30,9 +30,6 @@ def test_single_resp():
     assert(type(res.time) is np.ndarray)
 
 
-np.set_printoptions(threshold=10000)
-
-
 def test_have_all_data():
     dev = MpDevice(SingleResp)
     datae = []
