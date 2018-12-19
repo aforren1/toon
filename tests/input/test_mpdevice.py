@@ -2,7 +2,7 @@ from time import sleep
 import numpy as np
 from toon.input.mpdevice import MpDevice
 from tests.input.mockdevices import Dummy, DummyList, SingleResp
-
+from copy import deepcopy
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
 DummyList.sampling_frequency = 1000
@@ -29,6 +29,25 @@ def test_single_resp():
     dev.stop()
     assert(isinstance(res, np.ndarray))
     assert(type(res.time) is np.ndarray)
+
+
+def test_have_all_data():
+    dev = MpDevice(SingleResp)
+    datae = []
+    times = []
+    with dev:
+        for i in range(100):
+            sleep(0.016)
+            data = dev.read()
+            if data is not None:
+                datae.append(deepcopy(data))
+                times.append(deepcopy(data.time))
+    times = np.hstack(times)
+    datae = np.hstack(datae)
+    # check time is always increasing
+    assert((np.diff(times) > 0).all())
+    # check data (should be monotonically increasing)
+    assert((np.diff(datae) == 1).all())
 
 
 def test_device_list():

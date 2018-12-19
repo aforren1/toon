@@ -11,7 +11,7 @@ class Dummy(BaseDevice):
     t0 = default_timer()
 
     class Num(Obs):
-        shape = (128,)
+        shape = (256,)
         ctype = c_double
 
     def read(self):
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         while default_timer() - t0 < 30:
             t1 = default_timer()
             dat = dev.read()
-            if dat.any():
+            if dat is not None:
                 vals.append(default_timer() - t1)
                 # print(dat[0].data)
                 sleep(0.016)
