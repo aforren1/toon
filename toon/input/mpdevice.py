@@ -163,6 +163,9 @@ def remote(device, device_kwargs, shared_data,
     gc.disable()
     dev = device(**device_kwargs)
 
+    for i in shared_data:
+        i.generate_np_version()
+
     with dev:
         remote_ready.set()  # signal to the local process that remote is ready to go
         while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
