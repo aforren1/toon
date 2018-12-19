@@ -31,6 +31,9 @@ def test_single_resp():
     assert(type(res.time) is np.ndarray)
 
 
+np.set_printoptions(threshold=10000)
+
+
 def test_have_all_data():
     dev = MpDevice(SingleResp)
     datae = []
@@ -44,6 +47,8 @@ def test_have_all_data():
                 times.append(deepcopy(data.time))
     times = np.hstack(times)
     datae = np.hstack(datae)
+    print(times)
+    print(datae)
     # check time is always increasing
     assert((np.diff(times) > 0).all())
     # check data (should be monotonically increasing)
