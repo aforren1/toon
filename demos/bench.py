@@ -15,7 +15,7 @@ class Dummy(BaseDevice):
         ctype = c_double
 
     def read(self):
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()

@@ -25,7 +25,7 @@ class Dummy(BaseDevice):
         self.counter += 1
         if self.counter % 10 == 0:
             dat = np.random.randint(5, size=self.Num2.shape)
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
@@ -43,7 +43,7 @@ class SingleResp(BaseDevice):
         ctype = int
 
     def read(self):
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         val = self.counter
         self.counter += 1
@@ -69,7 +69,7 @@ class DummyList(BaseDevice):
         self.counter += 1
         if self.counter % 10 == 0:
             dat = np.random.randint(5, size=self.Num2.shape)
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
