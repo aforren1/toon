@@ -22,7 +22,7 @@ def shared_to_numpy(mp_arr, dims, dtype):
     Derived from the answer at:
     <https://stackoverflow.com/questions/7894791/use-numpy-array-in-shared-memory-for-multiprocessing>
     """
-    return np.frombuffer(mp_arr.get_obj(), dtype=dtype).reshape(dims)
+    return np.frombuffer(mp_arr, dtype=dtype).reshape(dims)
 
 
 class MpDevice(object):
@@ -212,8 +212,8 @@ class DataGlob(object):
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
-        self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=lock),
-                            data=mp.Array(self.ctype, prod, lock=lock))
+        self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=False),
+                            data=mp.Array(self.ctype, prod, lock=False))
         self.counter = mp.Value(ctypes.c_uint, 0, lock=False)
         self.generate_np_version()
         self.generate_local_version()

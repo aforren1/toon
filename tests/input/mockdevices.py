@@ -35,7 +35,7 @@ class Dummy(BaseDevice):
 
 class SingleResp(BaseDevice):
     t0 = default_timer()
-    sampling_frequency = 100
+    sampling_frequency = 1000
     counter = 0
 
     class Num1(Obs):
