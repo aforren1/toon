@@ -15,7 +15,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.11.2',
+    version='0.11.3',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',
@@ -42,6 +42,7 @@ setup(
         'hand': ['hidapi', 'pyusb'],
         'birds': ['pyserial'],
         'keyboard': ['pynput'],
+        'cyberglove': ['pyserial'],
         'force': ['nidaqmx;platform_system=="Windows"']
     },
     keywords='psychophysics neuroscience input experiment',
