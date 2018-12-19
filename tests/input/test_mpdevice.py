@@ -40,10 +40,8 @@ def test_have_all_data():
     with dev:
         for i in range(100):
             sleep(0.2)
-            print(dev._data[0][0].counter.value, dev._data[1][0].counter.value)
             data = dev.read()
             if data is not None:
-                print(data)
                 datae.append(np.copy(data))
                 times.append(np.copy(data.time))
     times = np.hstack(times)
