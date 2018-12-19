@@ -164,7 +164,8 @@ def remote(device, device_kwargs, shared_data,
     dev = device(**device_kwargs)
 
     for i in shared_data:
-        i.generate_np_version()
+        for j in i:
+            j.generate_np_version()
 
     with dev:
         remote_ready.set()  # signal to the local process that remote is ready to go
