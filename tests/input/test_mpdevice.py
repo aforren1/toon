@@ -2,7 +2,6 @@ from time import sleep
 import numpy as np
 from toon.input.mpdevice import MpDevice
 from tests.input.mockdevices import Dummy, DummyList, SingleResp
-from copy import deepcopy
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
 DummyList.sampling_frequency = 1000
@@ -44,8 +43,9 @@ def test_have_all_data():
             print(dev._data[0][0].counter.value, dev._data[1][0].counter.value)
             data = dev.read()
             if data is not None:
-                datae.append(deepcopy(data))
-                times.append(deepcopy(data.time))
+                print(data)
+                datae.append(np.copy(data))
+                times.append(np.copy(data.time))
     times = np.hstack(times)
     datae = np.hstack(datae)
     # check time is always increasing
