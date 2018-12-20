@@ -15,7 +15,7 @@ class Dummy(BaseDevice):
         ctype = c_double
 
     def read(self):
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         while default_timer() - t0 < 30:
             t1 = default_timer()
             dat = dev.read()
-            if dat.any():
+            if dat is not None:
                 vals.append(default_timer() - t1)
                 # print(dat[0].data)
                 sleep(0.016)

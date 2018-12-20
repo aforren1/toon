@@ -22,7 +22,7 @@ def shared_to_numpy(mp_arr, dims, dtype):
     Derived from the answer at:
     <https://stackoverflow.com/questions/7894791/use-numpy-array-in-shared-memory-for-multiprocessing>
     """
-    return np.frombuffer(mp_arr.get_obj(), dtype=dtype).reshape(dims)
+    return np.frombuffer(mp_arr, dtype=dtype).reshape(dims)
 
 
 class MpDevice(object):
@@ -49,7 +49,7 @@ class MpDevice(object):
         self.shared_locks = []
         # make one lock per buffer
         for i in range(n_buffers):
-            self.shared_locks.append(mp.RLock())
+            self.shared_locks.append(mp.Lock())
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
         self.remote_done = mp.Event()
@@ -100,7 +100,7 @@ class MpDevice(object):
         # lock, so we should always be safe to access w/o lock here
         current_buffer_index = int(self.current_buffer_index.value)
         # this *may* block, if the remote is currently writing
-        with self._data[current_buffer_index][0].counter.get_lock():
+        with self._data[current_buffer_index][0].lock:
             for counter, datum in enumerate(self._data[current_buffer_index]):
                 datum.local_count = datum.counter.value
                 datum.counter.value = 0  # reset (so that we start writing to top of array)
@@ -163,6 +163,10 @@ def remote(device, device_kwargs, shared_data,
     gc.disable()
     dev = device(**device_kwargs)
 
+    for i in shared_data:
+        for j in i:
+            j.generate_np_version()
+
     with dev:
         remote_ready.set()  # signal to the local process that remote is ready to go
         while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
@@ -178,12 +182,12 @@ def remote(device, device_kwargs, shared_data,
                 is_list = False
             if flag:  # any data at all (otherwise, don't bother acquiring locks)
                 # test whether the current buffer is accessible
-                lck = shared_data[buffer_index][0].counter.get_lock()
+                lck = shared_data[buffer_index][0].lock
                 success = lck.acquire(block=False)
                 if not success:  # switch to the other buffer (the local process is in the midst of reading)
                     current_buffer_index.value = not current_buffer_index.value
                     buffer_index = int(current_buffer_index.value)
-                    lck = shared_data[buffer_index][0].counter.get_lock()
+                    lck = shared_data[buffer_index][0].lock
                     lck.acquire()
                 try:
                     if is_list:
@@ -208,12 +212,13 @@ class DataGlob(object):
         self.ctype = ctypes_map[np.dtype(ctype).str]
         self.shape = shape
         self.is_scalar = self.shape == (1,)
+        self.lock = lock
         prod = int(np.prod(self.new_dims))
         # don't touch (usually)
         self.nrow = int(nrow)
-        self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=lock),
-                            data=mp.Array(self.ctype, prod, lock=lock))
-        self.counter = mp.Value(ctypes.c_uint, 0, lock=lock)
+        self._mp_data = obs(time=mp.Array(ctypes.c_double, self.nrow, lock=False),
+                            data=mp.Array(self.ctype, prod, lock=False))
+        self.counter = mp.Value(ctypes.c_uint, 0, lock=False)
         self.generate_np_version()
         self.generate_local_version()
 

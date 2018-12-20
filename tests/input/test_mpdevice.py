@@ -2,7 +2,6 @@ from time import sleep
 import numpy as np
 from toon.input.mpdevice import MpDevice
 from tests.input.mockdevices import Dummy, DummyList, SingleResp
-
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
 DummyList.sampling_frequency = 1000
@@ -29,6 +28,37 @@ def test_single_resp():
     dev.stop()
     assert(isinstance(res, np.ndarray))
     assert(type(res.time) is np.ndarray)
+
+
+def test_ringbuffer():
+    original_fs = SingleResp.sampling_frequency
+    SingleResp.sampling_frequency = 10
+    dev = MpDevice(SingleResp)
+    with dev:
+        sleep(5)
+        res = dev.read()
+    assert(all(np.diff(res) == 1))
+    assert(all(np.diff(res.time) > 0))
+    SingleResp.sampling_frequency = original_fs
+
+
+def test_have_all_data():
+    dev = MpDevice(SingleResp)
+    datae = []
+    times = []
+    with dev:
+        for i in range(100):
+            sleep(0.2)
+            data = dev.read()
+            if data is not None:
+                datae.append(np.copy(data))
+                times.append(np.copy(data.time))
+    times = np.hstack(times)
+    datae = np.hstack(datae)
+    # check time is always increasing
+    assert((np.diff(times) > 0).all())
+    # check data (should be monotonically increasing)
+    assert((np.diff(datae) == 1).all())
 
 
 def test_device_list():

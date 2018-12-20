@@ -25,7 +25,7 @@ class Dummy(BaseDevice):
         self.counter += 1
         if self.counter % 10 == 0:
             dat = np.random.randint(5, size=self.Num2.shape)
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
@@ -36,17 +36,20 @@ class Dummy(BaseDevice):
 class SingleResp(BaseDevice):
     t0 = default_timer()
     sampling_frequency = 1000
+    counter = 0
 
     class Num1(Obs):
-        shape = (100,)
-        ctype = float
+        shape = (1,)
+        ctype = int
 
     def read(self):
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
+        val = self.counter
+        self.counter += 1
         self.t0 = default_timer()
         t = self.clock()
-        return self.Returns(self.Num1(t, np.random.random(self.Num1.shape)))
+        return self.Returns(self.Num1(t, val))
 
 
 class DummyList(BaseDevice):
@@ -66,7 +69,7 @@ class DummyList(BaseDevice):
         self.counter += 1
         if self.counter % 10 == 0:
             dat = np.random.randint(5, size=self.Num2.shape)
-        while default_timer() - self.t0 < (1/self.sampling_frequency):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
@@ -90,7 +93,7 @@ if __name__ == '__main__':  # pragma: no cover
             t0 = default_timer()
             dat = dev.read()
             t1 = default_timer()
-            if dat[0].data is not None:
+            if dat.num2 is not None:
                 dff = t1 - t0
                 # print(dff)
                 # print(dat.num1.data.shape)
