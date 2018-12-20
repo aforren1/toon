@@ -112,7 +112,7 @@ player.start(timeline.frame_time)
 
 while timeline.frame_time < 2:
     timeline.next_frame()
-    player.update(timeline.frame_time)
+    player.advance(timeline.frame_time)
     print(circle.x)
     # flip window
     sleep(0.016)
