@@ -84,16 +84,17 @@ def set_ori(val, obj, **kwargs):
 
 # Player dictating several visual changes
 # TODO: callbacks once time reached?
-player.add('lin', lin_track, set_pos, obj=lin_cir)
-player.add('elastic', elastic_track, set_pos, obj=elas_cir)
+player.add(lin_track, set_pos, obj=lin_cir)
+player.add(elastic_track, set_pos, obj=elas_cir)
 
-player.add('smooth', smooth_track, 'radius', expand_cir)
-player.add('col1', col1_track, set_col1, obj=elas_cir)
-player.add('col2', col2_track, 'fillColor', lin_cir)
+player.add(smooth_track, 'radius', expand_cir)
+player.add(col1_track, set_col1, obj=elas_cir)
+player.add(col2_track, 'fillColor', lin_cir)
 
 # visual as Player
-rect.add('width', smooth_track, 'width')
-rect.add('rot', rotation_track, set_ori)
+rect.add(smooth_track, 'width')
+rect.add(rotation_track, set_ori)
+rect.scale = 4
 
 win.callOnFlip(player.start, 0)
 win.callOnFlip(rect.start, 0)
@@ -111,17 +112,13 @@ t0 = default_timer()
 while not event.getKeys():
     win.callOnFlip(timeline.next_frame)
     #print((timeline.frame_time(), lin_cir.pos))
-    player.update(timeline.frame_time + 1/60)
-    rect.update(timeline.frame_time + 1/60)
+    player.advance(timeline.frame_time + 1/60)
+    rect.advance(timeline.frame_time + 1/60)
     rect.draw()
     lin_cir.draw()
     elas_cir.draw()
     expand_cir.draw()
     line.draw()
-    if val and default_timer() - t0 > 6:
-        # restart
-        val = False
-        player.start(timeline.frame_time, ['elastic'])
     if default_timer() - t0 > 7.3:
         player.stop()
     if default_timer() - t0 > 9.0:
