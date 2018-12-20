@@ -12,7 +12,7 @@ class Player(object):
         self.ref_time = None
         self.stop_pause_time = None
         self.duration = 0
-        self.scale = 1
+        self.timescale = 1
 
     def add(self, track, attr, obj=None, **kwargs):
         self.tracks.append(TrackAttr(copy(track), attr, obj, kwargs))
@@ -65,7 +65,7 @@ class Player(object):
             return
         for trk in self.tracks:
             # if tracks are playing, will return a val
-            val = trk.track.at((time - self.ref_time) * self.scale)
+            val = trk.track.at((time - self.ref_time) * self.timescale)
             if trk.obj:  # object or list provided, so we'll manipulate them
                 try:  # see if single object
                     self._do_update(trk.attr, val,
@@ -98,8 +98,8 @@ class Player(object):
         self._state = val
 
     @property
-    def scale(self):
-        return self._scale
+    def timescale(self):
+        return self._timescale
 
-    def scale(self, value):
-        self._scale = value
+    def timescale(self, value):
+        self._timescale = value

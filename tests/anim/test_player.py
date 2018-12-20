@@ -78,13 +78,13 @@ def test_player_mixin():
 def test_scaling():
     circ = Circ()
     player = Player()
-    player.scale = 0.5
+    player.timescale = 0.5
     player.add(Track([(0, 0), (1, 1)]), 'x', circ)
     player.start(0)
     player.advance(0.5)
     assert(circ.x == 0.25)
 
-    player.scale = 2
+    player.timescale = 2
     player.start(10)
     player.advance(10.5)
     assert(circ.x == 1)
