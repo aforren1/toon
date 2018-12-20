@@ -14,28 +14,30 @@ if os.name is 'nt':
 else:
     from timeit import default_timer as get_time
 
+
 class MonoClock(object):
     """A stripped-down version of psychopy's clock.MonotonicClock.
 
     I wanted to avoid importing pyglet on the remote process, in case that causes any headache.
     """
-    def __init__(self, start_time=None):
-        if not start_time:
-            # this is sub-millisec timer in python
-            self._start_time = get_time()
-        else:
-            self._start_time = start_time
+
+    def __init__(self):
+        # this is sub-millisec timer in python
+        self._start_time = get_time()
+
     def get_time(self):
         """Returns the current time on this clock in secs (sub-ms precision)
         """
         return get_time() - self._start_time
+
     def getTime(self):
         """Alias get_time so we can set the default psychopy clock
         """
         return self.get_time()
+
     @property
     def start_time(self):
         return self._start_time
 
+
 mono_clock = MonoClock()
-    
