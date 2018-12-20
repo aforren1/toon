@@ -30,6 +30,18 @@ def test_single_resp():
     assert(type(res.time) is np.ndarray)
 
 
+def test_ringbuffer():
+    original_fs = SingleResp.sampling_frequency
+    SingleResp.sampling_frequency = 10
+    dev = MpDevice(SingleResp)
+    with dev:
+        sleep(5)
+        res = dev.read()
+    assert(all(np.diff(res) == 1))
+    assert(all(np.diff(res.time) > 0))
+    SingleResp.sampling_frequency = original_fs
+
+
 def test_have_all_data():
     dev = MpDevice(SingleResp)
     datae = []
