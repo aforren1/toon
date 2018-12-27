@@ -1,7 +1,12 @@
 from time import sleep
+
 import numpy as np
-from toon.input.mpdevice import MpDevice
+from pytest import approx
 from tests.input.mockdevices import Dummy, DummyList, SingleResp
+
+from toon.input.clock import mono_clock
+from toon.input.mpdevice import MpDevice
+
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
 DummyList.sampling_frequency = 1000
@@ -112,3 +117,16 @@ def test_multi_devs():
 
     assert(res1.num1.time is not None)
     assert(res2.num1.time is not None)
+
+
+def test_remote_clock():
+    # does the clock origin match?
+    # the most recent reading should've been within
+    # one sampling period
+    dev = MpDevice(SingleResp, clock=mono_clock.getTime)
+    sleep(0.5)
+    with dev:
+        sleep(0.1)
+        res = dev.read()
+        time = mono_clock.get_time()
+    assert(time - res.time[-1] == approx(1.0/SingleResp.sampling_frequency, abs=1e-3))

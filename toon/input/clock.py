@@ -1,18 +1,6 @@
 import os
 
-if os.name is 'nt':
-    from ctypes import byref, c_int64, windll
-    _fcounter = c_int64()
-    _qpfreq = c_int64()
-    windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
-    _qpfreq = float(_qpfreq.value)
-    _winQPC = windll.Kernel32.QueryPerformanceCounter
-
-    def get_time():
-        _winQPC(byref(_fcounter))
-        return _fcounter.value / _qpfreq
-else:
-    from timeit import default_timer as get_time
+from timeit import default_timer
 
 
 class MonoClock(object):
@@ -23,12 +11,13 @@ class MonoClock(object):
 
     def __init__(self):
         # this is sub-millisec timer in python
-        self._start_time = get_time()
+        self.default_timer = default_timer
+        self._start_time = default_timer()
 
     def get_time(self):
         """Returns the current time on this clock in secs (sub-ms precision)
         """
-        return get_time() - self._start_time
+        return self.default_timer() - self._start_time
 
     def getTime(self):
         """Alias get_time so we can set the default psychopy clock
