@@ -52,6 +52,19 @@ class SingleResp(BaseDevice):
         return self.Returns(self.Num1(t, val))
 
 
+class Timebomb(SingleResp):
+    def read(self):
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        val = self.counter
+        self.counter += 1
+        if self.counter > 10:
+            raise ValueError('Broke it.')
+        self.t0 = default_timer()
+        t = self.clock()
+        return self.Returns(self.Num1(t, val))
+
+
 class DummyList(BaseDevice):
     counter = 0
     t0 = default_timer()

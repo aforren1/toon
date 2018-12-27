@@ -53,6 +53,7 @@ class MpDevice(object):
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
         self.remote_done = mp.Event()
+        self.local_err, remote_err = mp.Pipe(duplex=False)
         self.current_buffer_index = mp.Value(ctypes.c_bool, 0, lock=False)  # shouldn't need a lock
 
         # figure out number of observations to save between reads
@@ -82,7 +83,7 @@ class MpDevice(object):
         self.process = mp.Process(target=remote,
                                   args=(self.device, self.device_kwargs, self._data,
                                         self.remote_ready, self.kill_remote, os.getpid(),
-                                        self.current_buffer_index, self.remote_done))
+                                        self.current_buffer_index, self.remote_done, remote_err))
         self.process.daemon = True
         self.process.start()
         self.ps_process = psutil.Process(self.process.pid)
@@ -98,6 +99,10 @@ class MpDevice(object):
         # get the currently used buffer
         # note that the value only changes *if* this function has acquired the
         # lock, so we should always be safe to access w/o lock here
+
+        # check if error, and raise if present
+        self.check_error()
+
         current_buffer_index = int(self.current_buffer_index.value)
         # this *may* block, if the remote is currently writing
         with self._data[current_buffer_index][0].lock:
@@ -128,6 +133,14 @@ class MpDevice(object):
     def __exit__(self, *args):
         self.stop()
 
+    def check_error(self):
+        if self.remote_done.is_set():
+            # already closed (e.g. if using start() & stop() manually)
+            if self.kill_remote.is_set():
+                raise ValueError('MpDevice is closed.')
+            # real error at *any* point remotely (device instantiation, shape mismatch, ...)
+            raise self.local_err.recv()
+
     def set_high_priority(self, val=False):
         try:
             if val:
@@ -144,7 +157,7 @@ class MpDevice(object):
 def remote(device, device_kwargs, shared_data,
            # extras
            remote_ready, kill_remote, parent_pid,  # don't include in coverage, implicitly tested
-           current_buffer_index, remote_done):  # pragma: no cover
+           current_buffer_index, remote_done, remote_err):  # pragma: no cover
 
     def process_data():
         shared = shared_data[buffer_index][counter]  # alias
@@ -160,46 +173,51 @@ def remote(device, device_kwargs, shared_data,
         # successful read, increment the indexing counter for this stream of data
         shared.counter.value += 1
 
-    gc.disable()
-    dev = device(**device_kwargs)
+    try:
+        gc.disable()
+        dev = device(**device_kwargs)
 
-    for i in shared_data:
-        for j in i:
-            j.generate_np_version()
+        for i in shared_data:
+            for j in i:
+                j.generate_np_version()
 
-    with dev:
-        remote_ready.set()  # signal to the local process that remote is ready to go
-        while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
-            data = dev.read()  # get observation(s) from device
-            buffer_index = int(current_buffer_index.value)  # can only change later
-            if isinstance(data, list):  # if a list of observations, rather than a single one
-                inds = [[d is not None and d.any() for d in l] for l in data]
-                flag = any([any(d) for d in inds])
-                is_list = True
-            else:
-                inds = [d is not None and d.any() for d in data]
-                flag = any(inds)
-                is_list = False
-            if flag:  # any data at all (otherwise, don't bother acquiring locks)
-                # test whether the current buffer is accessible
-                lck = shared_data[buffer_index][0].lock
-                success = lck.acquire(block=False)
-                if not success:  # switch to the other buffer (the local process is in the midst of reading)
-                    current_buffer_index.value = not current_buffer_index.value
-                    buffer_index = int(current_buffer_index.value)
+        with dev:
+            remote_ready.set()  # signal to the local process that remote is ready to go
+            while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
+                data = dev.read()  # get observation(s) from device
+                buffer_index = int(current_buffer_index.value)  # can only change later
+                if isinstance(data, list):  # if a list of observations, rather than a single one
+                    inds = [[d is not None and d.any() for d in l] for l in data]
+                    flag = any([any(d) for d in inds])
+                    is_list = True
+                else:
+                    inds = [d is not None and d.any() for d in data]
+                    flag = any(inds)
+                    is_list = False
+                if flag:  # any data at all (otherwise, don't bother acquiring locks)
+                    # test whether the current buffer is accessible
                     lck = shared_data[buffer_index][0].lock
-                    lck.acquire()
-                try:
-                    if is_list:
-                        for dat, ind in zip(data, inds):
-                            for counter, datum in zip(np.where(ind)[0], compress(dat, ind)):
+                    success = lck.acquire(block=False)
+                    if not success:  # switch to the other buffer (the local process is in the midst of reading)
+                        current_buffer_index.value = not current_buffer_index.value
+                        buffer_index = int(current_buffer_index.value)
+                        lck = shared_data[buffer_index][0].lock
+                        lck.acquire()
+                    try:
+                        if is_list:
+                            for dat, ind in zip(data, inds):
+                                for counter, datum in zip(np.where(ind)[0], compress(dat, ind)):
+                                    process_data()
+                        else:
+                            for counter, datum in zip(np.where(inds)[0], compress(data, inds)):
                                 process_data()
-                    else:
-                        for counter, datum in zip(np.where(inds)[0], compress(data, inds)):
-                            process_data()
-                finally:
-                    lck.release()
-    remote_done.set()
+                    finally:
+                        lck.release()
+    except Exception as e:
+        remote_err.send(e)
+        remote_err.close()
+    finally:
+        remote_done.set()
 
 
 # make sure this is visible for pickleability

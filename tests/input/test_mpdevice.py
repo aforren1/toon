@@ -1,8 +1,8 @@
 from time import sleep
 
 import numpy as np
-from pytest import approx
-from tests.input.mockdevices import Dummy, DummyList, SingleResp
+from pytest import approx, raises
+from tests.input.mockdevices import Dummy, DummyList, SingleResp, Timebomb
 
 from toon.input.clock import mono_clock
 from toon.input.mpdevice import MpDevice
@@ -130,3 +130,20 @@ def test_remote_clock():
         res = dev.read()
         time = mono_clock.get_time()
     assert(time - res.time[-1] == approx(1.0/SingleResp.sampling_frequency, abs=1e-3))
+
+
+def test_already_closed():
+    dev = MpDevice(SingleResp)
+    dev.start()
+    res = dev.read()
+    dev.stop()
+    with raises(ValueError):
+        dev.read()
+
+
+def test_catch_remote_err():
+    dev = MpDevice(Timebomb)
+    with dev:
+        sleep(0.1)
+        with raises(ValueError):
+            res = dev.read()
