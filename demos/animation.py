@@ -119,13 +119,13 @@ while not event.getKeys():
     elas_cir.draw()
     expand_cir.draw()
     line.draw()
-    if default_timer() - t0 > 7.3:
-        player.stop()
     if default_timer() - t0 > 9.0:
         player.start(timeline.frame_time)
         # delay animation
         rect.start(timeline.frame_time + 1.5)
         t0 = default_timer()
+    elif default_timer() - t0 > 7.3:
+        player.stop()
 
     win.flip()
 

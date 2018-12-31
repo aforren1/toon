@@ -8,9 +8,8 @@ TrackAttr = namedtuple('TrackAttr', 'track attr obj kwargs')
 class Player(object):
     def __init__(self, *args, **kwargs):
         self.tracks = []
-        self.state = 'stopped'  # 'playing', 'paused'
+        self.state = 'stopped'  # 'playing'
         self.ref_time = None
-        self.stop_pause_time = None
         self.duration = 0
         self.timescale = 1
 
@@ -20,17 +19,8 @@ class Player(object):
         self.duration = new_dur if new_dur > self.duration else self.duration
 
     def start(self, time):
-        if self.state == 'paused':
-            self.ref_time = time - self.ref_time
-        else:
-            self.ref_time = time
+        self.ref_time = time
         self.state = 'playing'
-
-    def pause(self, time):
-        if self.state != 'playing':
-            return
-        self.state = 'paused'
-        self.stop_pause_time = time
 
     def stop(self):
         self.state = 'stopped'
@@ -82,9 +72,6 @@ class Player(object):
 
     def is_playing(self):
         return self.state == 'playing'
-
-    def is_paused(self):
-        return self.state == 'paused'
 
     def is_stopped(self):
         return self.state == 'stopped'

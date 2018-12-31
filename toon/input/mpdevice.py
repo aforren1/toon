@@ -93,6 +93,7 @@ class MpDevice(object):
         for i in range(n_buffers):
             for obs in self._data[i]:
                 obs.generate_squeeze()
+        self.check_error()
 
     # @profile
     def read(self):
