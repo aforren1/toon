@@ -9,24 +9,41 @@ import ctypes
 
 @six.add_metaclass(abc.ABCMeta)
 class Obs():
+    """Abstract base class for observations.
+
+    This is subclassed when making new subclasses of toon.input.BaseDevice,
+    and is used to preallocate shared memory between the device and main processes.
+    """
     @property
     @abc.abstractmethod
     def shape(self):
+        """Shape of the observation."""
         return None
 
     @property
     @abc.abstractmethod
     def ctype(self):
+        """Data type of the observation. Can be built-in type (e.g. int, float),
+        numpy types, or ctypes types.
+        """
         return None
-    # single observation
 
     def __init__(self, time, data):
+        """Create a new Observation.
+
+        Parameters
+        ----------
+        time: float
+            Time that the data was observed.
+        data: array_like
+            Observed data. Must match the shape of the subclass.
+        """
         try:
             self.time = float(time)  # what if time is not a double?
             # is reshape expensive? should we just trust they did it right?
             self.data = np.asarray(data, dtype=self.ctype)
             self.data.shape = self.shape  # will error if mismatch?
-        except (TypeError, ValueError):  # time or data not right
+        except (TypeError, ValueError):  # time or data not right. TODO: should we error out here instead?
             self.time = None
             self.data = None
 
@@ -37,12 +54,33 @@ class Obs():
         return '%s(time: %f, data: %s)' % (type(self).__name__, self.time, self.data)
 
     def any(self):
+        """Helper to check whether there is any data."""
         return not (self.time is None or self.data is None)
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseDevice():
-    def __init__(self, clock=mono_clock.get_time, **kwargs):
+    """Abstract base class for input devices.
+
+    Attributes
+    ----------
+    sampling_frequency: int
+        Expected sampling frequency of the device, used by toon.input.MpDevice for preallocation.
+        We preallocate for 1 second of data (e.g. 500 samples for a sampling_frequency of 500 Hz).
+    """
+
+    def __init__(self, clock=mono_clock.get_time):
+        """Create new device.
+
+        Parameters
+        ----------
+        clock: function or method
+            The clock used for timestamping events. Defaults to toon.input.mono_clock, which
+            allows us to share a reference time between the parent and child processes. The 
+            mono_clock is based off psychopy.clock.MonotonicClock 
+            (on Windows, time.perf_counter seems to be relative to when the process is created, 
+            which makes it difficult to relate the time between processes).
+        """
         _obs = self.__class__.get_obs()
         self.Returns = BaseDevice.build_named_tuple(_obs)
         self.clock = clock

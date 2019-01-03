@@ -26,10 +26,25 @@ def shared_to_numpy(mp_arr, dims, dtype):
 
 
 class MpDevice(object):
+    """Creates and manages a process for polling an input device.
+
+    """
+
     def __init__(self, device=None, high_priority=True,
                  buffer_len=None, **device_kwargs):
-        """
-        buffer_len overrides default (1000 samples) and sampling_frequency-based (1s worth)
+        """Create a new MpDevice.
+
+        Parameters
+        ----------
+        device: class (derived from toon.input.BaseDevice)
+            Class of input device. We will instantiate the device on the child process.
+        high_priority: bool
+            Whether the priority of the child process should be elevated.
+        buffer_len: int, optional
+            Overrides the device's sampling_frequency when specifing the size of the
+            circular buffer.
+        **device_kwargs
+            Keyword arguments, passed to the device during instantiation.
         """
         self.device = device
         self.device_kwargs = device_kwargs
@@ -37,6 +52,15 @@ class MpDevice(object):
         self.high_priority = high_priority
 
     def start(self):
+        """Start polling from the device on the child process.
+
+        Allocates all resources and creates the child process.
+
+        Raises
+        ------
+        Will raise an exception if something goes wrong during instantiation
+        of the device.
+        """
         # For Macs, use spawn (interaction with OpenGL or ??)
         # Windows only does spawn
         if platform == 'darwin' or platform == 'win32':
@@ -95,8 +119,37 @@ class MpDevice(object):
                 obs.generate_squeeze()
         self.check_error()
 
-    # @profile
     def read(self):
+        """Retrieve all observations that have occurred since the last read.
+
+        Notes
+        ----
+        The data is stored in a circular buffer, which means that if the number
+        of observations since the last read exceeds the preallocated data, the oldest
+        data will be overwritten in favor of the newest. If this behavior is undesirable,
+        either bump the sampling_frequency of the Device or the buffer_len of the MpDevice
+        up to an adequate number, depending on the sampling rate of the device and how
+        often you expect to call read().
+
+        We minimize copies by default (i.e. we return a view of the local data).
+        This means that in certain situations, such as appending the data to a list,
+        there may be unexpected results (as all elements would be a reference to the
+        same object/array). If you run into this, try explicitly `copy()`ing the data.
+
+        If a named tuple is returned, the names are in *alphabetical* order, not the order
+        that they are specified in the Device. This may come up if unpacking the read.
+
+        Returns
+        -------
+        toon.input.TsArray (i.e. a numpy array with a `time` attribute) for a single Observation, or
+        named tuple of TsArrays (if multiple types of Observations), where the names match the subclassed
+        `Obs`ervations from the Device.
+
+        Raises
+        ------
+        May raise an exception if one has occurred on the child process since the last read.
+        """
+
         # get the currently used buffer
         # note that the value only changes *if* this function has acquired the
         # lock, so we should always be safe to access w/o lock here
@@ -123,6 +176,7 @@ class MpDevice(object):
         return self._return_tuple(*self._res)
 
     def stop(self):
+        """Stop reading from the device and kill the child process."""
         self.set_high_priority(False)
         self.kill_remote.set()
         self.remote_done.wait()
@@ -135,6 +189,9 @@ class MpDevice(object):
         self.stop()
 
     def check_error(self):
+        """See if any exceptions have occurred on the child process, or whether
+        the device was already closed.
+        """
         if self.remote_done.is_set():
             # already closed (e.g. if using start() & stop() manually)
             if self.kill_remote.is_set():
@@ -143,6 +200,9 @@ class MpDevice(object):
             raise self.local_err.recv()
 
     def set_high_priority(self, val=False):
+        """Set the priority of the child process.
+        Fails unless the user has adquate permissions.
+        """
         try:
             if val:
                 if psutil.WINDOWS:
@@ -159,6 +219,7 @@ def remote(device, device_kwargs, shared_data,
            # extras
            remote_ready, kill_remote, parent_pid,  # don't include in coverage, implicitly tested
            current_buffer_index, remote_done, remote_err):  # pragma: no cover
+    """Poll the device for data."""
 
     def process_data():
         shared = shared_data[buffer_index][counter]  # alias
@@ -176,6 +237,7 @@ def remote(device, device_kwargs, shared_data,
 
     try:
         gc.disable()
+        # instantiate the device
         dev = device(**device_kwargs)
 
         for i in shared_data:
