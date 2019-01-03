@@ -6,7 +6,22 @@ TrackAttr = namedtuple('TrackAttr', 'track attr obj kwargs')
 
 
 class Player(object):
+    """Manages one or more Tracks, allowing for synchronization of animations.
+
+    Notes
+    -----
+    Can also be used as a mixin.
+
+    """
+
     def __init__(self, *args, **kwargs):
+        """Create a Player.
+
+        Parameters
+        ----------
+        *args: arbitrary (only matters if using as mixin)
+        **kwargs: arbitrary (only matters if using as mixin)
+        """
         self.tracks = []
         self.state = 'stopped'  # 'playing'
         self.ref_time = None
@@ -14,18 +29,46 @@ class Player(object):
         self.timescale = 1
 
     def add(self, track, attr, obj=None, **kwargs):
+        """Add a new Track to the Player.
+
+        Parameters
+        ----------
+        track: toon.anim.Track
+            A Track object.
+        attr: str or function
+            The attribute/property to change, or a function that takes (val, obj)
+            as positional arguments, where `val` is the interpolated value, and
+            `obj` is the object to be manipulated.
+        obj: None (if mixin), object or list of objects (otherwise)
+            Object that is being manipulated.
+        **kwargs: Arbitrary keyword arguments, passed to `attr` if it is a function
+        """
         self.tracks.append(TrackAttr(copy(track), attr, obj, kwargs))
         new_dur = track.duration()
         self.duration = new_dur if new_dur > self.duration else self.duration
 
     def start(self, time):
+        """Start the animations.
+
+        Parameters
+        ----------
+        time: float
+            Reference time.
+        """
         self.ref_time = time
         self.state = 'playing'
 
     def stop(self):
+        """Stop the animations."""
         self.state = 'stopped'
 
     def resume(self, time):
+        """Resume playing.
+
+        Notes
+        -----
+        If already playing, do nothing.
+        """
         if self.state == 'playing':
             return
         self.start(time)
@@ -49,6 +92,13 @@ class Player(object):
         setattr(obj, attr, val)
 
     def advance(self, time):
+        """Update all Tracks with a new time.
+
+        Parameters
+        ----------
+        time: float
+            Current time. Track time is `time - reference time`.
+        """
         if self.state != 'playing':
             return
         if time < self.ref_time:
@@ -88,5 +138,18 @@ class Player(object):
     def timescale(self):
         return self._timescale
 
+    @timescale.setter
     def timescale(self, value):
+        """Scales the animations.
+
+        Parameters
+        ----------
+        value: float
+            Value on the interval (0, Inf], where < 1 slows down the animation,
+            and > 1 speeds up the animation.
+
+        Notes
+        -----
+        Defaults to 1 (normal playback speed).
+        """
         self._timescale = value
