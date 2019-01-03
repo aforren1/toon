@@ -11,7 +11,6 @@ class Player(object):
     Notes
     -----
     Can also be used as a mixin.
-
     """
 
     def __init__(self, *args, **kwargs):

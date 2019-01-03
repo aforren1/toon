@@ -8,8 +8,7 @@ from timeit import default_timer
 
 
 class Timeline(object):
-    """Keeps track of the amount of time between frames.
-    """
+    """Keeps track of the amount of time between frames."""
 
     def __init__(self, clock_fun=default_timer):
         """Create the Timeline object.

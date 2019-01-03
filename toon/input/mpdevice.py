@@ -26,9 +26,7 @@ def shared_to_numpy(mp_arr, dims, dtype):
 
 
 class MpDevice(object):
-    """Creates and manages a process for polling an input device.
-
-    """
+    """Creates and manages a process for polling an input device."""
 
     def __init__(self, device=None, high_priority=True,
                  buffer_len=None, **device_kwargs):
@@ -55,6 +53,10 @@ class MpDevice(object):
         """Start polling from the device on the child process.
 
         Allocates all resources and creates the child process.
+
+        Notes
+        -----
+        Prefer using as a context manager over explicitly starting and stopping.
 
         Raises
         ------
@@ -176,7 +178,12 @@ class MpDevice(object):
         return self._return_tuple(*self._res)
 
     def stop(self):
-        """Stop reading from the device and kill the child process."""
+        """Stop reading from the device and kill the child process.
+
+        Notes
+        -----
+        Prefer using as a context manager over explicitly starting and stopping.
+        """
         self.set_high_priority(False)
         self.kill_remote.set()
         self.remote_done.wait()
