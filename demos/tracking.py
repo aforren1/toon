@@ -13,7 +13,7 @@ class AnimCircle(Player, Circle):
         Circle.__init__(self, *args, **kwargs)
 
 
-win = visual.Window(fullscr=True, units='pix', waitBlanking=False)
+win = visual.Window(fullscr=True, units='pix')
 
 timeline = Timeline()
 timeline.start()
@@ -25,10 +25,10 @@ toon_cir = visual.Circle(win, size=20, fillColor='blue', opacity=0.5, lineColor=
 toon_cir.pos = (-win.size[0]/2, win.size[1]/2)
 
 times = np.arange(0, 10, 1/60)
-keyframes = np.vstack((times, (np.sin(times) * 400))).T
-keyframes2 = np.vstack((times, np.cos(times)*400)).T
-tar_track = Track(keyframes, easing=linear)
-tar_track2 = Track(keyframes2, easing=linear)
+keyframes = np.vstack((times, np.sin(times) * 400)).T
+keyframes2 = np.vstack((times, np.cos(times) * 400)).T
+x_track = Track(keyframes, easing=linear)
+y_track = Track(keyframes2, easing=linear)
 
 
 def change_x(val, obj):
@@ -39,14 +39,14 @@ def change_y(val, obj):
     obj.pos = [obj.pos[0], val]
 
 
-target_cir.add('x', tar_track, change_x)
-target_cir.add('y', tar_track2, change_y)
+target_cir.add(x_track, change_x)
+target_cir.add(y_track, change_y)
 timeline.next_frame()
 target_cir.start(timeline.frame_time)
 with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
-    while target_cir.any_playing() and not event.getKeys(['esc', 'escape']):
+    while target_cir.is_playing() and not event.getKeys(['esc', 'escape']):
         win.callOnFlip(timeline.next_frame)
-        target_cir.update(timeline.frame_time)
+        target_cir.advance(timeline.frame_time)
         clicks, pos, scroll = toon_mouse.read()
         if pos is not None:
             pos *= [1, -1]

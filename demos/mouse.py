@@ -8,7 +8,7 @@ from toon.input.mouse import Mouse
 # as an argument to MpDevice
 logging.setDefaultClock(mono_clock)
 
-win = visual.Window(fullscr=True, units='pix', waitBlanking=False)
+win = visual.Window(fullscr=True, units='pix')
 
 psy_mouse = event.Mouse()
 toon_mouse = MpDevice(Mouse)

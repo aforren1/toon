@@ -38,8 +38,7 @@ col2_track = Track([(0, 'black'),
                     (5, 'black')],
                    easing=elastic_in_out)
 
-win = visual.Window(units='height', fullscr=True,
-                    allowGUI=False, waitBlanking=False)
+win = visual.Window(units='height', fullscr=True)
 
 lin_cir = visual.Circle(win, radius=0.1,
                         pos=(-0.3, 0.3), fillColor='red',

@@ -42,7 +42,6 @@ if __name__ == '__main__':
             dat = dev.read()
             if dat is not None:
                 vals.append(default_timer() - t1)
-                # print(dat[0].data)
                 sleep(0.016)
     vals = vals[10:]  # first couple are pathological
     print('Worst case: %f' % max(vals))
