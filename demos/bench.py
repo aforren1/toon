@@ -20,8 +20,8 @@ class Dummy(BaseDevice):
         self.t0 = default_timer()
         t = self.clock()
         self.counter += 1
-        return self.Returns(self.Num(t,
-                                     [self.counter] * reduce(mul, self.Num.shape, 1)))
+        dim = reduce(mul, self.Num.shape, 1)
+        return self.Returns(self.Num(t, [self.counter] * dim))
 
 
 if __name__ == '__main__':

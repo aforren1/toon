@@ -105,7 +105,6 @@ expand_cir.draw()
 rect.draw()
 line.draw()
 win.flip()
-val = True
 t0 = default_timer()
 
 while not event.getKeys():

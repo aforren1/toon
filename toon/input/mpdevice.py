@@ -28,7 +28,7 @@ def shared_to_numpy(mp_arr, dims, dtype):
 class MpDevice(object):
     """Creates and manages a process for polling an input device."""
 
-    def __init__(self, device=None, high_priority=True,
+    def __init__(self, device, high_priority=True,
                  buffer_len=None, **device_kwargs):
         """Create a new MpDevice.
 
