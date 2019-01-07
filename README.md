@@ -13,7 +13,7 @@ Description
 Additional tools for neuroscience experiments, including:
 
 -   A framework for polling input devices on a separate process.
--   A framework for animating elements.
+-   A framework for animating things.
 
 Everything *should* work on Windows/Mac/Linux.
 
@@ -34,90 +34,154 @@ For full install (including dependencies of included devices):
 
 ```pip install toon[full]```
 
-See setup.py for a list of those dependencies, as well as
-device-specific subdivisions.
+See setup.py for a list of those dependencies, as well as device-specific subdivisions.
 
-Usage Overview
---------------
+See the `demos/` folder for usage examples.
+
+Overview
+---------
 
 ### Input
 
-This module allows us to sample from external devices on a secondary
-process at high rates, and efficiently move that data to the main
-process via the multiprocessing module.
+`toon` provides a framework for polling from input devices, including common peripherals like mice and keyboards, with the flexibility to handle less-common devices like eyetrackers, motion trackers, and custom devices (see `toon/input/` for examples). The goal is to make it easier to use a wide variety of devices, including those with sampling rates >1kHz, with minimal performance impact on the main process.
 
-Generally useful input devices include:
+We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See `demos/bench.py` for an example of measuring read performance.
 
--   Keyboard (for changes in keyboard state) via `Keyboard`
--   Mouse (for mouse position) via `Mouse`
-
-The following are in-house devices, which may not be generally useful
-but could serve as examples of how to implement additional devices:
-
--   HAND (custom force measurement device using hidapi) via
-    `Hand` (for pyusb example, see `USBHand`)
--   Force Keyboard (predecessor to HAND) via
-    `ForceKeyboard` (Windows only, due to
-    `nidaqmx` requirement.)
--   Flock of Birds (the 1992 vintage from Ascension) via
-    `Birds` (very specific to the KineReach setup in the
-    BLAM Lab)
--   CyberGlove I (I think? Immersion Corp. branding) via `Cyberglove`
-
-Generally, input devices can be used as follows:
+Typical use looks like:
 
 ```python
 from toon.input import MpDevice
-import <device>
+from toon.input.mouse import Mouse
 
-dev = MpDevice(<device>, <device-specific kwargs>)
+# NB: pass the *class*, not an object
+device = MpDevice(Mouse)
 
-with dev:
-    while not done:
-        data = dev.read()
-        if data.any():
-            pass # do something with the data
-        ...
+with device:
+    data = device.read()
+    # alternatively, unpack
+    # clicks, pos, scroll = device.read()
+    if data.pos is not None:
+        # N-D array of data (0th dim is time)
+        print(data.pos)
+        # time is 1D array of timestamps
+        print(data.pos.time)
+        print(data.pos[-1].time) # most recent timestamp
 ```
-See the [demos/](https://github.com/aforren1/toon/blob/master/demos)
-folder or snippets in the source of individual devices for usage
-examples.
+
+Creating a custom device is relatively straightforward, though there are a few boxes to check.
+
+```python
+from toon.input import BaseDevice, Obs
+from ctypes import c_double
+
+# Obs is a class that manages observations
+class MyDevice(BaseDevice):
+    # optional: give a hint for the buffer size
+    sampling_frequency = 500
+
+    # required: each data source gets its own Obs
+    # this should be defined in the scope of the device
+    class Pos(Obs):
+        shape = (3,)
+        ctype = float # python type, numpy dtype, or ctype
+    
+    # can have multiple Obs per device
+    class RotMat(Obs):
+        shape = (3, 3)
+        ctype = c_double
+    
+    # optional: prefer starting communication in __enter__
+    def __init__(self, **kwargs):
+        # kwargs are passed in through MpDevice
+        pass
+    
+    # optional: configure the device, start communicating
+    def __enter__(self):
+         # remember to return self, or else the context manager won't work
+        return self
+    
+    # optional: clean up resources, close device
+    def __exit__(self, *args):
+        pass
+    
+    # required (and picky)
+    def read(self):
+        # See demos/ for examples of sharing a time source between the processes
+        time = self.clock()
+        # store new data with a timestamp
+        pos = self.Pos(time, (1, 2, 3))
+        rotmat = self.RotMat(time, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        # self.Returns is a dynamically-created named tuple
+        # names derived from any Obs defined in the Device
+        # prefer using keyword arguments, names are alphabetically sorted!
+        return self.Returns(pos=pos, rotmat=rotmat)
+```
+
+This device can then be passed to a `toon.input.MpDevice`, which preallocates the shared memory and handles other details.
+
+A few things to be aware of for data returned by `MpDevice`:
+
+ - If a device only has a single `Obs`, `MpDevice` returns a single `TsArray` (a numpy array with a `time` attribute). Otherwise, `MpDevice` returns a named tuple of observations, where the names are alphabetically-sorted, lowercased versions of the pre-defined `Obs`. 
+ - If the data returned by a single read is scalar (e.g. a 1D force sensor), `MpDevice` will drop the 1st dimension.
+ - If there's no data for a given observation, `None` is returned. The named tuple has a method for checking all members at once (`data.any()`).
+
+
+Other notes:
+  - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
+  - If receiving batches of data when `read()`ing from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example)
+  - Can optionally use `device.start()`/`device.stop()` instead of a context manager
+  - Can check for remote errors at any point using `device.check_error()`, though this automatically happens immediately after entering the context manager and when `read()`ing.
 
 ### Animation
 
-The `anim` module was derived from [Magnum](https://github.com/mosra/magnum) (though I currently don't implement as many features). See [here](https://doc.magnum.graphics/magnum/classMagnum_1_1Animation_1_1Player.html) for background.
+This is still a work in progress, though I think it has some utility as-is. It's a port of the animation component in the [Magnum](https://magnum.graphics/) framework, though lacking some of the features (e.g. Track extrapolation, proper handling of time scaling).
 
-A quick example:
+Example:
 
 ```python
 from time import sleep
-from toon.anim import Player
-from toon.anim import Track
-from toon.anim import Timeline
-from toon.anim.easing import elastic_in
+from timeit import default_timer
+import matplotlib.pyplot as plt
+from toon.anim import Track, Player
+# see toon/anim/easing.py for all easings available
+from toon.anim.easing import linear, elastic_in_out
 
 class Circle(object):
     x = 0
     y = 0
 
 circle = Circle()
-keyframes = [(0, 0), (0.5, 0.8), (1.0, 1.0)]
-track = Track(keyframes, easing=elastic_in)
+# list of (time, value)
+keyframes = [(0.2, -0.5), (0.5, 0), (3, 0.5)]
+x_track = Track(keyframes, easing=linear)
+# we can reuse keyframes
+y_track = Track(keyframes, easing=elastic_in_out)
+
 player = Player()
-player.add(track, 'x', circle)
 
-timeline = Timeline()
-timeline.start()
-player.start(timeline.frame_time)
+# directly modify an attribute
+player.add(x_track, 'x', obj=circle)
 
-while timeline.frame_time < 2:
-    timeline.next_frame()
-    player.advance(timeline.frame_time)
-    print(circle.x)
-    # flip window
-    sleep(0.016)
+def y_cb(val, obj):
+    obj.y = val
 
+# modify via callback
+player.add(y_track, y_cb, obj=circle)
+
+t0 = default_timer()
+player.start(t0)
+vals = []
+while default_timer() < t0 + 3.2:
+    player.advance(default_timer())
+    vals.append([circle.x, circle.y])
+    sleep(1/60)
+
+plt.plot(vals)
+plt.show()
 ```
 
-See the [demos/](https://github.com/aforren1/toon/blob/master/demos)
-folder for a more thorough example including integration with psychopy.
+Other notes:
+  - Non-numeric attributes, like color strings, can also be modified in this framework (easing is ignored).
+  - The `Timeline` class (in `toon.anim`) can be used to get the time between frames, or the time since some origin time, taken at `timeline.start()`.
+  - The `Player` can also be used as a mixin, in which case the `obj` argument can be omitted from `player.add()` (see the `demos/` folder for examples).
+  - Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
