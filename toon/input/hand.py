@@ -75,7 +75,7 @@ class UsbHand(BaseDevice):
     def read(self):
         data = self.ep_in.read(self.ep_in.wMaxPacketSize)
         time = self.clock()
-        data = struct.unpack('>Lh' + 'H'  20, data[:46])
+        data = struct.unpack('>Lh' + 'H' * 20, data[:46])
         data = np.array(data, dtype='d')
         data[2:] /= 65535.0
         data[2:] -= 0.5
