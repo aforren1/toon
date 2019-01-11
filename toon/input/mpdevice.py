@@ -115,11 +115,11 @@ class MpDevice(object):
         self.ps_process = psutil.Process(self.process.pid)
         self.original_nice = self.ps_process.nice()
         self.set_high_priority(self.high_priority)  # lame try to set priority
-        self.remote_ready.wait()  # pause until the remote says it's ready
         for i in range(n_buffers):
             for obs in self._data[i]:
                 obs.generate_squeeze()
         self.check_error()
+        self.remote_ready.wait()  # pause until the remote says it's ready
 
     def read(self):
         """Retrieve all observations that have occurred since the last read.
@@ -284,8 +284,8 @@ def remote(device, device_kwargs, shared_data,
                         lck.release()
     except Exception as e:
         remote_err.send(e)
-        remote_err.close()
     finally:
+        remote_ready.set()
         remote_done.set()
 
 
