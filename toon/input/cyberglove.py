@@ -22,7 +22,7 @@ class Cyberglove(BaseDevice):
         self.dev = None
 
     def __enter__(self):
-        self.dev = serial.Serial(self.port, 115200, timeout=0.05)
+        self.dev = serial.Serial(self.port, 115200, timeout=0.02)
         self.dev.reset_input_buffer()
         sleep(0.1)
         # test whether the device is connected/on
@@ -45,13 +45,13 @@ class Cyberglove(BaseDevice):
             if tmp == b'S':
                 self.dev.read(19)  # read the rest of the line
                 break
-        if i >= 35:
-            raise ValueError('Could not sync with start.')
+        if i >= 39:
+            raise ValueError('Did not find the start byte.')
         return self
 
     def read(self):
         # one byte (S)
-        val = self.dev.read()
+        val = self.dev.read(1)
         time = self.clock()
         if val:
             data = self.dev.read(19)  # read remaining bytes ('<data> \x00')

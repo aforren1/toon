@@ -18,10 +18,10 @@ class LivePlot(pg.GraphicsLayoutWidget):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(0)
+        self.playing = True
 
     def update(self):
         dat = self.device.read()
-        print(np.diff(dat.time))
         if dat is None:
             return
         if self.current_data is None:
@@ -31,13 +31,27 @@ class LivePlot(pg.GraphicsLayoutWidget):
         else:
             self.current_data = np.roll(self.current_data, -dat.shape[0], axis=0)
             self.current_data[-dat.shape[0]:, :] = dat
-        for counter, c in enumerate(self.curves):
-            c.setData(y=self.current_data[:, counter])
+        if self.playing:
+            for counter, c in enumerate(self.curves):
+                c.setData(y=self.current_data[:, counter])
 
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
+    w = QtGui.QWidget()
     liveplot = LivePlot()
-    liveplot.show()
+
+    pause_button = QtGui.QPushButton('Pause')
+    # "pause" the plot
+
+    def on_click():
+        liveplot.playing = not liveplot.playing
+
+    pause_button.clicked.connect(on_click)
+    layout = QtGui.QGridLayout()
+    w.setLayout(layout)
+    layout.addWidget(liveplot, 0, 0, 3, 3)
+    layout.addWidget(pause_button, 0, 1)
+    w.show()
     with liveplot.device:
         app.exec_()
