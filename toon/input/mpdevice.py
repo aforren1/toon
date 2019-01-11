@@ -228,8 +228,7 @@ def remote(device, device_kwargs, shared_data,
            current_buffer_index, remote_done, remote_err):  # pragma: no cover
     """Poll the device for data."""
 
-    def process_data():
-        shared = shared_data[buffer_index][counter]  # alias
+    def process_data(shared, datum):
         if shared.counter.value < shared.nrow:  # haven't filled buffer yet, so next available row
             next_index = shared.counter.value
             shared.np_data.time[next_index] = datum.time
@@ -277,10 +276,10 @@ def remote(device, device_kwargs, shared_data,
                         if is_list:
                             for dat, ind in zip(data, inds):
                                 for counter, datum in zip(np.where(ind)[0], compress(dat, ind)):
-                                    process_data()
+                                    process_data(shared_data[buffer_index][counter], datum)
                         else:
                             for counter, datum in zip(np.where(inds)[0], compress(data, inds)):
-                                process_data()
+                                process_data(shared_data[buffer_index][counter], datum)
                     finally:
                         lck.release()
     except Exception as e:
