@@ -284,6 +284,8 @@ def remote(device, device_kwargs, shared_data,
                         lck.release()
     except Exception as e:
         remote_err.send(e)
+        gc.enable()
+        remote_err.close()
     finally:
         remote_ready.set()
         remote_done.set()
