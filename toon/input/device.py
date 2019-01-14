@@ -49,10 +49,6 @@ class Obs():
     def __str__(self):
         return '%s(time: %f, data: %s)' % (type(self).__name__, self.time, self.data)
 
-    def any(self):
-        """Helper to check whether there is any data."""
-        return not (self.time is None or self.data is None)
-
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseDevice():

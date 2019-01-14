@@ -256,11 +256,11 @@ def remote(device, device_kwargs, shared_data,
                 data = dev.read()  # get observation(s) from device
                 buffer_index = int(current_buffer_index.value)  # can only change later
                 if isinstance(data, list):  # if a list of observations, rather than a single one
-                    inds = [[d is not None and d.any() for d in l] for l in data]
+                    inds = [[d is not None for d in l] for l in data]
                     flag = any([any(d) for d in inds])
                     is_list = True
                 else:
-                    inds = [d is not None and d.any() for d in data]
+                    inds = [d is not None for d in data]
                     flag = any(inds)
                     is_list = False
                 if flag:  # any data at all (otherwise, don't bother acquiring locks)
