@@ -33,3 +33,8 @@ class TsArray(np.ndarray):
         except:
             pass
         return super(TsArray, self).__getitem__(item)
+
+
+def vstack(tup):
+    times = np.hstack((x.time for x in tup))
+    return TsArray(np.vstack(tup), time=times)
