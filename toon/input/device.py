@@ -38,14 +38,10 @@ class Obs():
         data: array_like
             Observed data. Must match the shape of the subclass.
         """
-        try:
-            self.time = float(time)  # what if time is not a double?
-            # is reshape expensive? should we just trust they did it right?
-            self.data = np.asarray(data, dtype=self.ctype)
-            self.data.shape = self.shape  # will error if mismatch?
-        except (TypeError, ValueError):  # time or data not right. TODO: should we error out here instead?
-            self.time = None
-            self.data = None
+        self.time = float(time)  # what if time is not a double?
+        # is reshape expensive? should we just trust they did it right?
+        self.data = np.asarray(data, dtype=self.ctype)
+        self.data.shape = self.shape  # will error if mismatch?
 
     def __repr__(self):
         return 'type: %s\ntime: %f\ndata: %s\nshape: %s\nctype: %s' % (type(self).__name__, self.time, self.data, self.shape, self.ctype)

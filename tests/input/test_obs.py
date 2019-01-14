@@ -19,3 +19,15 @@ def test_obs():
     # flat (coerced to correct shape by the shape property)
     subobs2 = SubObs(time=3, data=flat_data)
     assert((subobs.data == subobs2.data).all())
+
+    # wrong time type
+    with raises(ValueError):
+        x = SubObs(time='s', data=good_data)
+
+    # wrong data shape
+    with raises(ValueError):
+        x = SubObs(time=3, data=bad_data)
+
+    # wrong data type
+    with raises(ValueError):
+        x = SubObs(time=3, data=wrong_type)

@@ -29,8 +29,12 @@ class Dummy(BaseDevice):
             pass
         self.t0 = default_timer()
         t = self.clock()
-        return self.Returns(num1=self.Num1(t, np.random.random(self.Num1.shape)),
-                            num2=self.Num2(t, dat))
+        num1 = self.Num1(t, np.random.random(self.Num1.shape))
+        num2 = None
+        if dat is not None:
+            num2 = self.Num2(t, dat)
+        return self.Returns(num1=num1,
+                            num2=num2)
 
 
 class SingleResp(BaseDevice):
@@ -86,10 +90,14 @@ class DummyList(BaseDevice):
             pass
         self.t0 = default_timer()
         t = self.clock()
-        return [self.Returns(num1=self.Num1(t, np.random.random(self.Num1.shape)),
-                             num2=self.Num2(t, dat)),
-                self.Returns(num1=self.Num1(t, np.random.random(self.Num1.shape)),
-                             num2=self.Num2(t, dat))]
+        num1 = self.Num1(t, np.random.random(self.Num1.shape))
+        num2 = None
+        if dat is not None:
+            num2 = self.Num2(t, dat)
+        return [self.Returns(num1=num1,
+                             num2=num2),
+                self.Returns(num1=num1,
+                             num2=num2)]
 
 
 if __name__ == '__main__':  # pragma: no cover
