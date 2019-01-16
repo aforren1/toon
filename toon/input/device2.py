@@ -34,13 +34,17 @@ class BaseDevice():
     def enter(self):
         pass
 
+    @abc.abstractmethod
+    def read(self):
+        pass
+
+    def exit(self, *args):
+        pass
+
     @prevent_if_remote
     def __enter__(self):
         self.enter()
         return self
-
-    def exit(self, *args):
-        pass
 
     @prevent_if_remote
     def __exit__(self, *args):
@@ -57,10 +61,6 @@ class BaseDevice():
             intermediate = list(intermediate)
             intermediate.sort(key=lambda x: type(x).__name__)
         return self.Returns(*intermediate)
-
-    @abc.abstractmethod
-    def read(self):
-        pass
 
     @property
     def local(self):
