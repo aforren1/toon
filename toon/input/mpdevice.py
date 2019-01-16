@@ -246,7 +246,7 @@ def remote(dev, shared_data,
         with dev:
             remote_ready.set()  # signal to the local process that remote is ready to go
             while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
-                data = dev.read()  # get observation(s) from device
+                data = dev.do_read()  # get observation(s) from device
                 buffer_index = int(current_buffer_index.value)  # can only change later
                 if isinstance(data, list):  # if a list of observations, rather than a single one
                     inds = [[d is not None for d in l] for l in data]

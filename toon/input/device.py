@@ -172,36 +172,3 @@ class BaseDevice():
             Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
             return Returns
         return None
-
-
-# out
-Pos = make_obs('Pos', (3,), float)
-
-
-class Derived(BaseDevice):
-    # these can be defined outside the scope
-    Pos = Pos
-    Ori = make_obs('Ori', (2, 2), int)
-
-    def __init__(self):
-        print('inited')
-        # runtime Obs
-        self.Scale = make_obs('Scale', (1,), float)
-        super(Derived, self).__init__()
-
-    def enter(self):
-        print('entered')
-
-    def exit(self, *args):
-        print('exited')
-
-    def read(self):
-        # either
-        # a. return data without stuffing into self.Returns,
-        #      which means we do it later in do_read
-        # b. stuff into self.Returns (necessary if potentially missing data),
-        #      e.g. current Mouse
-        print('readed')
-        return (Pos(2, (1, 2, 3)),
-                self.Scale(1, 2.2),
-                self.Ori(3, [[1, 2], [3, 4]]))

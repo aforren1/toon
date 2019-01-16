@@ -106,7 +106,7 @@ class Birds(BaseDevice):
         # translate to the lower left corner
         data[::3] += 61.35
         data[1::3] += 17.69
-        return self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6]
+        return self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6])
 
     def exit(self, *args):
         for bird in self.read_from:
@@ -122,15 +122,15 @@ def decode(msg, n_words=3):
 
 
 def decode_words(s, i):
-    v=decode_word(s[2*i:2*i + 2])
+    v = decode_word(s[2*i:2*i + 2])
     v *= 36 * 2.54  # scaling to cm
     return v / 32768.0
 
 
 def decode_word(msg):
-    lsb=msg[0] & 0x7f
-    msb=msg[1]
-    v=(msb << 9) | (lsb << 2)
+    lsb = msg[0] & 0x7f
+    msb = msg[1]
+    v = (msb << 9) | (lsb << 2)
     if v < 0x8000:
         return v
     return v - 0x10000
@@ -139,12 +139,12 @@ def decode_word(msg):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev=MpDevice(Birds())
-    times=[]
+    dev = MpDevice(Birds())
+    times = []
     with dev:
-        start=time.time()
+        start = time.time()
         while time.time() - start < 20:
-            dat=dev.read()
+            dat = dev.read()
             if dat.any():
                 print(dat.leftpos.data)
                 times.append(np.diff(dat.leftpos.time))
