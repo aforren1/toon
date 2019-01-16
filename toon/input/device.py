@@ -4,7 +4,6 @@ from collections import namedtuple
 import numpy as np
 from toon.input.clock import mono_clock
 import inspect
-import ctypes
 
 
 @six.add_metaclass(abc.ABCMeta)
