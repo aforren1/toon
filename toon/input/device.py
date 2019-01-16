@@ -102,8 +102,7 @@ class BaseDevice():
         """
         # call *after* any subclass init
         self._local = True  # MpDevice toggles this in the main process
-        _obs = self.get_obs()
-        self.Returns = self.build_named_tuple(_obs)
+        self.Returns = None  # Delay until __enter__ (to avoid pickling problems)
         self.clock = clock
 
     def enter(self):
@@ -119,6 +118,8 @@ class BaseDevice():
     @prevent_if_remote
     def __enter__(self):
         self.enter()
+        _obs = self.get_obs()
+        self.Returns = self.build_named_tuple(_obs)
         return self
 
     @prevent_if_remote
