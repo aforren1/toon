@@ -147,3 +147,12 @@ def test_catch_remote_err():
         sleep(0.1)
         with raises(ValueError):
             res = dev.read()
+
+
+def test_no_local():
+    local_dev = SingleResp()
+    dev = MpDevice(local_dev)
+    with dev:
+        with raises(ValueError):
+            with local_dev:
+                res = local_dev.read()

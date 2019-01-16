@@ -52,7 +52,7 @@ class Cyberglove(BaseDevice):
         val = self.dev.read(1)
         time = self.clock()
         if val:
-            data = self.dev.read(19)  # read remaining bytes ('<data> \x00')
+            data = self.dev.read(19)  # read remaining bytes ('18 sensors + \x00')
             data = struct.unpack('<' + 'B' * 18, data[:-1])
             data = [(d - 1.0)/254.0 for d in data]
             return self.Pos(time, data)

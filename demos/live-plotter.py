@@ -4,7 +4,6 @@ from pyqtgraph.Qt import QtCore, QtGui
 from toon.input import MpDevice
 from toon.input.mouse import Mouse
 #from toon.input.cyberglove import Cyberglove
-from timeit import default_timer
 
 
 class LivePlot(pg.GraphicsLayoutWidget):
