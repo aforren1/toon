@@ -164,12 +164,13 @@ class BaseDevice():
                 and issubclass(getattr(self, p), Obs)]
 
     def build_named_tuple(self, obs):
-        if obs:
-            class Returns(namedtuple('Returns', [x.__name__.lower() for x in obs])):
-                def any(self):
-                    # simplify user checking of whether there's any data
-                    return any([x is not None for x in self])
-            # default values of namedtuple to None (see mouse.py for example why)
-            Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
-            return Returns
-        return None
+        if not obs:
+            raise ValueError('Device has no Observations.')
+
+        class Returns(namedtuple('Returns', [x.__name__.lower() for x in obs])):
+            def any(self):
+                # simplify user checking of whether there's any data
+                return any([x is not None for x in self])
+        # default values of namedtuple to None (see mouse.py for example why)
+        Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
+        return Returns
