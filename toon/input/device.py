@@ -140,6 +140,7 @@ class BaseDevice():
             # list of Returns
             if isinstance(intermediate[0], self.Returns):
                 return intermediate
+            # TODO: handle list of non-Returns
             intermediate = list(intermediate)
             intermediate.sort(key=lambda x: type(x).__name__)
         return self.Returns(*intermediate)

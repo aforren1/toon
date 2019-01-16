@@ -53,8 +53,7 @@ Typical use looks like:
 from toon.input import MpDevice
 from toon.input.mouse import Mouse
 
-# NB: pass the *class*, not an object
-device = MpDevice(Mouse)
+device = MpDevice(Mouse())
 
 with device:
     data = device.read()
@@ -71,37 +70,32 @@ with device:
 Creating a custom device is relatively straightforward, though there are a few boxes to check.
 
 ```python
-from toon.input import BaseDevice, Obs
+from toon.input import BaseDevice, make_obs
 from ctypes import c_double
 
 # Obs is a class that manages observations
 class MyDevice(BaseDevice):
-    # optional: give a hint for the buffer size
+    # optional: give a hint for the buffer size (we'll allocate for 1s worth of data)
     sampling_frequency = 500
 
     # required: each data source gets its own Obs
-    # this should be defined in the scope of the device
-    class Pos(Obs):
-        shape = (3,)
-        ctype = float # python type, numpy dtype, or ctype
-    
     # can have multiple Obs per device
-    class RotMat(Obs):
-        shape = (3, 3)
-        ctype = c_double
-    
+    # this can either be introduced at the class level, or during __init__
+    # ctype can be a python type, numpy dtype, or ctype
+    Pos = make_obs('Pos', shape=(3,), ctype=float)
+    RotMat = make_obs('RotMat', (3, 3), c_double) # 2D data
+
     # optional: prefer starting communication in __enter__
-    def __init__(self, **kwargs):
-        # kwargs are passed in through MpDevice
+    def __init__(self):
         pass
     
+    ## Use `enter` and `exit`, rather than `__enter__` and `__exit__`
     # optional: configure the device, start communicating
-    def __enter__(self):
-         # remember to return self, or else the context manager won't work
-        return self
+    def enter(self):
+        pass
     
     # optional: clean up resources, close device
-    def __exit__(self, *args):
+    def exit(self, *args):
         pass
     
     # required (and picky)
@@ -111,10 +105,8 @@ class MyDevice(BaseDevice):
         # store new data with a timestamp
         pos = self.Pos(time, (1, 2, 3))
         rotmat = self.RotMat(time, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        # self.Returns is a dynamically-created named tuple
-        # names derived from any Obs defined in the Device
-        # prefer using keyword arguments, names are alphabetically sorted!
-        return self.Returns(pos=pos, rotmat=rotmat)
+        # can also be explicit, i.e. `self.Returns(pos=pos, rotmat=rotmat)`
+        return pos, rotmat
 ```
 
 This device can then be passed to a `toon.input.MpDevice`, which preallocates the shared memory and handles other details.
@@ -128,6 +120,7 @@ A few things to be aware of for data returned by `MpDevice`:
 
 Other notes:
   - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
+  - Re: concatenation, there is a `vstack` function available in `toon/input/tsarray.py`, which is like numpy's version but keeps the time attribute intact.
   - If receiving batches of data when `read()`ing from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example)
   - Can optionally use `device.start()`/`device.stop()` instead of a context manager
   - Can check for remote errors at any point using `device.check_error()`, though this automatically happens immediately after entering the context manager and when `read()`ing.
