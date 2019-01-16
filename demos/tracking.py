@@ -18,7 +18,7 @@ win = visual.Window(fullscr=True, units='pix')
 timeline = Timeline()
 timeline.start()
 psy_mouse = event.Mouse()
-toon_mouse = MpDevice(Mouse)
+toon_mouse = MpDevice(Mouse())
 
 target_cir = AnimCircle(win, size=100, fillColor='white', lineColor=None)
 toon_cir = visual.Circle(win, size=20, fillColor='blue', opacity=0.5, lineColor=None)

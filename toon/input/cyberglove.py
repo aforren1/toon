@@ -2,7 +2,7 @@ import struct
 import serial
 import numpy as np
 from time import sleep
-from toon.input.device import BaseDevice, Obs
+from toon.input.device import BaseDevice, make_obs
 
 # thanks to ROS http://docs.ros.org/fuerte/api/cyberglove/html/serial__glove_8hpp.html
 # for commands
@@ -11,17 +11,15 @@ from toon.input.device import BaseDevice, Obs
 class Cyberglove(BaseDevice):
     sampling_frequency = 150
 
-    class Pos(Obs):
-        # TODO: split into fingers/joints?
-        shape = (18,)
-        ctype = float
+    # TODO: split into fingers/joints?
+    Pos = make_obs('Pos', (18,), float)
 
     def __init__(self, port, **kwargs):
         super(Cyberglove, self).__init__(**kwargs)
         self.port = port  # TODO: auto-detect using serial.tools.list_ports
         self.dev = None
 
-    def __enter__(self):
+    def enter(self):
         self.dev = serial.Serial(self.port, 115200, timeout=0.02)
         self.dev.reset_input_buffer()
         sleep(0.1)
@@ -54,12 +52,12 @@ class Cyberglove(BaseDevice):
         val = self.dev.read(1)
         time = self.clock()
         if val:
-            data = self.dev.read(19)  # read remaining bytes ('<data> \x00')
+            data = self.dev.read(19)  # read remaining bytes ('18 sensors + \x00')
             data = struct.unpack('<' + 'B' * 18, data[:-1])
             data = [(d - 1.0)/254.0 for d in data]
-            return self.Returns(self.Pos(time, data))
+            return self.Pos(time, data)
 
-    def __exit__(self, *args):
+    def exit(self, *args):
         self.dev.write(b'\x03')  # stop streaming
         self.dev.write(b'l 0\r')  # light off
         sleep(0.1)

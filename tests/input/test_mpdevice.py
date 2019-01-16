@@ -14,7 +14,7 @@ DummyList.sampling_frequency = 1000
 
 def test_device_single():
     # single device with two data sources
-    dev = MpDevice(Dummy)
+    dev = MpDevice(Dummy())
     dev.start()
     sleep(0.2)
     res = dev.read()
@@ -26,7 +26,7 @@ def test_device_single():
 
 
 def test_single_resp():
-    dev = MpDevice(SingleResp)
+    dev = MpDevice(SingleResp())
     dev.start()
     sleep(0.2)
     res = dev.read()
@@ -38,7 +38,7 @@ def test_single_resp():
 def test_ringbuffer():
     original_fs = SingleResp.sampling_frequency
     SingleResp.sampling_frequency = 10
-    dev = MpDevice(SingleResp)
+    dev = MpDevice(SingleResp())
     with dev:
         sleep(5)
         res = dev.read()
@@ -48,7 +48,7 @@ def test_ringbuffer():
 
 
 def test_have_all_data():
-    dev = MpDevice(SingleResp)
+    dev = MpDevice(SingleResp())
     datae = []
     times = []
     with dev:
@@ -68,7 +68,7 @@ def test_have_all_data():
 
 def test_device_list():
     # two observations per read on the device
-    dev = MpDevice(DummyList)
+    dev = MpDevice(DummyList())
     dev.start()
     sleep(0.2)
     res = dev.read()
@@ -82,7 +82,7 @@ def test_device_list():
 
 def test_restart():
     # start & stop device
-    dev = MpDevice(Dummy)
+    dev = MpDevice(Dummy())
     dev.start()
     sleep(0.2)
     res = dev.read()
@@ -96,7 +96,7 @@ def test_restart():
 
 def test_context():
     # device as context manager
-    dev = MpDevice(Dummy)
+    dev = MpDevice(Dummy())
     with dev:
         sleep(0.2)
         res = dev.read()
@@ -108,8 +108,8 @@ def test_context():
 
 def test_multi_devs():
     # 2+ devices at once (each gets own process)
-    dev1 = MpDevice(Dummy)
-    dev2 = MpDevice(Dummy)
+    dev1 = MpDevice(Dummy())
+    dev2 = MpDevice(Dummy())
     with dev1, dev2:
         sleep(0.1)
         res1 = dev1.read()
@@ -123,7 +123,7 @@ def test_remote_clock():
     # does the clock origin match?
     # the most recent reading should've been within
     # one sampling period
-    dev = MpDevice(SingleResp, clock=mono_clock.getTime)
+    dev = MpDevice(SingleResp(clock=mono_clock.getTime))
     sleep(0.5)
     with dev:
         sleep(0.1)
@@ -133,7 +133,7 @@ def test_remote_clock():
 
 
 def test_already_closed():
-    dev = MpDevice(SingleResp)
+    dev = MpDevice(SingleResp())
     dev.start()
     res = dev.read()
     dev.stop()
@@ -142,8 +142,17 @@ def test_already_closed():
 
 
 def test_catch_remote_err():
-    dev = MpDevice(Timebomb)
+    dev = MpDevice(Timebomb())
     with dev:
         sleep(0.1)
         with raises(ValueError):
             res = dev.read()
+
+
+def test_no_local():
+    local_dev = SingleResp()
+    dev = MpDevice(local_dev)
+    with dev:
+        with raises(ValueError):
+            with local_dev:
+                res = local_dev.read()

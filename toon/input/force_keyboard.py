@@ -5,13 +5,11 @@ import numpy as np
 from nidaqmx.constants import AcquisitionType, TerminalConfiguration
 from nidaqmx.stream_readers import AnalogMultiChannelReader
 
-from toon.input.device import BaseDevice, Obs
+from toon.input.device import BaseDevice, make_obs
 
 
 class ForceKeyboard(BaseDevice):
-    class Forces(Obs):
-        shape = (10,)
-        ctype = c_double
+    Forces = make_obs('Forces', (10,), c_double)
 
     sampling_frequency = 100
 
@@ -22,7 +20,7 @@ class ForceKeyboard(BaseDevice):
         self.t1 = 0
         self._buffer = np.full(self.Forces.shape, np.nan)
 
-    def __enter__(self):
+    def enter(self):
         # assume first NI DAQ is the one we want
         self._device_name = nidaqmx.system.System.local().devices[0].name
         self._channels = [self._device_name + '/ai' + str(n) for n in
@@ -45,6 +43,6 @@ class ForceKeyboard(BaseDevice):
         self.t1 = self.clock()
         return ret
 
-    def __exit__(self, *args):
+    def exit(self, *args):
         self._device.stop()
         self._device.close()

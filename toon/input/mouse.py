@@ -1,27 +1,19 @@
-from toon.input.device import BaseDevice, Obs
+from toon.input.device import BaseDevice, make_obs
 import ctypes
 from pynput import mouse
 
 
 class Mouse(BaseDevice):
-    class Pos(Obs):
-        shape = (2,)
-        ctype = int
-
-    class Clicks(Obs):
-        shape = (1,)
-        ctype = bool
-
-    class Scroll(Obs):
-        shape = (1,)
-        ctype = ctypes.c_int
+    Pos = make_obs('Pos', (2,), int)
+    Clicks = make_obs('Clicks', (1,), bool)
+    Scroll = make_obs('Scroll', (1,), ctypes.c_int)
 
     sampling_frequency = 125
 
     def __init__(self, **kwargs):
         super(Mouse, self).__init__(**kwargs)
 
-    def __enter__(self):
+    def enter(self):
         self.dev = mouse.Listener(on_move=self.on_move,
                                   on_click=self.on_click,
                                   on_scroll=self.on_scroll)
@@ -55,7 +47,7 @@ class Mouse(BaseDevice):
         rets = self.Returns(scroll=self.Scroll(self.clock(), dy))
         self.data.append(rets)
 
-    def __exit__(self, *args):
+    def exit(self, *args):
         self.dev.stop()
         self.dev.join()
 
@@ -63,10 +55,12 @@ class Mouse(BaseDevice):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev = MpDevice(Mouse)
+    dev = MpDevice(Mouse())
+    #dev = Mouse()
     with dev:
         start = time.time()
         while time.time() - start < 10:
+            #dat = dev.do_read()
             dat = dev.read()
             if dat.any():
                 print(dat)
