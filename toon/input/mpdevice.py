@@ -28,24 +28,20 @@ def shared_to_numpy(mp_arr, dims, dtype):
 class MpDevice(object):
     """Creates and manages a process for polling an input device."""
 
-    def __init__(self, device, high_priority=True,
-                 buffer_len=None, **device_kwargs):
+    def __init__(self, device, high_priority=True, buffer_len=None):
         """Create a new MpDevice.
 
         Parameters
         ----------
-        device: class (derived from toon.input.BaseDevice)
-            Class of input device. We will instantiate the device on the child process.
+        device: object (derived from toon.input.BaseDevice)
+            Input device object.
         high_priority: bool
             Whether the priority of the child process should be elevated.
         buffer_len: int, optional
             Overrides the device's sampling_frequency when specifing the size of the
             circular buffer.
-        **device_kwargs
-            Keyword arguments, passed to the device during instantiation.
         """
         self.device = device
-        self.device_kwargs = device_kwargs
         self.buffer_len = buffer_len
         self.high_priority = high_priority
 
@@ -86,10 +82,6 @@ class MpDevice(object):
         nrow = 100
         if self.device.sampling_frequency:
             nrow = self.device.sampling_frequency
-        # if the user specified a runtime sampling_frequency, use that
-        kwarg_freq = self.device_kwargs.get('sampling_frequency', None)
-        if kwarg_freq:
-            nrow = kwarg_freq
         if self.buffer_len:  # buffer_len overcomes all
             nrow = self.buffer_len
         nrow = max(int(nrow), 1)  # make sure we have at least one row
@@ -107,8 +99,8 @@ class MpDevice(object):
         self._res = [None] * len(self._data[0])
 
         self.process = mp.Process(target=remote,
-                                  args=(self.device, self.device_kwargs, self._data,
-                                        self.remote_ready, self.kill_remote, os.getpid(),
+                                  args=(self.device, self._data, self.remote_ready,
+                                        self.kill_remote, os.getpid(),
                                         self.current_buffer_index, self.remote_done, remote_err))
         self.process.daemon = True
         self.process.start()
@@ -120,12 +112,13 @@ class MpDevice(object):
                 obs.generate_squeeze()
         self.check_error()
         self.remote_ready.wait()  # pause until the remote says it's ready
+        self.device.local = False  # try to prevent local access to device
 
     def read(self):
         """Retrieve all observations that have occurred since the last read.
 
         Notes
-        ----
+        -----
         The data is stored in a circular buffer, which means that if the number
         of observations since the last read exceeds the preallocated data, the oldest
         data will be overwritten in favor of the newest. If this behavior is undesirable,
@@ -187,6 +180,7 @@ class MpDevice(object):
         self.set_high_priority(False)
         self.kill_remote.set()
         self.remote_done.wait()
+        self.device.local = True
 
     def __enter__(self):
         self.start()
@@ -222,7 +216,7 @@ class MpDevice(object):
             pass
 
 
-def remote(device, device_kwargs, shared_data,
+def remote(dev, shared_data,
            # extras
            remote_ready, kill_remote, parent_pid,  # don't include in coverage, implicitly tested
            current_buffer_index, remote_done, remote_err):  # pragma: no cover
@@ -244,7 +238,6 @@ def remote(device, device_kwargs, shared_data,
     try:
         gc.disable()
         # instantiate the device
-        dev = device(**device_kwargs)
 
         for i in shared_data:
             for j in i:

@@ -6,7 +6,7 @@ import numpy as np
 import serial
 from serial.tools import list_ports
 
-from toon.input.device import BaseDevice, Obs
+from toon.input.device import BaseDevice, make_obs
 
 # reference (most recent):
 # https://github.com/aforren1/toon/blob/455d06827082ae30ec4ae3b2605185cb4d291c92/toon/input/birds.py
@@ -15,14 +15,8 @@ from toon.input.device import BaseDevice, Obs
 
 
 class Birds(BaseDevice):
-    class LeftPos(Obs):
-        # x,y,z
-        shape = (3,)
-        ctype = c_double
-
-    class RightPos(Obs):
-        shape = (3,)
-        ctype = c_double
+    LeftPos = make_obs('LeftPos', (3,), c_double)
+    RightPos = make_obs('RightPos', (3,), c_double)
 
     def __init__(self, **kwargs):
         self._birds = None
@@ -33,7 +27,7 @@ class Birds(BaseDevice):
         self.sin_const = np.sin(0.01938)
         super(Birds, self).__init__(**kwargs)
 
-    def __enter__(self):
+    def enter(self):
         # timeout set so that we should always have data available
         devices = [x.device for x in list_ports.comports() if 'Keyspan' in x.description]
         self._birds = [serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS,
@@ -112,9 +106,9 @@ class Birds(BaseDevice):
         # translate to the lower left corner
         data[::3] += 61.35
         data[1::3] += 17.69
-        return self.Returns(self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6]))
+        return self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6]
 
-    def __exit__(self, *args):
+    def exit(self, *args):
         for bird in self.read_from:
             bird.write(b'?')  # stop stream
         time.sleep(1)
@@ -128,15 +122,15 @@ def decode(msg, n_words=3):
 
 
 def decode_words(s, i):
-    v = decode_word(s[2*i:2*i + 2])
+    v=decode_word(s[2*i:2*i + 2])
     v *= 36 * 2.54  # scaling to cm
     return v / 32768.0
 
 
 def decode_word(msg):
-    lsb = msg[0] & 0x7f
-    msb = msg[1]
-    v = (msb << 9) | (lsb << 2)
+    lsb=msg[0] & 0x7f
+    msb=msg[1]
+    v=(msb << 9) | (lsb << 2)
     if v < 0x8000:
         return v
     return v - 0x10000
@@ -145,12 +139,12 @@ def decode_word(msg):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev = MpDevice(Birds)
-    times = []
+    dev=MpDevice(Birds())
+    times=[]
     with dev:
-        start = time.time()
+        start=time.time()
         while time.time() - start < 20:
-            dat = dev.read()
+            dat=dev.read()
             if dat.any():
                 print(dat.leftpos.data)
                 times.append(np.diff(dat.leftpos.time))

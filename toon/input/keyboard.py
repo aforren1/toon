@@ -1,16 +1,11 @@
-from toon.input.device import BaseDevice, Obs
+from toon.input.device import BaseDevice, make_obs
 import ctypes
 from pynput import keyboard
 
 
 class Keyboard(BaseDevice):
-    class Key(Obs):
-        shape = (1,)
-        ctype = ctypes.c_char
-
-    class Press(Obs):
-        shape = (1,)
-        ctype = ctypes.c_bool
+    Key = make_obs('Key', (1,), ctypes.c_char)
+    Press = make_obs('Press', (1,), ctypes.c_bool)
 
     sampling_frequency = 100
 
@@ -20,7 +15,7 @@ class Keyboard(BaseDevice):
         self.keys = keys
         super(Keyboard, self).__init__(**kwargs)
 
-    def __enter__(self):
+    def enter(self):
         self.dev = keyboard.Listener(on_press=self.on_press,
                                      on_release=self.on_release)
         self.data = []
@@ -56,7 +51,7 @@ class Keyboard(BaseDevice):
                 self.data.append(rets)
                 self._on.remove(key.char)
 
-    def __exit__(self, *args):
+    def exit(self, *args):
         self.dev.stop()
         self.dev.join()
 
@@ -64,7 +59,7 @@ class Keyboard(BaseDevice):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev = MpDevice(Keyboard, keys=['a', 's', 'd', 'f'])
+    dev = MpDevice(Keyboard(keys=['a', 's', 'd', 'f']))
     with dev:
         start = time.time()
         while time.time() - start < 10:
