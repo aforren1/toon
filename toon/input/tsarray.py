@@ -40,5 +40,5 @@ def vstack(tup):
 
     This also preserves and stacks the time attribute of the TsArray inputs.
     """
-    times = np.hstack((x.time for x in tup))
+    times = np.hstack([x.time for x in tup])
     return TsArray(np.vstack(tup), time=times)

@@ -11,7 +11,7 @@ logging.setDefaultClock(mono_clock)
 win = visual.Window(fullscr=True, units='pix')
 
 psy_mouse = event.Mouse()
-toon_mouse = MpDevice(Mouse)
+toon_mouse = MpDevice(Mouse())
 
 psy_cir = visual.Circle(win, size=100, fillColor='red', opacity=0.5, lineColor=None)
 toon_cir = visual.Circle(win, size=100, fillColor='blue', opacity=0.5, lineColor=None)

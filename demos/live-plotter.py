@@ -3,6 +3,8 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 from toon.input import MpDevice
 from toon.input.mouse import Mouse
+#from toon.input.cyberglove import Cyberglove
+from timeit import default_timer
 
 
 class LivePlot(pg.GraphicsLayoutWidget):
@@ -10,7 +12,8 @@ class LivePlot(pg.GraphicsLayoutWidget):
         super(LivePlot, self).__init__()
         self.plot = self.addPlot()
         self.curves = []
-        self.device = MpDevice(Mouse)
+        #self.device = MpDevice(Cyberglove(port='/dev/ttyUSB0'))
+        self.device = MpDevice(Mouse())
         self.current_data = None
         for i in range(2):
             color = pg.intColor(i, hues=2, alpha=255, width=3)
