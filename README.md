@@ -34,9 +34,9 @@ For full install (including dependencies of included devices):
 
 ```pip install toon[full]```
 
-See setup.py for a list of those dependencies, as well as device-specific subdivisions.
+See [setup.py](https://github.com/aforren1/toon/blob/master/setup.py) for a list of those dependencies, as well as device-specific subdivisions.
 
-See the `demos/` folder for usage examples.
+See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples.
 
 Overview
 ---------
@@ -45,7 +45,7 @@ Overview
 
 `toon` provides a framework for polling from input devices, including common peripherals like mice and keyboards, with the flexibility to handle less-common devices like eyetrackers, motion trackers, and custom devices (see `toon/input/` for examples). The goal is to make it easier to use a wide variety of devices, including those with sampling rates >1kHz, with minimal performance impact on the main process.
 
-We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See `demos/bench.py` for an example of measuring read performance.
+We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See [demos/bench.py](https://github.com/aforren1/toon/blob/master/demos/bench.py) for an example of measuring read performance.
 
 Typical use looks like:
 
@@ -85,7 +85,7 @@ class MyDevice(BaseDevice):
     Pos = make_obs('Pos', shape=(3,), ctype=float)
     RotMat = make_obs('RotMat', (3, 3), c_double) # 2D data
 
-    # optional: prefer starting communication in __enter__
+    # optional. Do not start device communication here, wait until `enter`
     def __init__(self):
         pass
     
@@ -98,7 +98,7 @@ class MyDevice(BaseDevice):
     def exit(self, *args):
         pass
     
-    # required (and picky)
+    # required
     def read(self):
         # See demos/ for examples of sharing a time source between the processes
         time = self.clock()
@@ -121,9 +121,9 @@ A few things to be aware of for data returned by `MpDevice`:
 Other notes:
   - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
   - Re: concatenation, there is a `vstack` function available in `toon/input/tsarray.py`, which is like numpy's version but keeps the time attribute intact.
-  - If receiving batches of data when `read()`ing from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example)
+  - If receiving batches of data when reading from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example)
   - Can optionally use `device.start()`/`device.stop()` instead of a context manager
-  - Can check for remote errors at any point using `device.check_error()`, though this automatically happens immediately after entering the context manager and when `read()`ing.
+  - Can check for remote errors at any point using `device.check_error()`, though this automatically happens immediately after entering the context manager and when reading.
 
 ### Animation
 
@@ -176,5 +176,5 @@ plt.show()
 Other notes:
   - Non-numeric attributes, like color strings, can also be modified in this framework (easing is ignored).
   - The `Timeline` class (in `toon.anim`) can be used to get the time between frames, or the time since some origin time, taken at `timeline.start()`.
-  - The `Player` can also be used as a mixin, in which case the `obj` argument can be omitted from `player.add()` (see the `demos/` folder for examples).
+  - The `Player` can also be used as a mixin, in which case the `obj` argument can be omitted from `player.add()` (see the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for examples).
   - Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
