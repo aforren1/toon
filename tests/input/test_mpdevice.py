@@ -112,16 +112,15 @@ def test_reuse():
         sleep(0.2)
         res = dev.read()
     # should be able to use locally now
-    with local_dev:
-        res2 = local_dev.do_read()
+    # with local_dev:
+    #     res2 = local_dev.do_read()
     # lock again
     with dev:
         sleep(0.5)
         res3 = dev.read()
         print(res3)
-        print(dev.device.local)
     assert(res.any())
-    assert(res2.any())
+    # assert(res2.any())
     assert(res3.any())
 
 
