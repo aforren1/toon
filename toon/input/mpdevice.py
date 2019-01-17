@@ -74,7 +74,6 @@ class MpDevice(object):
             self.shared_locks.append(mp.Lock())
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
-        self.remote_done = mp.Event()
         self.local_err, remote_err = mp.Pipe(duplex=False)
         self.current_buffer_index = mp.Value(ctypes.c_bool, 0, lock=False)  # shouldn't need a lock
 
@@ -102,7 +101,7 @@ class MpDevice(object):
         self.process = mp.Process(target=remote,
                                   args=(self.device, self._data, self.remote_ready,
                                         self.kill_remote, os.getpid(),
-                                        self.current_buffer_index, self.remote_done, remote_err))
+                                        self.current_buffer_index, remote_err))
         self.process.daemon = True
         self.process.start()
         self.ps_process = psutil.Process(self.process.pid)
@@ -180,9 +179,8 @@ class MpDevice(object):
         """
         self.set_high_priority(False)
         self.kill_remote.set()
-        self.remote_done.wait()
-        self.device.local = True
         self.process.join()
+        self.device.local = True
 
     def __enter__(self):
         self.start()
@@ -195,7 +193,7 @@ class MpDevice(object):
         """See if any exceptions have occurred on the child process, or whether
         the device was already closed.
         """
-        if self.remote_done.is_set():
+        if not self.process.is_alive():
             # already closed (e.g. if using start() & stop() manually)
             if self.kill_remote.is_set():
                 raise ValueError('MpDevice is closed.')
@@ -221,7 +219,7 @@ class MpDevice(object):
 def remote(dev, shared_data,
            # extras
            remote_ready, kill_remote, parent_pid,  # don't include in coverage, implicitly tested
-           current_buffer_index, remote_done, remote_err):  # pragma: no cover
+           current_buffer_index, remote_err):  # pragma: no cover
     """Poll the device for data."""
 
     def process_data(shared, datum):
@@ -283,7 +281,6 @@ def remote(dev, shared_data,
         remote_err.close()
     finally:
         remote_ready.set()
-        remote_done.set()
 
 
 # make sure this is visible for pickleability

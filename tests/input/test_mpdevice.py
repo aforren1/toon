@@ -118,7 +118,6 @@ def test_reuse():
     with dev:
         sleep(0.5)
         res3 = dev.read()
-        print(res3)
     assert(res.any())
     # assert(res2.any())
     assert(res3.any())
