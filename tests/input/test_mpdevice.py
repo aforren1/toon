@@ -116,11 +116,8 @@ def test_reuse():
         res2 = local_dev.do_read()
     # lock again
     with dev:
-        sleep(0.2)
+        sleep(0.5)
         res3 = dev.read()
-    print(res)
-    print(res2)
-    print(res3)
     assert(res.any())
     assert(res2.any())
     assert(res3.any())
