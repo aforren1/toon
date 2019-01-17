@@ -105,22 +105,22 @@ def test_restart():
 
 
 def test_reuse():
-    local_dev = Dummy()
+    local_dev = SingleResp()
     dev = MpDevice(local_dev)
     # device is exclusive to remote
     with dev:
         sleep(0.2)
         res = dev.read()
     # should be able to use locally now
-    # with local_dev:
-    #     res2 = local_dev.do_read()
+    with local_dev:
+        res2 = local_dev.do_read()
     # lock again
     with dev:
         sleep(0.5)
         res3 = dev.read()
-    assert(res.any())
-    # assert(res2.any())
-    assert(res3.any())
+    assert(res is not None)
+    assert(res2 is not None)
+    assert(res3 is not None)
 
 
 def test_multi_devs():
