@@ -80,20 +80,6 @@ def test_device_list():
     assert(res.num1.shape[0] > res.num2.shape[1])
 
 
-def test_restart():
-    # start & stop device
-    dev = MpDevice(Dummy())
-    dev.start()
-    sleep(0.2)
-    res = dev.read()
-    dev.stop()
-    dev.start()
-    sleep(0.2)
-    res2 = dev.read()
-    dev.stop()
-    assert(res.any() and res2.any())
-
-
 def test_context():
     # device as context manager
     dev = MpDevice(Dummy())
@@ -104,6 +90,40 @@ def test_context():
     assert(len(res.num1.time) == res.num1.shape[0])
     assert(res.num1.shape[1] == 5)
     assert(res.num2.dtype == np.int32)
+
+
+def test_restart():
+    # start & stop device
+    dev = MpDevice(Dummy())
+    with dev:
+        sleep(0.2)
+        res = dev.read()
+    with dev:
+        sleep(0.2)
+        res2 = dev.read()
+    assert(res.any() and res2.any())
+
+
+def test_reuse():
+    local_dev = Dummy()
+    dev = MpDevice(local_dev)
+    # device is exclusive to remote
+    with dev:
+        sleep(0.2)
+        res = dev.read()
+    # should be able to use locally now
+    with local_dev:
+        res2 = local_dev.do_read()
+    # lock again
+    with dev:
+        sleep(0.2)
+        res3 = dev.read()
+    print(res)
+    print(res2)
+    print(res3)
+    assert(res.any())
+    assert(res2.any())
+    assert(res3.any())
 
 
 def test_multi_devs():
