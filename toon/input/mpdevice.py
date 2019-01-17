@@ -98,6 +98,7 @@ class MpDevice(object):
 
         self._res = [None] * len(self._data[0])
 
+        self.device.Returns = None  # Returns isn't picklable, but is restored when the device enters the context manager
         self.process = mp.Process(target=remote,
                                   args=(self.device, self._data, self.remote_ready,
                                         self.kill_remote, os.getpid(),
