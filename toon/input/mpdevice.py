@@ -79,7 +79,7 @@ class MpDevice(object):
         self.current_buffer_index = mp.Value(ctypes.c_bool, 0, lock=False)  # shouldn't need a lock
 
         # figure out number of observations to save between reads
-        nrow = 100
+        nrow = 100  # default (100 Hz)
         if self.device.sampling_frequency:
             nrow = self.device.sampling_frequency
         if self.buffer_len:  # buffer_len overcomes all
@@ -182,6 +182,7 @@ class MpDevice(object):
         self.kill_remote.set()
         self.remote_done.wait()
         self.device.local = True
+        self.process.join()
 
     def __enter__(self):
         self.start()
