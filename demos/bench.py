@@ -25,6 +25,8 @@ class TestDevice(BaseDevice):
 
 
 if __name__ == '__main__':
+
+    from toon.input import mono_clock
     # user-side sampling period: 1/144, 1/60, 1/10, 1
     # device sampling freq: 10, 100, 1000, 5000
     # number of Obs: 1, 2, 5, 10
@@ -33,7 +35,7 @@ if __name__ == '__main__':
     user_sampling_period = 1.0/60
     device_sampling_freq = 1000
     number_of_obs = 1
-    obs_dims = (1000,)
+    obs_dims = (128,)
     buffer_size = 100
     n_samples = 1000
 
@@ -42,15 +44,19 @@ if __name__ == '__main__':
         obses.append(make_obs('Obs%s' % i, obs_dims, float))
 
     times = []
+    since_last = []
     dev = MpDevice(TestDevice(obses, device_sampling_freq), buffer_len=buffer_size)
     with dev:
         for i in range(n_samples):
-            t0 = default_timer()
+            t0 = mono_clock.get_time()
             res = dev.read()
-            t1 = default_timer() - t0
-            times.append(t1)
+            t1 = mono_clock.get_time()
+            times.append(t1 - t0)
+            if res is not None:
+                since_last.append(t1 - res.time[-1])
             sleep(user_sampling_period)
+    times = times[5:]
     print('Worst: %f' % np.max(times))
     print('Median: %f' % np.median(times))
-    plt.plot(times)
+    plt.plot(since_last)
     plt.show()
