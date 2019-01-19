@@ -78,6 +78,7 @@ if __name__ == '__main__':
     ax.set_ylabel('Number of observations (log)')
     ax.set_zlabel('Buffer size (log)')
 
+    # click on the colorbar to get the exponentiated val (i.e. original scale)
     def on_pick(event):
         val = event.mouseevent.ydata
         print('Time: %f' % np.exp(val))
