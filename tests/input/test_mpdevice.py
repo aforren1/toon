@@ -48,7 +48,7 @@ def test_ringbuffer():
 
 
 def test_have_all_data():
-    dev = MpDevice(SingleResp())
+    dev = MpDevice(SingleResp(), buffer_len=1000)
     datae = []
     times = []
     with dev:
