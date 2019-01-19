@@ -30,7 +30,7 @@ Development version:
 
 ```pip install git+https://github.com/aforren1/toon```
 
-For full install (including dependencies of included devices):
+For full install (including device and demo dependencies):
 
 ```pip install toon[full]```
 

@@ -13,6 +13,14 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     desc = f.read()
 
+hand_reqs = ['hidapi', 'pyusb']
+serial_reqs = ['pyserial']
+key_mouse_reqs = ['pynput']
+force_reqs = ['nidaqmx;platform_system=="Windows"']
+demo_reqs = ['pynput', 'matplotlib', 'pyqtgraph', 'psychopy']
+full_reqs = hand_reqs + serial_reqs + key_mouse_reqs + force_reqs + demo_reqs
+full_reqs = list(set(full_reqs))
+
 setup(
     name='toon',
     version='0.12.1',
@@ -37,13 +45,13 @@ setup(
     ],
     install_requires=requirements,
     extras_require={
-        'full': ['hidapi', 'pyusb', 'pyserial',
-                 'pynput', 'nidaqmx;platform_system=="Windows"'],
-        'hand': ['hidapi', 'pyusb'],
-        'birds': ['pyserial'],
-        'keyboard': ['pynput'],
-        'cyberglove': ['pyserial'],
-        'force': ['nidaqmx;platform_system=="Windows"']
+        'full': full_reqs,
+        'demo': demo_reqs,
+        'hand': hand_reqs,
+        'birds': serial_reqs,
+        'key_mouse': key_mouse_reqs,
+        'cyberglove': serial_reqs,
+        'force': force_reqs
     },
     keywords='psychophysics neuroscience input experiment',
     packages=find_packages(exclude=['contrib', 'docs', 'tests'])
