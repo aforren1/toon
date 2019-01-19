@@ -314,4 +314,8 @@ class DataGlob(object):
     def generate_squeeze(self):
         # if scalar data, give the user a 1D array (rather than 2D)
         if self.is_scalar:
-            self.local_data = TsA(np.squeeze(self.np_data.data.copy()), time=self.np_data.time.copy())
+            self.local_data = TsA(np.squeeze(self.np_data.data.copy()),
+                                  time=self.np_data.time.copy())
+        # special case for buffer size of 1 and scalar data
+        if self.local_data.shape == ():
+            self.local_data.shape = (1,)

@@ -17,7 +17,7 @@ hand_reqs = ['hidapi', 'pyusb']
 serial_reqs = ['pyserial']
 key_mouse_reqs = ['pynput']
 force_reqs = ['nidaqmx;platform_system=="Windows"']
-demo_reqs = ['pynput', 'matplotlib', 'pyqtgraph', 'psychopy']
+demo_reqs = ['pynput', 'matplotlib', 'pyqtgraph']
 full_reqs = hand_reqs + serial_reqs + key_mouse_reqs + force_reqs + demo_reqs
 full_reqs = list(set(full_reqs))
 
