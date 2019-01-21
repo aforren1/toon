@@ -30,11 +30,11 @@ if __name__ == '__main__':
 
     # fixed
     user_sampling_period = 1.0/60
-    device_sampling_freq = [1, 10, 100, 1000, 5000]
-    # parameter space to explore
-    number_of_obs = [1, 2, 5, 10]
-    obs_dims = [(1,), (10,), (100,), (1000,)]
     n_samples = 1000
+    # parameter space to explore
+    number_of_obs = [1, 5, 10]
+    device_sampling_freq = [1, 10, 100, 1000, 5000]
+    obs_dims = [(1,), (10,), (100,), (1000,)]
 
     median_res = []
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
                 for n in range(i):
                     obses.append(make_obs('Obs%s' % n, j, float))
                 times = []
-                dev = MpDevice(TestDevice(obses, k), buffer_len=k)
+                dev = MpDevice(TestDevice(obses, k), buffer_len=1000)
                 with dev:
                     for o in range(n_samples):
                         t0 = mono_clock.get_time()
