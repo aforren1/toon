@@ -45,9 +45,9 @@ Overview
 
 `toon` provides a framework for polling from input devices, including common peripherals like mice and keyboards, with the flexibility to handle less-common devices like eyetrackers, motion trackers, and custom devices (see `toon/input/` for examples). The goal is to make it easier to use a wide variety of devices, including those with sampling rates >1kHz, with minimal performance impact on the main process.
 
-We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See [demos/bench.py](https://github.com/aforren1/toon/blob/master/demos/bench.py) for an example of measuring read performance.
+We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See [demos/bench.py](https://github.com/aforren1/toon/blob/master/demos/bench.py) for an example of measuring user-side read performance.
 
-Typical use looks like:
+Typical use looks like this:
 
 ```python
 from toon.input import MpDevice
@@ -75,7 +75,7 @@ from ctypes import c_double
 
 # Obs is a class that manages observations
 class MyDevice(BaseDevice):
-    # optional: give a hint for the buffer size (we'll allocate for 1s worth of data)
+    # optional: give a hint for the buffer size (we'll allocate 10% of this)
     sampling_frequency = 500
 
     # required: each data source gets its own Obs
