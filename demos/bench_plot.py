@@ -30,23 +30,22 @@ if __name__ == '__main__':
 
     # fixed
     user_sampling_period = 1.0/60
-    device_sampling_freq = 1000
+    device_sampling_freq = [1, 10, 100, 1000, 5000]
     # parameter space to explore
     number_of_obs = [1, 2, 5, 10]
     obs_dims = [(1,), (10,), (100,), (1000,)]
-    buffer_size = [1, 10, 100, 1000]
     n_samples = 1000
 
     median_res = []
 
     for i in number_of_obs:
         for j in obs_dims:
-            for k in buffer_size:
+            for k in device_sampling_freq:
                 obses = []
                 for n in range(i):
                     obses.append(make_obs('Obs%s' % n, j, float))
                 times = []
-                dev = MpDevice(TestDevice(obses, device_sampling_freq), buffer_len=k)
+                dev = MpDevice(TestDevice(obses, k), buffer_len=k)
                 with dev:
                     for o in range(n_samples):
                         t0 = mono_clock.get_time()
@@ -55,17 +54,17 @@ if __name__ == '__main__':
                         times.append(t1 - t0)
                         sleep(user_sampling_period)
                 times = times[5:]
-                print("""#Obs: %i, Elements per Obs: %i, Buffer size: %i,
+                print("""# Obs: %i, Elements per Obs: %i, Device sampling frequency: %i,
                         Worst: %f, Median: %f""" %
                       (i, j[0], k, np.max(times), np.median(times)))
                 median_res.append({'number_of_obs': i,
                                    'obs_dims': j[0],
-                                   'buffer_size': k,
+                                   'device_freq': k,
                                    'median_time': np.median(times)})
 
     x = np.array([x['obs_dims'] for x in median_res])
     y = np.array([x['number_of_obs'] for x in median_res])
-    z = np.array([x['buffer_size'] for x in median_res])
+    z = np.array([x['device_freq'] for x in median_res])
     colors = np.array([x['median_time'] for x in median_res])
 
     fig = plt.figure()
@@ -76,7 +75,7 @@ if __name__ == '__main__':
     cbar = fig.colorbar(rr, ax=ax)
     ax.set_xlabel('Observation dimensions (log)')
     ax.set_ylabel('Number of observations (log)')
-    ax.set_zlabel('Buffer size (log)')
+    ax.set_zlabel('Device sampling frequency (log)')
 
     # click on the colorbar to get the exponentiated val (i.e. original scale)
     def on_pick(event):

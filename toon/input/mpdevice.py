@@ -158,12 +158,12 @@ class MpDevice(object):
         # this *may* block, if the remote is currently writing
         with self._data[current_buffer_index][0].lock:
             for counter, datum in enumerate(self._data[current_buffer_index]):
-                datum.local_count = datum.counter.value
+                local_count = datum.local_count = datum.counter.value
                 datum.counter.value = 0  # reset (so that we start writing to top of array)
-                if datum.local_count > 0:
-                    np.copyto(datum.local_data.time, datum.np_data.time)
-                    np.copyto(datum.local_data.T, datum.np_data.data.T)  # allow copying to 1D
-                    self._res[counter] = datum.local_data[0:datum.local_count]
+                if local_count > 0:
+                    np.copyto(datum.local_data.time[0:local_count], datum.np_data.time[0:local_count])
+                    np.copyto(datum.local_data[0:local_count].T, datum.np_data.data[0:local_count].T)  # allow copying to 1D
+                    self._res[counter] = datum.local_data[0:local_count]
                 else:
                     self._res[counter] = None
         # if only one Obs, don't stuff into a namedtuple
