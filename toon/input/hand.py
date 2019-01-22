@@ -1,11 +1,22 @@
 from ctypes import c_double
-
+import platform
 import numpy as np
 
 import hid
 import usb.core
 import usb.util
 from toon.input.device import BaseDevice, make_obs
+
+
+def get_teensy_path():
+    hids = hid.enumerate()
+    hids = [h for h in hids if h['product_id'] == 0x486 and h['vendor_id'] == 0x16c0]
+    system = platform.system()
+    if system == 'Darwin':
+        hid_path = next(h['path'] for h in hids if h['usage'] == 512)
+    elif system in ('Windows', 'Linux'):
+        hid_path = next(h['path'] for h in hids if h['interface_number'] == 0)
+    return hid_path
 
 
 class Hand(BaseDevice):
@@ -22,8 +33,7 @@ class Hand(BaseDevice):
 
     def enter(self):
         self._device = hid.device()
-        # TODO: we may have different endpoints, make more robust?
-        self._device.open(0x16c0, 0x486)
+        self._device.open_path(get_teensy_path())
         self._device.set_nonblocking(not self.blocking)
         return self
 

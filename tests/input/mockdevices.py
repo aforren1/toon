@@ -94,3 +94,26 @@ class DummyList(BaseDevice):
 class NoObs(BaseDevice):
     def read(self):
         pass
+
+
+class Point(ctypes.Structure):
+    _fields_ = [('x', ctypes.c_int), ('y', ctypes.c_int)]
+
+
+class Rect(ctypes.Structure):
+    _fields_ = [('ll', Point), ('ur', Point)]
+
+
+class StructObs(BaseDevice):
+    Num1 = make_obs('Num1', (1,), Rect)
+    t0 = default_timer()
+    counter = 0
+
+    def read(self):
+        self.counter += 1
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        num1 = self.Num1(t, ((self.counter, self.counter + 1), (self.counter+2, self.counter+3)))
+        return num1

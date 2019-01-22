@@ -2,7 +2,7 @@ from time import sleep
 
 import numpy as np
 from pytest import approx, raises
-from tests.input.mockdevices import Dummy, DummyList, SingleResp, Timebomb
+from tests.input.mockdevices import Dummy, DummyList, SingleResp, Timebomb, StructObs
 
 from toon.input.clock import mono_clock
 from toon.input.mpdevice import MpDevice
@@ -173,3 +173,12 @@ def test_no_local():
         with raises(ValueError):
             with local_dev:
                 res = local_dev.read()
+
+
+def test_struct_data():
+    dev = MpDevice(StructObs())
+    with dev:
+        sleep(0.1)
+        res = dev.read()
+    last_obs = res[-1]  # NB: this drops the timestamp for some reason?
+    assert(last_obs['ur']['y'] - last_obs['ll']['x'] == 3)

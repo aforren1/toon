@@ -292,7 +292,10 @@ obs = namedtuple('obs', 'time data')
 class DataGlob(object):
     def __init__(self, ctype, shape, nrow, lock):
         self.new_dims = (nrow,) + shape
-        self.ctype = ctypes_map[np.dtype(ctype).str]
+        if issubclass(ctype, ctypes.Structure):
+            self.ctype = ctype
+        else:
+            self.ctype = ctypes_map[np.dtype(ctype).str]
         self.shape = shape
         self.is_scalar = self.shape == (1,)
         self.lock = lock
