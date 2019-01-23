@@ -76,7 +76,6 @@ class Cyberglove(BaseDevice):
                 break
         if i >= 39:
             raise ValueError('Did not find the start byte.')
-        return self
 
     def read(self):
         # one byte (S)

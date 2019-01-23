@@ -84,8 +84,6 @@ class Birds(BaseDevice):
         for b in self.read_from:
             b.write(b'@')
 
-        return self
-
     def read(self):
         lst = []
         # busy wait until first byte available

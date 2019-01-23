@@ -22,7 +22,6 @@ class Keyboard(BaseDevice):
         self._on = []
         self.dev.start()
         self.dev.wait()
-        return self
 
     def read(self):
         if not self.data:

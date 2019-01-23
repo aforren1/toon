@@ -32,7 +32,6 @@ class ForceKeyboard(BaseDevice):
         )
         self._reader = AnalogMultiChannelReader(self._device.in_stream)
         self._device.start()
-        return self
 
     def read(self):
         self._reader.read_one_sample(self._buffer)

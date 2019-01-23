@@ -22,7 +22,6 @@ class Mouse(BaseDevice):
         self.x_prev = 0
         self.y_prev = 0
         self.data = []
-        return self
 
     def read(self):
         if not self.data:
