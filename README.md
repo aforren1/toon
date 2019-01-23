@@ -121,9 +121,9 @@ A few things to be aware of for data returned by `MpDevice`:
 Other notes:
   - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
   - Re: concatenation, there is a `vstack` function available in `toon/input/tsarray.py`, which is like numpy's version but keeps the time attribute intact.
-  - If receiving batches of data when reading from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example)
-  - Can optionally use `device.start()`/`device.stop()` instead of a context manager
-  - Can check for remote errors at any point using `device.check_error()`, though this automatically happens immediately after entering the context manager and when reading.
+  - If receiving batches of data when reading from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example).
+  - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
+  - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
   - In addition to python types/dtypes/ctypes, `Obs` can use `ctypes.Structure`s (see input tests or the [cyberglove](https://github.com/aforren1/toon/blob/master/toon/input/cyberglove.py) for examples).
 
 ### Animation
