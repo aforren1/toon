@@ -77,7 +77,6 @@ class UsbHand(BaseDevice):
         # there was definitely more to claiming the device,
         # but I can't find the ref now
         self.ep_in = dev[0][(0, 0)][0]  # get the proper endpoint
-        return self
 
     def read(self):
         data = self.ep_in.read(self.ep_in.wMaxPacketSize)

@@ -124,6 +124,7 @@ Other notes:
   - If receiving batches of data when reading from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example)
   - Can optionally use `device.start()`/`device.stop()` instead of a context manager
   - Can check for remote errors at any point using `device.check_error()`, though this automatically happens immediately after entering the context manager and when reading.
+  - In addition to python types/dtypes/ctypes, `Obs` can use `ctypes.Structure`s (see input tests or the [cyberglove](https://github.com/aforren1/toon/blob/master/toon/input/cyberglove.py) for examples).
 
 ### Animation
 
