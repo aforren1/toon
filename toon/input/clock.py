@@ -9,7 +9,7 @@ if os.name == 'nt':
     current_counter = cwt.LARGE_INTEGER()
     frequency = cwt.LARGE_INTEGER()
     kernel32.QueryPerformanceFrequency(ctypes.byref(frequency))
-    frequency = float(frequency.value)
+    frequency = float(frequency.value)  # force non-integer division
 
     def get_time():
         kernel32.QueryPerformanceCounter(ctypes.byref(current_counter))
