@@ -36,7 +36,7 @@ For full install (including device and demo dependencies):
 
 See [setup.py](https://github.com/aforren1/toon/blob/master/setup.py) for a list of those dependencies, as well as device-specific subdivisions.
 
-See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples.
+See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples (note: some require [psychopy](https://github.com/psychopy/psychopy)).
 
 Overview
 ---------
