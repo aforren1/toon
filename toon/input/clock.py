@@ -1,16 +1,20 @@
 import os
 
-if os.name is 'nt':
-    from ctypes import byref, c_int64, windll
-    _fcounter = c_int64()
-    _qpfreq = c_int64()
-    windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
-    _qpfreq = float(_qpfreq.value)
-    _winQPC = windll.Kernel32.QueryPerformanceCounter
+# https://stackoverflow.com/questions/38461335/python-2-x-queryperformancecounter-on-windows
+if os.name == 'nt':
+    import ctypes
+    import ctypes.wintypes as cwt
+
+    kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    current_counter = cwt.LARGE_INTEGER()
+    frequency = cwt.LARGE_INTEGER()
+    kernel32.QueryPerformanceFrequency(ctypes.byref(frequency))
+    frequency = float(frequency.value)
 
     def get_time():
-        _winQPC(byref(_fcounter))
-        return _fcounter.value / _qpfreq
+        kernel32.QueryPerformanceCounter(ctypes.byref(current_counter))
+        return current_counter.value / frequency
+
 else:
     from timeit import default_timer as get_time
 

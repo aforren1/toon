@@ -23,7 +23,7 @@ full_reqs = list(set(full_reqs))
 
 setup(
     name='toon',
-    version='0.12.1',
+    version='0.12.2',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',
