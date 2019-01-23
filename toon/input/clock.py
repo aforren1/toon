@@ -1,6 +1,8 @@
 import os
 
-# https://stackoverflow.com/questions/38461335/python-2-x-queryperformancecounter-on-windows
+# From Stack Overflow
+# User linusg https://stackoverflow.com/users/5952681/linusg
+# https://stackoverflow.com/a/38463185/2690232
 if os.name == 'nt':
     import ctypes
     import ctypes.wintypes as cwt
