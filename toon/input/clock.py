@@ -19,9 +19,7 @@ if os.name == 'nt':
         return current_counter.value / frequency
 
 else:
-    from timeit import default_timer as get_time
-
-get_time = time.monotonic
+    from time import monotonic as get_time
 
 
 class MonoClock(object):
