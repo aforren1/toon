@@ -18,23 +18,7 @@ if system() == 'Windows':
         kernel32.QueryPerformanceCounter(ctypes.byref(current_counter))
         return current_counter.value / frequency
 elif system() == 'Darwin':
-    # https://github.com/atdt/monotonic/blob/master/monotonic.py
-    import ctypes
-    libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
-
-    class mach_timebase_info_data_t(ctypes.Structure):
-        _fields_ = (('numer', ctypes.c_uint32), ('denom', ctypes.c_uint32))
-
-    mach_absolute_time = libc.mach_absolute_time
-    mach_absolute_time.restype = ctypes.c_uint64
-
-    timebase = mach_timebase_info_data_t()
-    libc.mach_timebase_info(ctypes.byref(timebase))
-    ticks_per_sec = timebase.numer / timebase.denom * 1.0e9
-
-    def get_time():
-        return mach_absolute_time() / ticks_per_sec
-
+    from toon.input.mac_clock import get_time
 else:
     from timeit import default_timer as get_time
 
