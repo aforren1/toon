@@ -1,4 +1,5 @@
 import os
+import time
 
 # From Stack Overflow
 # User linusg https://stackoverflow.com/users/5952681/linusg
@@ -19,6 +20,8 @@ if os.name == 'nt':
 
 else:
     from timeit import default_timer as get_time
+
+get_time = time.monotonic
 
 
 class MonoClock(object):
