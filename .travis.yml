@@ -2,18 +2,14 @@ sudo: false
 language: python
 dist: xenial
 cache:
-  - apt
   - pip
+python:
+  - 2.7
+  - 3.6
+  - 3.7
 matrix:
   include:
     - os: linux
-      python:
-      - 2.7
-      - 3.6
-      - 3.7
-      script:
-      - coverage run --source toon -m pytest -v
-      - coverage report
       after_success:
       - coveralls
     
@@ -24,11 +20,13 @@ matrix:
       - pip3 install -r requirements_test.txt
       - pip3 install .
 
-
 install:
   - pip install -r requirements.txt
   - pip install -r requirements_test.txt
   - pip install python-coveralls coverage
   - pip install .
+script:
+  - coverage run --source toon -m pytest -v
+  - coverage report
 notifications:
   email: false
