@@ -75,7 +75,7 @@ from ctypes import c_double
 
 # Obs is a class that manages observations
 class MyDevice(BaseDevice):
-    # optional: give a hint for the buffer size (we'll allocate 10% of this)
+    # optional: give a hint for the buffer size (we'll allocate 1s worth of this)
     sampling_frequency = 500
 
     # required: each data source gets its own Obs

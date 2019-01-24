@@ -79,10 +79,10 @@ class MpDevice(object):
 
         # figure out number of observations to save between reads
         nrow = 100  # default (100 Hz)
-        # if we have a sampling_frequency, allocate 1/10th
+        # if we have a sampling_frequency, allocate 1s worth
         # should be enough wiggle room for 60Hz refresh rate
         if self.device.sampling_frequency:
-            nrow = self.device.sampling_frequency * 0.1
+            nrow = self.device.sampling_frequency
         if self.buffer_len:  # buffer_len overcomes all
             nrow = self.buffer_len
         nrow = max(int(nrow), 1)  # make sure we have at least one row
