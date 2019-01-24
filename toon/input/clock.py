@@ -1,10 +1,10 @@
-import os
+from platform import system
 import time
 
 # From Stack Overflow
 # User linusg https://stackoverflow.com/users/5952681/linusg
 # https://stackoverflow.com/a/38463185/2690232
-if os.name == 'nt':
+if system() == 'Windows':
     import ctypes
     import ctypes.wintypes as cwt
 
@@ -17,9 +17,26 @@ if os.name == 'nt':
     def get_time():
         kernel32.QueryPerformanceCounter(ctypes.byref(current_counter))
         return current_counter.value / frequency
+elif system() == 'Darwin':
+    # https://github.com/atdt/monotonic/blob/master/monotonic.py
+    import ctypes
+    libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
+
+    class mach_timebase_info_data_t(ctypes.Structure):
+        _fields_ = (('numer', ctypes.c_uint32), ('denom', ctypes.c_uint32))
+
+    mach_absolute_time = libc.mach_absolute_time
+    mach_absolute_time.restype = ctypes.c_uint64
+
+    timebase = mach_timebase_info_data_t()
+    libc.mach_timebase_info(ctypes.byref(timebase))
+    ticks_per_sec = timebase.numer / timebase.denom * 1.0e9
+
+    def get_time():
+        return mach_absolute_time() / ticks_per_sec
 
 else:
-    from time import monotonic as get_time
+    from timeit import default_timer as get_time
 
 
 class MonoClock(object):
