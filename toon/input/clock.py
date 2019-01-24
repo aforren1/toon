@@ -1,5 +1,4 @@
 from platform import system
-import time
 
 # From Stack Overflow
 # User linusg https://stackoverflow.com/users/5952681/linusg
@@ -33,12 +32,12 @@ class MonoClock(object):
         self._start_time = get_time()
 
     def get_time(self):
-        """Returns the current time on this clock in secs (sub-ms precision)
+        """Returns the current time on this clock in seconds (sub-ms precision)
         """
         return get_time() - self._start_time
 
     def getTime(self):
-        """Alias get_time so we can set the default psychopy clock in logging.
+        """Alias for get_time, so we can set the default psychopy clock in logging.
         """
         return self.get_time()
 

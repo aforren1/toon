@@ -13,7 +13,9 @@
 
 # copied from https://github.com/atdt/monotonic
 # under the Apache License 2.0
-# https://github.com/atdt/monotonic/blob/master/monotonic.py
+# starting from
+# https://github.com/atdt/monotonic/blob/5bd1bf90e5e49d4ce4f5a90b9c97de6934b9503c/monotonic.py#L56
+# until the end of the `if sys.platform == 'darwin'` block (~line 76)
 import ctypes
 libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
 
@@ -27,8 +29,9 @@ mach_absolute_time.restype = ctypes.c_uint64
 
 timebase = mach_timebase_info_data_t()
 libc.mach_timebase_info(ctypes.byref(timebase))
-ticks_per_sec = timebase.numer / timebase.denom * 1.0e9
+ticks_per_second = timebase.numer / timebase.denom * 1.0e9
 
 
 def get_time():
-    return mach_absolute_time() / ticks_per_sec
+    # originally called `monotonic`
+    return mach_absolute_time() / ticks_per_second
