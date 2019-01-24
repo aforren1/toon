@@ -18,6 +18,7 @@ matrix:
       install:
       - pip3 install -r requirements.txt
       - pip3 install -r requirements_test.txt
+      - pip3 install python-coveralls coverage
       - pip3 install .
 
 install:
