@@ -113,7 +113,7 @@ class BaseDevice():
         pass
 
     def exit(self, *args):
-        pass
+        self.Returns = None
 
     @prevent_if_remote
     def __enter__(self):
@@ -132,18 +132,26 @@ class BaseDevice():
         # user provided a self.Returns() already, short-circuit
         if isinstance(intermediate, self.Returns):
             return intermediate
-        # single Obs, but we'll squeeze it into the same framework as multi-Obs
-        if not (isinstance(intermediate, list) or isinstance(intermediate, tuple)):
-            intermediate = [intermediate]
-        # tuple or list (hopefully), listify
-        else:
-            # list of Returns
+        if isinstance(intermediate, list) or isinstance(intermediate, tuple):
+            # list of self.Returns()
             if isinstance(intermediate[0], self.Returns):
                 return intermediate
-            # TODO: handle list of non-Returns
-            intermediate = list(intermediate)
-            intermediate.sort(key=lambda x: type(x).__name__)
-        return self.Returns(*intermediate)
+            # list of single Obs
+            if self.Returns.length == 1:
+                return [self.Returns(o) for o in intermediate]
+            # a single multi-Obs
+            if isinstance(intermediate[0], Obs):
+                return self.Returns(*BaseDevice.pack_obs(intermediate))
+            # a list of multi-Obs
+            return [self.Returns(*BaseDevice.pack_obs(o)) for o in intermediate]
+        # a single obs
+        return self.Returns(intermediate)
+
+    @staticmethod
+    def pack_obs(obs):
+        obs = list(obs)
+        obs.sort(key=lambda x: type(x).__name__)
+        return obs
 
     @property
     def local(self):
@@ -172,6 +180,7 @@ class BaseDevice():
             def any(self):
                 # simplify user checking of whether there's any data
                 return any([x is not None for x in self])
+            length = len(obs)
         # default values of namedtuple to None (see mouse.py for example why)
-        Returns.__new__.__defaults__ = (None,) * len(Returns._fields)
+        Returns.__new__.__defaults__ = (None,) * Returns.length
         return Returns
