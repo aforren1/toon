@@ -132,6 +132,8 @@ class BaseDevice():
         # user provided a self.Returns() already, short-circuit
         if isinstance(intermediate, self.Returns):
             return intermediate
+        if not intermediate:
+            return self.Returns()
         if isinstance(intermediate, list) or isinstance(intermediate, tuple):
             # list of single Obs
             if self.Returns.length == 1:
