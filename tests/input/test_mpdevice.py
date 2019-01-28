@@ -2,7 +2,8 @@ from time import sleep
 
 import numpy as np
 from pytest import approx, raises
-from tests.input.mockdevices import Dummy, DummyList, SingleResp, Timebomb, StructObs
+from tests.input.mockdevices import (Dummy, DummyList, SingleResp, Timebomb,
+                                     StructObs, PackingSingle, PackingMulti)
 
 from toon.input.clock import mono_clock
 from toon.input.mpdevice import MpDevice
@@ -146,7 +147,7 @@ def test_remote_clock():
         sleep(0.1)
         res = dev.read()
         time = mono_clock.get_time()
-    assert(time - res.time[-1] == approx(1.0/SingleResp.sampling_frequency, abs=1e-3))
+    assert(time - res.time[-1] == approx(1.0/SingleResp.sampling_frequency, abs=3e-3))
 
 
 def test_already_closed():
@@ -182,3 +183,17 @@ def test_struct_data():
         res = dev.read()
     last_obs = res[-1]  # NB: this drops the timestamp for some reason?
     assert(last_obs['ur']['y'] - last_obs['ll']['x'] == 3)
+
+
+def test_single_packing():
+    dev = MpDevice(PackingSingle())
+    with dev:
+        sleep(0.1)
+        res = dev.read()
+
+
+def test_multi_packing():
+    dev = MpDevice(PackingMulti())
+    with dev:
+        sleep(0.1)
+        res = dev.read()

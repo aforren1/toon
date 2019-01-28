@@ -2,6 +2,8 @@ import ctypes
 import gc
 import multiprocessing as mp
 import os
+import sys
+import traceback
 from collections import namedtuple
 from copy import copy
 from itertools import compress
@@ -201,7 +203,11 @@ class MpDevice(object):
             if self.kill_remote.is_set():
                 raise ValueError('MpDevice is closed.')
             # real error at *any* point remotely (device instantiation, shape mismatch, ...)
-            raise self.local_err.recv()
+            exc_traceback = self.local_err.recv()
+            exc = self.local_err.recv()
+            print('Remote traceback:')
+            print(exc_traceback)
+            raise exc
 
     def set_high_priority(self, val=False):
         """Set the priority of the child process.
@@ -279,6 +285,9 @@ def remote(dev, shared_data,
                     finally:
                         lck.release()
     except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        fmt_traceback = ''.join(traceback.format_tb(exc_traceback))
+        remote_err.send(fmt_traceback)
         remote_err.send(e)
         gc.enable()
         remote_err.close()

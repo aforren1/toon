@@ -117,3 +117,55 @@ class StructObs(BaseDevice):
         t = self.clock()
         num1 = self.Num1(t, ((self.counter, self.counter + 1), (self.counter+2, self.counter+3)))
         return num1
+
+
+class PackingSingle(BaseDevice):
+    counter = 0
+    t0 = default_timer()
+
+    Num1 = Num1
+
+    def read(self):
+        self.counter += 1
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        num1 = self.Num1(t, np.random.random(self.Num1.shape))
+        if self.counter % 4 == 0:
+            print('single returns')
+            return self.Returns(num1)
+        if self.counter % 5 == 0:
+            print('list o obs')
+            return [num1, num1]
+        if self.counter % 6 == 0:
+            print('list o returns')
+            return [self.Returns(num1), self.Returns(num1)]
+        if self.counter % 7 == 0:
+            print('nothing')
+            return None
+        return num1
+
+
+class PackingMulti(BaseDevice):
+    counter = 0
+    t0 = default_timer()
+
+    Num1 = Num1
+    Num2 = Num2
+
+    def read(self):
+        self.counter += 1
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        num1 = self.Num1(t, np.random.random(self.Num1.shape))
+        num2 = self.Num2(t, np.random.randint(5, size=self.Num2.shape))
+        if self.counter % 5 == 0:
+            return [(num2, num1), (num1, num2)]
+        if self.counter % 8 == 0:
+            return [self.Returns(num1, num2), self.Returns(num1, num2)]
+        if self.counter % 13 == 0:
+            return None
+        return num2, num1

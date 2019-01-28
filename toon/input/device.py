@@ -135,17 +135,17 @@ class BaseDevice():
         if not intermediate:
             return self.Returns()
         if isinstance(intermediate, list) or isinstance(intermediate, tuple):
-            # list of single Obs
-            if self.Returns.length == 1:
-                return [self.Returns(o) for o in intermediate]
             # list of self.Returns()
             if isinstance(intermediate[0], self.Returns):
                 return intermediate
-            # a single multi-Obs
-            if isinstance(intermediate[0], Obs):
-                return self.Returns(*BaseDevice.pack_obs(intermediate))
+            # list of single Obs
+            if self.Returns.length == 1:
+                return [self.Returns(o) for o in intermediate]
             # a list of multi-Obs
-            return [self.Returns(*BaseDevice.pack_obs(o)) for o in intermediate]
+            if hasattr(intermediate[0], '__len__'):
+                return [self.Returns(*BaseDevice.pack_obs(o)) for o in intermediate]
+            # a single multi-Obs
+            return self.Returns(*BaseDevice.pack_obs(intermediate))
         # a single obs
         return self.Returns(intermediate)
 
