@@ -113,7 +113,7 @@ class BaseDevice():
         pass
 
     def exit(self, *args):
-        self.Returns = None
+        pass
 
     @prevent_if_remote
     def __enter__(self):
@@ -133,12 +133,12 @@ class BaseDevice():
         if isinstance(intermediate, self.Returns):
             return intermediate
         if isinstance(intermediate, list) or isinstance(intermediate, tuple):
-            # list of self.Returns()
-            if isinstance(intermediate[0], self.Returns):
-                return intermediate
             # list of single Obs
             if self.Returns.length == 1:
                 return [self.Returns(o) for o in intermediate]
+            # list of self.Returns()
+            if isinstance(intermediate[0], self.Returns):
+                return intermediate
             # a single multi-Obs
             if isinstance(intermediate[0], Obs):
                 return self.Returns(*BaseDevice.pack_obs(intermediate))
