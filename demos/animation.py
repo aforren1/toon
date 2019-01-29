@@ -31,12 +31,12 @@ col1_track = Track([(0.0, 0.6),
                     (1.4, 1),
                     (2.6, -0.2),
                     (4.0, 0)], easing=exponential_out)
+
 # easing doesn't matter here
 col2_track = Track([(0, 'black'),
                     (1.25, 'gray'),
                     (2.5, 'white'),
-                    (5, 'black')],
-                   easing=elastic_in_out)
+                    (5, 'black')])
 
 win = visual.Window(units='height', fullscr=True)
 

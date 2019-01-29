@@ -44,8 +44,8 @@ class MpDevice(object):
             circular buffer.
         """
         self.device = device
-        self.buffer_len = buffer_len
         self.high_priority = high_priority
+        self.buffer_len = buffer_len
 
     def start(self):
         """Start polling from the device on the child process.

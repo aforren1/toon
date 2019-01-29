@@ -167,7 +167,6 @@ class BaseDevice():
     # (without instantiation--key b/c we need to do *before* we instantiate on other process)
     def get_obs(self):
         # get all user-defined Obs defined within the class (as long as they don't start w/ double underscore)
-        # separated from tuple building so that
         return [getattr(self, p) for p in dir(self) if not p.startswith('__')
                 and not p.startswith('_abc')
                 and not isinstance(getattr(self, p), property)

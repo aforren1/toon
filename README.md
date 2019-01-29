@@ -13,7 +13,7 @@ Description
 Additional tools for neuroscience experiments, including:
 
 -   A framework for polling input devices on a separate process.
--   A framework for animating things.
+-   A framework for keyframe-based animation.
 
 Everything *should* work on Windows/Mac/Linux.
 
