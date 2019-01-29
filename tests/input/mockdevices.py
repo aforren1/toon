@@ -133,16 +133,12 @@ class PackingSingle(BaseDevice):
         t = self.clock()
         num1 = self.Num1(t, np.random.random(self.Num1.shape))
         if self.counter % 4 == 0:
-            print('single returns')
             return self.Returns(num1)
         if self.counter % 5 == 0:
-            print('list o obs')
             return [num1, num1]
         if self.counter % 6 == 0:
-            print('list o returns')
             return [self.Returns(num1), self.Returns(num1)]
         if self.counter % 7 == 0:
-            print('nothing')
             return None
         return num1
 
