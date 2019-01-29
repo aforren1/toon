@@ -52,11 +52,13 @@ Typical use looks like this:
 ```python
 from toon.input import MpDevice
 from toon.input.mouse import Mouse
+from timeit import default_timer
 
 device = MpDevice(Mouse())
 
 with device:
-    while True: # ctrl+c to stop
+    t1 = default_timer() + 10
+    while default_timer() < t1:
         data = device.read()
         # alternatively, unpack
         # clicks, pos, scroll = device.read()
