@@ -56,15 +56,16 @@ from toon.input.mouse import Mouse
 device = MpDevice(Mouse())
 
 with device:
-    data = device.read()
-    # alternatively, unpack
-    # clicks, pos, scroll = device.read()
-    if data.pos is not None:
-        # N-D array of data (0th dim is time)
-        print(data.pos)
-        # time is 1D array of timestamps
-        print(data.pos.time)
-        print(data.pos[-1].time) # most recent timestamp
+    while True: # ctrl+c to stop
+        data = device.read()
+        # alternatively, unpack
+        # clicks, pos, scroll = device.read()
+        if data.pos is not None:
+            # N-D array of data (0th dim is time)
+            print(data.pos)
+            # time is 1D array of timestamps
+            print(data.pos.time)
+            print(data.pos[-1].time) # most recent timestamp
 ```
 
 Creating a custom device is relatively straightforward, though there are a few boxes to check.
