@@ -9,6 +9,8 @@ from toon.input.device import BaseDevice, make_obs
 # for commands
 # http://web.cs.ucdavis.edu/~neff/papers/GloveCalibration_WangNeff_SCA2013.pdf
 # for sensor layout
+# https://static1.squarespace.com/static/559c381ee4b0ff7423b6b6a4/t/58ca1b16be6594e83fb42402/1489640216840/CyberGlove+III.pdf
+# is mostly relevant, and also describes the responses following commands
 thumb_joints = ['thumb_cmc', 'mcp', 'pip']
 finger_joints = ['mcp', 'pip']  # *4 (two per finger)
 wrist_joints = ['palm_arch', 'flex', 'abd']

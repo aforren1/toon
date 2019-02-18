@@ -13,9 +13,16 @@ from toon.input.tsarray import TsArray as TsA
 import numpy as np
 import psutil
 
-ctypes_map = np.ctypeslib._typecodes.copy()
-ctypes_map['|S1'] = ctypes.c_char  # TODO: I have no clue if this is valid
-ctypes_map['|b1'] = ctypes.c_bool
+try:
+    ctypes_map = np.ctypeslib._typecodes.copy()
+    ctypes_map['|S1'] = ctypes.c_char  # TODO: I have no clue if this is valid
+    ctypes_map['|b1'] = ctypes.c_bool
+
+    def as_ctypes_type(ctype):
+        return ctypes_map[np.dtype(ctype).str]
+
+except AttributeError:  # numpy>=1.16.1, https://github.com/numpy/numpy/pull/12769
+    from numpy.ctypeslib import as_ctypes_type
 
 
 def shared_to_numpy(mp_arr, dims, dtype):
@@ -305,7 +312,7 @@ class DataGlob(object):
         if issubclass(ctype, ctypes.Structure):
             self.ctype = ctype
         else:
-            self.ctype = ctypes_map[np.dtype(ctype).str]
+            self.ctype = as_ctypes_type(ctype)
         self.shape = shape
         self.is_scalar = self.shape == (1,)
         self.lock = lock
