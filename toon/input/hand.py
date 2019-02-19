@@ -1,5 +1,6 @@
 from ctypes import c_double
 import platform
+import struct
 import numpy as np
 
 import hid
