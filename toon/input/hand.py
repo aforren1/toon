@@ -56,7 +56,7 @@ class Hand(BaseDevice):
         self._buffer[0::3] = (data[2::4] - data[3::4])/self._sqrt2
         self._buffer[1::3] = (data[2::4] + data[3::4])/self._sqrt2
         self._buffer[2::3] = data[4::4] + data[5::4]
-        return self.Pos(time, data)
+        return self.Pos(time, self._buffer)
 
 
 # USB demo (should be phenotypically identical to above)
@@ -89,4 +89,4 @@ class UsbHand(BaseDevice):
         self._buffer[0::3] = (data[2::4] - data[3::4])/self._sqrt2
         self._buffer[1::3] = (data[2::4] + data[3::4])/self._sqrt2
         self._buffer[2::3] = data[4::4] + data[5::4]
-        return self.Pos(time, data)
+        return self.Pos(time, self._buffer)
