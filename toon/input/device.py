@@ -112,7 +112,7 @@ class BaseDevice():
     def read(self):
         pass
 
-    def exit(self, *args):
+    def exit(self):
         pass
 
     @prevent_if_remote
@@ -124,7 +124,7 @@ class BaseDevice():
 
     @prevent_if_remote
     def __exit__(self, *args):
-        self.exit(*args)
+        self.exit()
 
     @prevent_if_remote
     def do_read(self):
