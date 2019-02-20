@@ -42,7 +42,7 @@ class Hand(BaseDevice):
         self._device.open_path(get_teensy_path(self.serial_number))
         self._device.set_nonblocking(not self.blocking)
 
-    def exit(self):
+    def exit(self, *args):
         self._device.close()
 
     def read(self):
