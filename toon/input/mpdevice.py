@@ -238,7 +238,7 @@ class MpDevice(object):
         current_buffer_index = int(self.current_buffer_index.value)
         # this *may* block, if the remote is currently writing
         with self._data[current_buffer_index][0].lock:
-            for counter, datum in enumerate(self._data[current_buffer_index]):
+            for datum in self._data[current_buffer_index]:
                 datum.counter.value = 0  # reset (so that we start writing to top of array)
 
 
