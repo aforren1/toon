@@ -181,6 +181,22 @@ class BaseDevice():
             def any(self):
                 # simplify user checking of whether there's any data
                 return any([x is not None for x in self])
+
+            def copy(self):
+                dl = []
+                for x in self:
+                    if x is not None:
+                        dl.append(x.copy())
+                    else:
+                        dl.append(None)
+                return Returns(*dl)
+
+            def __copy__(self):
+                return self.copy()
+
+            def __deepcopy__(self):
+                return self.copy()
+
             length = len(obs)
         # default values of namedtuple to None (see mouse.py for example why)
         Returns.__new__.__defaults__ = (None,) * Returns.length

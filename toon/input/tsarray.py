@@ -22,7 +22,9 @@ class TsArray(np.ndarray):
 
     def copy(self, **kwargs):
         self._new_time_index = slice(None, None, None)
-        return super(TsArray, self).copy(**kwargs)
+        new_array = super(TsArray, self).copy(**kwargs)
+        new_array = TsArray(new_array, time=self.time.copy())
+        return new_array
 
     def __getitem__(self, item):
         try:
