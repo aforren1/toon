@@ -204,11 +204,11 @@ def test_returns_stack():
     dev = MpDevice(Dummy())
     datae = []
     with dev:
-        while len(datae) < 10:
+        while len(datae) < 8:
             data = dev.read()
             if data.any():
                 datae.append(data.copy())
     stacked_datae = stack(datae)
-    assert(stacked_datae.num1.shape == (10, 5))
-    assert(stacked_datae.num2.shape == (1, 3, 3))
-    assert(len(stacked_datae.num1.time) == 10)
+    assert(stacked_datae.num1.shape == (8, 5))
+    assert(stacked_datae.num2 == None)
+    assert(len(stacked_datae.num1.time) == 8)
