@@ -16,6 +16,7 @@
 # starting from
 # https://github.com/atdt/monotonic/blob/5bd1bf90e5e49d4ce4f5a90b9c97de6934b9503c/monotonic.py#L56
 # until the end of the `if sys.platform == 'darwin'` block (~line 76)
+# pragma: no cover
 import ctypes
 libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
 
