@@ -8,7 +8,7 @@ from ctypes import c_double
 class TsArray(np.ndarray):
     def __new__(cls, data, time=None):
         obj = np.asarray(data).view(cls)
-        obj.time = np.asarray(time, dtype=c_double)
+        obj.time = np.asarray(time, dtype=c_double)  # TODO: make time dtype flexible?
         return obj
 
     def __array_finalize__(self, obj):
@@ -21,7 +21,7 @@ class TsArray(np.ndarray):
             pass
 
     def copy(self, **kwargs):
-        self._new_time_index = slice(None, None, None)
+        #self._new_time_index = slice(None, None, None)
         new_array = super(TsArray, self).copy(**kwargs)
         new_array = TsArray(new_array, time=self.time.copy())
         return new_array

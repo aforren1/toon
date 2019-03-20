@@ -36,6 +36,13 @@ def test_copy():
     arr2 = arr.copy()
     assert(all(arr2.time == [0.1, 0.2, 0.3, 0.4]))
 
+    # copy a subset
+    arr2 = arr[2:].copy()
+    assert(arr2.time[1] == arr.time[3])
+    arr2.time[1] = 3.14
+    assert(arr2.time[1] != arr.time[3])
+    assert(arr2.shape == (2, 3))
+
 
 def test_vstack():
     arr = TsArray([[1, 2, 3], [4, 5, 6],

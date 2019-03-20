@@ -9,6 +9,7 @@ from copy import copy
 from itertools import compress
 from sys import platform
 from toon.input.tsarray import TsArray as TsA
+from toon.input.tsarray import vstack
 
 import numpy as np
 import psutil
@@ -351,3 +352,31 @@ class DataGlob(object):
         # special case for buffer size of 1 and scalar data
         if self.local_data.shape == ():
             self.local_data.shape = (1,)
+
+
+def stack(returns):
+    # stack a list of copied Returns, e.g.
+    # from toon.input import stack
+    # datae = []
+    # while True:
+    #     data = dev.read()
+    #     if data.any():
+    #         datae.append(data.copy()) # NB: data must be copied, else you get views...
+    # stacked_datae = stack(datae) # plugs back into a new Returns tuple
+
+    # start with list of Returns
+    # want to get to list per Obs (i.e. TsArray), which we can then vstack
+    intermediate = [list() for x in returns[0]]
+    # iterate through all returns, append to appropriate list within output
+    for rets in returns:
+        for obs, out in zip(rets, intermediate):
+            if obs is not None:
+                out.append(obs)
+
+    output = []
+    for out in intermediate:
+        if out == []:
+            output.append(None)
+        else:
+            output.append(vstack(out))
+    return returns[0].__class__(*output)
