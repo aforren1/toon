@@ -18,6 +18,7 @@
 # until the end of the `if sys.platform == 'darwin'` block (~line 76)
 # pragma: no cover
 import ctypes
+
 libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
 
 
@@ -28,11 +29,23 @@ class mach_timebase_info_data_t(ctypes.Structure):
 mach_absolute_time = libc.mach_absolute_time
 mach_absolute_time.restype = ctypes.c_uint64
 
-timebase = mach_timebase_info_data_t()
-libc.mach_timebase_info(ctypes.byref(timebase))
-ticks_per_second = timebase.numer / timebase.denom * 1.0e9
 
+class MonoClock(object):
+    def __init__(self):
+        self._reference_counter = self.get_ticks()
+        timebase = mach_timebase_info_data_t()
+        libc.mach_timebase_info(ctypes.byref(timebase))
+        self.frequency = timebase.numer / timebase.denom * 1.0e9
 
-def get_time():
-    # originally called `monotonic`
-    return mach_absolute_time() / ticks_per_second
+    def get_ticks(self):
+        return mach_absolute_time()
+
+    def get_time(self):
+        return (self.get_ticks() - self._reference_counter) / self.frequency
+
+    def getTime(self):
+        return self.get_time()
+
+    @property
+    def start_time(self):
+        return self._reference_counter / self.frequency
