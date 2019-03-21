@@ -11,3 +11,6 @@ omit =
     toon/input/birds.py
     toon/input/cyberglove.py
     toon/input/keyboard2.py
+    toon/input/clock.py
+    toon/input/clocks/*.py
+
