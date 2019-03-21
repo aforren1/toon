@@ -6,7 +6,8 @@ from tests.input.mockdevices import (Dummy, DummyList, SingleResp, Timebomb,
                                      StructObs, PackingSingle, PackingMulti)
 
 from toon.input.clock import mono_clock
-from toon.input.mpdevice import MpDevice, stack
+from toon.input.mpdevice import MpDevice
+from toon.input import stack
 
 # bump up the sampling frequency for tests
 Dummy.sampling_frequency = 1000
@@ -199,16 +200,23 @@ def test_multi_packing():
         res = dev.read()
 
 
-def test_returns_stack():
-    # test stack() function (given list of Returns, stack reults)
+def test_stack():
+    # test stack() function (given list of Returns or TsArray, stack reults)
     dev = MpDevice(Dummy())
     datae = []
+    tsdatae = []
     with dev:
         while len(datae) < 8:
             data = dev.read()
             if data.any():
                 datae.append(data.copy())
+                tsdatae.append(data.num1.copy())
+
     stacked_datae = stack(datae)
     assert(stacked_datae.num1.shape == (8, 5))
     assert(stacked_datae.num2 == None)
     assert(len(stacked_datae.num1.time) == 8)
+
+    stacked_tsdatae = stack(tsdatae)
+    assert((stacked_datae.num1 == stacked_tsdatae).all())
+    assert((stacked_datae.num1.time == stacked_tsdatae.time).all())

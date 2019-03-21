@@ -13,9 +13,6 @@ def test_obs():
     wrong_type = [['a', 'b'], ['c', 'd'], ['d', 'e']]
 
     subobs = SubObs(time=3, data=good_data)
-    print(str(subobs))
-    print(repr(subobs))
-
     # flat (coerced to correct shape by the shape property)
     subobs2 = SubObs(time=3, data=flat_data)
     assert((subobs.data == subobs2.data).all())
