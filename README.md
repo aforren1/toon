@@ -122,8 +122,8 @@ A few things to be aware of for data returned by `MpDevice`:
 
 
 Other notes:
-  - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
-  - Re: concatenation, there is a `vstack` function available in `toon/input/tsarray.py`, which is like numpy's version but keeps the time attribute intact.
+  - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s and device `Returns` have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
+  - Re: concatenation, there is a `stack` function available via `from toon.input import stack`, which is like numpy's `vstack` but keeps the time attribute intact. It also dispatches appropriately for either `TsArray`s or `Returns`.
   - If receiving batches of data when reading from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example).
   - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
   - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
