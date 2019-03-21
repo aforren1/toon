@@ -3,6 +3,9 @@ import ctypes.wintypes as cwt
 kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 
 
+# From Stack Overflow
+# User linusg https://stackoverflow.com/users/5952681/linusg
+# https://stackoverflow.com/a/38463185/2690232
 class MonoClock(object):
     def __init__(self):
         self._reference_counter = self.get_ticks()
