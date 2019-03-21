@@ -213,7 +213,7 @@ def test_stack():
                 tsdatae.append(data.num1.copy())
 
     stacked_datae = stack(datae)
-    assert(stacked_datae.num1.shape == (8, 5))
+    assert(stacked_datae.num1.shape[1] == 5)
     assert(stacked_datae.num2 == None)
     assert(len(stacked_datae.num1.time) == 8)
 
