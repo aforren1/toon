@@ -214,8 +214,7 @@ def test_stack():
 
     stacked_datae = stack(datae)
     assert(stacked_datae.num1.shape[1] == 5)
-    assert(stacked_datae.num2 == None)
-    assert(len(stacked_datae.num1.time) == 8)
+    assert(len(stacked_datae.num1.time) > 5)
 
     stacked_tsdatae = stack(tsdatae)
     assert((stacked_datae.num1 == stacked_tsdatae).all())
