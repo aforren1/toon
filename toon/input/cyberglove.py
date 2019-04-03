@@ -4,6 +4,7 @@ import serial
 import numpy as np
 from time import sleep
 from toon.input.device import BaseDevice, make_obs
+from serial.tools import list_ports
 
 # thanks to ROS http://docs.ros.org/fuerte/api/cyberglove/html/serial__glove_8hpp.html
 # for commands
@@ -47,12 +48,14 @@ class Cyberglove(BaseDevice):
 
     Pos = make_obs('Pos', (1,), GloveData)
 
-    def __init__(self, port, **kwargs):
+    def __init__(self, port=None, **kwargs):
         super(Cyberglove, self).__init__(**kwargs)
         self.port = port  # TODO: auto-detect using serial.tools.list_ports
         self.dev = None
 
     def enter(self):
+        if not self.port:
+            self.port = next(x.device for x in list_ports.comports() if x.product == 'USB-Serial Controller')
         self.dev = serial.Serial(self.port, 115200, timeout=0.02)
         self.dev.reset_input_buffer()
         sleep(0.1)
@@ -112,7 +115,7 @@ class Cyberglove(BaseDevice):
 if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
-    dev = MpDevice(Cyberglove(port='/dev/ttyUSB0'))
+    dev = MpDevice(Cyberglove())
     #dev = Mouse()
     with dev:
         start = time.time()
@@ -120,5 +123,5 @@ if __name__ == '__main__':
             #dat = dev.do_read()
             dat = dev.read()
             if dat is not None:
-                print(dat[-1])  # access joints via dat[-1]['thumb']['mcp']
+                print(dat)  # access joints via dat[-1]['thumb']['mcp']
             time.sleep(0.016)  # pretend to have a screen
