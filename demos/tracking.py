@@ -13,7 +13,7 @@ class AnimCircle(Player, Circle):
         Circle.__init__(self, *args, **kwargs)
 
 
-win = visual.Window(fullscr=True, units='pix')
+win = visual.Window(fullscr=True, units='pix', screen=1)
 
 timeline = Timeline()
 timeline.start()

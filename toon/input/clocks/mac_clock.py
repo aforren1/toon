@@ -31,8 +31,8 @@ mach_absolute_time.restype = ctypes.c_uint64
 
 
 class MonoClock(object):
-    def __init__(self):
-        self._reference_counter = self.get_ticks()
+    def __init__(self, relative=True):
+        self._reference_counter = self.get_ticks() if relative else 0
         timebase = mach_timebase_info_data_t()
         libc.mach_timebase_info(ctypes.byref(timebase))
         self.frequency = timebase.numer / timebase.denom * 1.0e9

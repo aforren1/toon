@@ -6,8 +6,8 @@ class MonoClock(object):
     I wanted to avoid importing pyglet on the remote process, in case that causes any headache.
     """
 
-    def __init__(self):
-        self._start_time = get_time()
+    def __init__(self, relative=True):
+        self._start_time = get_time() if relative else 0
 
     def get_time(self):
         """Returns the current time on this clock in seconds (sub-ms precision)

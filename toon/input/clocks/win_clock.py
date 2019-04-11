@@ -7,8 +7,8 @@ kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 # User linusg https://stackoverflow.com/users/5952681/linusg
 # https://stackoverflow.com/a/38463185/2690232
 class MonoClock(object):
-    def __init__(self):
-        self._reference_counter = self.get_ticks()
+    def __init__(self, relative=True):
+        self._reference_counter = self.get_ticks() if relative else cwt.LARGE_INTEGER(0)
         self.frequency = cwt.LARGE_INTEGER()
         kernel32.QueryPerformanceFrequency(ctypes.byref(self.frequency))
         self.frequency = float(self.frequency.value)
