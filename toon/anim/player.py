@@ -13,11 +13,12 @@ class Player(object):
     Can also be used as a mixin.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, repeats=1, *args, **kwargs):
         """Create a Player.
 
         Parameters
         ----------
+        repeats: number of times to repeat the animation
         *args: arbitrary (only matters if using as mixin)
         **kwargs: arbitrary (only matters if using as mixin)
         """
@@ -26,6 +27,10 @@ class Player(object):
         self.ref_time = None
         self.duration = 0
         self.timescale = 1
+        if repeats < 1:
+            raise ValueError('Number of repeats must be > 1 (or math.inf)')
+        self._repeats = repeats  # track
+        self.repeats = repeats
 
     def add(self, track, attr, obj=None, **kwargs):
         """Add a new Track to the Player.
@@ -55,7 +60,9 @@ class Player(object):
             Reference time.
         """
         self.ref_time = time
+        self._repeats = self.repeats
         self.state = 'playing'
+        self.advance(time)  # start should reset everything to the initial time?
 
     def stop(self):
         """Stop the animations."""
@@ -117,11 +124,17 @@ class Player(object):
                 self._do_update(trk.attr, val, self, **trk.kwargs)
             # if we've gone beyond, stop playing
             if time - self.ref_time >= self.duration:
-                self.state = 'stopped'
+                self._repeats -= 1
+                if self._repeats < 1:
+                    self.state = 'stopped'
+                else:
+                    self.ref_time = time
 
+    @property
     def is_playing(self):
         return self.state == 'playing'
 
+    @property
     def is_stopped(self):
         return self.state == 'stopped'
 

@@ -140,7 +140,7 @@ from time import sleep
 from timeit import default_timer
 import matplotlib.pyplot as plt
 from toon.anim import Track, Player
-# see toon/anim/easing.py for all easings available
+# see toon/anim/easing.py for all available easings
 from toon.anim.easing import linear, elastic_in_out
 
 class Circle(object):
@@ -154,7 +154,7 @@ x_track = Track(keyframes, easing=linear)
 # we can reuse keyframes
 y_track = Track(keyframes, easing=elastic_in_out)
 
-player = Player()
+player = Player(repeats=3)
 
 # directly modify an attribute
 player.add(x_track, 'x', obj=circle)
@@ -168,7 +168,7 @@ player.add(y_track, y_cb, obj=circle)
 t0 = default_timer()
 player.start(t0)
 vals = []
-while default_timer() < t0 + 3.2:
+while player.is_playing:
     player.advance(default_timer())
     vals.append([circle.x, circle.y])
     sleep(1/60)
