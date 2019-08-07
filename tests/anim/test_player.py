@@ -25,14 +25,14 @@ def test_player():
     player.add(trk, change_val, circ2)
 
     player.start(0)
-    assert(player.is_playing())
+    assert(player.is_playing)
     player.advance(0.5)
     assert(circ.x == circ2.x)
     player.advance(0.9)
     assert(circ.x == circ2.x)
     player.advance(1.0)
     # test if stops after track exhausted
-    assert(not player.is_playing())
+    assert(not player.is_playing)
     # modifying a group of objects (with matching API)
     circs = [Circ() for i in range(5)]
 
@@ -42,7 +42,7 @@ def test_player():
     assert(all([i.y == 0.5 for i in circs]))
 
     player.stop()
-    assert(not player.is_playing())
+    assert(not player.is_playing)
 
     def call(val, obj, foo):
         obj.x = val * foo
