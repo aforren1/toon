@@ -137,7 +137,6 @@ Example:
 
 ```python
 from math import sin, pi
-# from https://github.com/mosra/magnum/blob/master/src/Magnum/Animation/Easing.h
 
 from time import sleep
 from timeit import default_timer
