@@ -136,12 +136,15 @@ This is still a work in progress, though I think it has some utility as-is. It's
 Example:
 
 ```python
+from math import sin, pi
+# from https://github.com/mosra/magnum/blob/master/src/Magnum/Animation/Easing.h
+
 from time import sleep
 from timeit import default_timer
 import matplotlib.pyplot as plt
 from toon.anim import Track, Player
 # see toon/anim/easing.py for all available easings
-from toon.anim.easing import linear, elastic_in_out
+from toon.anim.easing import linear
 
 class Circle(object):
     x = 0
@@ -151,8 +154,17 @@ circle = Circle()
 # list of (time, value)
 keyframes = [(0.2, -0.5), (0.5, 0), (3, 0.5)]
 x_track = Track(keyframes, easing=linear)
+
+# currently, easings can be any function that takes a single
+# positional argument as input (time normalized to [0, 1]) and returns
+# a scalar (probably float), generally having a lower asymptote
+# of 0 and upper asymptote of 1, which is used as the current time
+# for purposes of interpolation
+def elastic_in(x):
+    return pow(2.0, 10.0 * (x - 1.0)) * sin(13.0 * pihalf * x)
+
 # we can reuse keyframes
-y_track = Track(keyframes, easing=elastic_in_out)
+y_track = Track(keyframes, easing=elastic_in)
 
 player = Player(repeats=3)
 

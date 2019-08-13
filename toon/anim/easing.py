@@ -1,4 +1,4 @@
-from math import pow, sin, pi
+from math import sin, pi
 # from https://github.com/mosra/magnum/blob/master/src/Magnum/Animation/Easing.h
 
 pihalf = pi/2.0
