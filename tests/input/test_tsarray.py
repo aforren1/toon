@@ -50,6 +50,7 @@ def test_stack():
                   time=[0.1, 0.2, 0.3, 0.4])
 
     arr2 = TsArray([[3, 2, 1], [4, 4, 4], [12, 1, 1]], time=[10, 12, 14])
-    res = stack((arr, arr2))
-    assert(res.shape == (7, 3))
-    assert(res.time.shape == (7,))
+    arr3 = TsArray([5, 5, 5], time=100)
+    res = stack((arr, arr2, arr3))
+    assert(res.shape == (8, 3))
+    assert(res.time.shape == (8,))
