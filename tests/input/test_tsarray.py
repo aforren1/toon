@@ -1,5 +1,5 @@
 import numpy as np
-from toon.input.tsarray import TsArray, vstack
+from toon.input.tsarray import TsArray, stack
 
 
 def test_creation():
@@ -44,11 +44,12 @@ def test_copy():
     assert(arr2.shape == (2, 3))
 
 
-def test_vstack():
+def test_stack():
     arr = TsArray([[1, 2, 3], [4, 5, 6],
                    [7, 8, 9], [10, 11, 12]],
                   time=[0.1, 0.2, 0.3, 0.4])
-    arr2 = arr.copy()
-    res = vstack((arr, arr2))
-    assert(res.shape == (8, 3))
-    assert(res.time.shape == (8,))
+
+    arr2 = TsArray([[3, 2, 1], [4, 4, 4], [12, 1, 1]], time=[10, 12, 14])
+    res = stack((arr, arr2))
+    assert(res.shape == (7, 3))
+    assert(res.time.shape == (7,))
