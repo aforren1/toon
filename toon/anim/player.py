@@ -112,7 +112,7 @@ class Player(object):
         for trk in self.tracks:
             # if tracks are playing, will return a val
             val = trk.track.at((time - self.ref_time) * self.timescale)
-            if trk.obj:  # object or list provided, so we'll manipulate them
+            if trk.obj is not None:  # object or list provided, so we'll manipulate them
                 try:  # see if single object
                     self._do_update(trk.attr, val,
                                     trk.obj, **trk.kwargs)
