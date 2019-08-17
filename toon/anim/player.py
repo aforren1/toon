@@ -68,6 +68,11 @@ class Player(object):
         """Stop the animations."""
         self.state = 'stopped'
 
+    def reset(self):
+        """Reset all tracks and stop animation."""
+        self.start(self.ref_time)
+        self.stop()
+
     def resume(self, time):
         """Resume playing.
 

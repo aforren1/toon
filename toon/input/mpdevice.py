@@ -372,7 +372,6 @@ def stack(returns):
         for obs, out in zip(rets, intermediate):
             if obs is not None:
                 out.append(obs)
-
     output = []
     for out in intermediate:
         if out == []:

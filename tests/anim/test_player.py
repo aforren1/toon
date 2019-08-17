@@ -88,3 +88,14 @@ def test_scaling():
     player.start(10)
     player.advance(10.5)
     assert(circ.x == 1)
+
+
+def test_reset():
+    circ = Circ()
+    player = Player()
+    player.add(Track([(0, 0), (1, 1)]), 'x', circ)
+    player.start(0)
+    player.advance(0.5)
+    player.reset()
+    player.advance(0.5)
+    assert(circ.x == 0)

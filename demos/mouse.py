@@ -21,10 +21,11 @@ data_list = []
 
 with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
     while not event.getKeys(['esc', 'escape']):
-        clicks, pos, scroll = toon_mouse.read()
+        data = toon_mouse.read()
+        data_list.append(data)
+        clicks, pos, scroll = data
         pos2 = psy_mouse.getPos()
         if pos is not None:
-            data_list.append(pos.copy())
             pos *= [1, -1]
             for i in pos:
                 toon_cir.pos += i
@@ -36,6 +37,5 @@ with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
 win.close()
 data_stack = stack(data_list)
 print(data_stack)
-print(np.diff(data_stack.time))
 
 core.quit()
