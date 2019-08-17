@@ -9,7 +9,7 @@ from copy import copy
 from itertools import compress
 from sys import platform
 from toon.input.tsarray import TsArray as TsA
-from toon.input.tsarray import vstack
+from toon.input.tsarray import stack as tsstack
 
 import numpy as np
 import psutil
@@ -377,5 +377,5 @@ def stack(returns):
         if out == []:
             output.append(None)
         else:
-            output.append(vstack(out))
+            output.append(tsstack(out))
     return returns[0].__class__(*output)
