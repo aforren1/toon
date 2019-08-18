@@ -37,10 +37,18 @@ class TsArray(np.ndarray):
         return super(TsArray, self).__getitem__(item)
 
 
+def atleast_nd(x, n):
+    # https://stackoverflow.com/a/43871605
+    return np.array(x, ndmin=n, subok=True, copy=False)
+
+
 def stack(tup):
     """Stack TsArrays in sequence vertically (rowwise).
 
     This also preserves and stacks the time attribute of the TsArray inputs.
     """
     times = np.concatenate([np.atleast_1d(x.time) for x in tup if x is not None], axis=0)
-    return TsArray(np.concatenate([np.atleast_1d(t) for t in tup if t is not None], axis=0), time=times)
+    not_none = [t for t in tup if t is not None]
+    max_dims = max([len(t.shape) for t in not_none])
+    return TsArray(np.concatenate([atleast_nd(t, max_dims) for t in not_none], axis=0),
+                   time=times)

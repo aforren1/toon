@@ -22,7 +22,7 @@ data_list = []
 with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
     while not event.getKeys(['esc', 'escape']):
         data = toon_mouse.read()
-        data_list.append(data)
+        data_list.append(data.copy())
         clicks, pos, scroll = data
         pos2 = psy_mouse.getPos()
         if pos is not None:
@@ -36,6 +36,6 @@ with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
 
 win.close()
 data_stack = stack(data_list)
-print(data_stack)
+# print(data_stack)
 
 core.quit()
