@@ -24,7 +24,7 @@ class Player(object):
         """
         self.tracks = []
         self.state = 'stopped'  # 'playing'
-        self.ref_time = None
+        self.ref_time = 0
         self.duration = 0
         self.timescale = 1
         if repeats < 1:
