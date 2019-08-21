@@ -229,7 +229,7 @@ class MpDevice(object):
                     self.ps_process.nice(-10)
             else:
                 self.ps_process.nice(self.original_nice)
-        except (psutil.AccessDenied, psutil.NoSuchProcess) as e:
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
 
     def clear(self):
