@@ -72,6 +72,7 @@ class MpDevice(object):
         # For Macs, use spawn (interaction with OpenGL or ??)
         # Windows only does spawn
         if platform == 'darwin' or platform == 'win32':
+            mp.freeze_support()  # for Windows executable support
             try:
                 mp.set_start_method('spawn')
             except (AttributeError, RuntimeError):
