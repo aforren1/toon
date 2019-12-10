@@ -1,7 +1,6 @@
 from collections import namedtuple
 from toon.anim.easing import linear
 from toon.anim.interpolators import lerp, select
-from timeit import default_timer
 
 
 class Track(object):
