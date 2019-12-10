@@ -1,7 +1,6 @@
 from collections import namedtuple
 from toon.anim.easing import linear
 from toon.anim.interpolators import lerp, select
-from itertools import islice
 from timeit import default_timer
 
 
@@ -46,7 +45,6 @@ class Track(object):
         -------
         The interpolated value at the given point in time.
         """
-        t0 = default_timer()
         data = self.data
         if time <= data[0][0]:
             self.prev = 0
@@ -55,15 +53,13 @@ class Track(object):
         if time >= data[-1][0]:
             self.prev = len(data)
             return data[-1][1]
-
-        for index, kf in enumerate(islice(data, self.prev, None)):
-            shift_index = index + self.prev
-            if kf[0] > time:
-                # index & kf are what we want
-                self.prev = shift_index
+        slc = range(self.prev, len(data))
+        for idx in slc:
+            if data[idx][0] > time:
+                kf = data[idx]
                 break
-        print(default_timer() - t0)
-        reference = data[-1]
+            self.prev += 1
+        reference = data[self.prev-1]
         goal_time = kf[0] - reference[0]
         new_time = time - reference[0]
         time_warp = self.easing(1 - ((goal_time - new_time)/goal_time))
