@@ -1,6 +1,8 @@
 from collections import namedtuple
 from toon.anim.easing import linear
 from toon.anim.interpolators import lerp, select
+from itertools import islice
+from timeit import default_timer
 
 
 class Track(object):
@@ -26,6 +28,7 @@ class Track(object):
         self.data = data
         self.interpolator = interpolator
         self.easing = easing
+        self.prev = 0
         # if data is non-numeric, force user to use select
         if not isinstance(data[0][1], (float, int)):
             self.interpolator = select
@@ -43,23 +46,28 @@ class Track(object):
         -------
         The interpolated value at the given point in time.
         """
-        # find the two keyframes to interpolate between
-        # rel_time is the time relative to the start
-        if time < self.data[0][0]:
-            # TODO: extrapolation (currently equivalent to constant)
-            return self.data[0][1]
-        try:
-            index, goal = next((i, x) for i, x in enumerate(self.data) if x[0] > time)
-        except StopIteration:
-            # TODO: Extrapolation (currently equivalent to constant)
-            return self.data[-1][1]
-        # prev keyframe to check against
-        reference = self.data[index - 1]
-        # calculate time stuff
-        goal_time = goal[0] - reference[0]
+        t0 = default_timer()
+        data = self.data
+        if time <= data[0][0]:
+            self.prev = 0
+            return data[0][1]
+
+        if time >= data[-1][0]:
+            self.prev = len(data)
+            return data[-1][1]
+
+        for index, kf in enumerate(islice(data, self.prev, None)):
+            shift_index = index + self.prev
+            if kf[0] > time:
+                # index & kf are what we want
+                self.prev = shift_index
+                break
+        print(default_timer() - t0)
+        reference = data[-1]
+        goal_time = kf[0] - reference[0]
         new_time = time - reference[0]
         time_warp = self.easing(1 - ((goal_time - new_time)/goal_time))
-        return self.interpolator(reference[1], goal[1], time_warp)
+        return self.interpolator(reference[1], kf[1], time_warp)
 
     def duration(self):
         """The maximum duration of the track."""

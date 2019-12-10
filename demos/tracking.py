@@ -44,7 +44,7 @@ target_cir.add(y_track, change_y)
 timeline.next_frame()
 target_cir.start(timeline.frame_time)
 with toon_mouse:  # alternatively, use toon_mouse.start(), toon_mouse.stop()
-    while target_cir.is_playing() and not event.getKeys(['esc', 'escape']):
+    while target_cir.is_playing and not event.getKeys(['esc', 'escape']):
         win.callOnFlip(timeline.next_frame)
         target_cir.advance(timeline.frame_time)
         clicks, pos, scroll = toon_mouse.read()
