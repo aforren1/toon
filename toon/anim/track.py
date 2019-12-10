@@ -56,16 +56,18 @@ class Track(object):
             return data[-1][1]
         # iterate from previous index
         len_data = len(data)
+        kf = None
         for idx in range(self.prev, len_data):
             if data[idx][0] > time:
                 kf = data[idx]
                 break
         # if we don't find it searching forward, start at beginning
-        if self.prev > len_data:
+        if kf is None:
             for idx in range(len_data):
                 if data[idx][0] > time:
                     kf = data[idx]
                     break
+        # TODO: kf *should* exist at this point, but do we need more error checking?
         self.prev = idx
         reference = data[self.prev-1]
         goal_time = kf[0] - reference[0]
