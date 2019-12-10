@@ -46,6 +46,7 @@ class Track(object):
         The interpolated value at the given point in time.
         """
         data = self.data
+        # handle boundaries first
         if time <= data[0][0]:
             self.prev = 0
             return data[0][1]
@@ -53,12 +54,19 @@ class Track(object):
         if time >= data[-1][0]:
             self.prev = len(data)
             return data[-1][1]
-        slc = range(self.prev, len(data))
-        for idx in slc:
+        # iterate from previous index
+        len_data = len(data)
+        for idx in range(self.prev, len_data):
             if data[idx][0] > time:
                 kf = data[idx]
                 break
-            self.prev += 1
+        # if we don't find it searching forward, start at beginning
+        if self.prev > len_data:
+            for idx in range(len_data):
+                if data[idx][0] > time:
+                    kf = data[idx]
+                    break
+        self.prev = idx
         reference = data[self.prev-1]
         goal_time = kf[0] - reference[0]
         new_time = time - reference[0]
