@@ -14,7 +14,9 @@ class Track(object):
 
         Parameters
         ----------
-        data: list of (keyframe, value) pairs
+        data: list of (keyframe, value) pairs. 
+            These are expected to be sorted by keyframe in ascending order.
+            Keyframe should not be duplicated.
         interpolator: function
             `lerp` for linear interpolation, `select` for stepwise behavior.
         easing: function
@@ -26,7 +28,7 @@ class Track(object):
         self.data = data
         self.interpolator = interpolator
         self.easing = easing
-        self.prev = 0
+        self.prev_index = 0
         # if data is non-numeric, force user to use select
         if not isinstance(data[0][1], (float, int)):
             self.interpolator = select
@@ -44,31 +46,54 @@ class Track(object):
         -------
         The interpolated value at the given point in time.
         """
-        data = self.data
+
         # handle boundaries first
+        data = self.data
+
         if time <= data[0][0]:
-            self.prev = 0
+            self.prev_index = 0
             return data[0][1]
 
         if time >= data[-1][0]:
-            self.prev = len(data)
+            self.prev_index = len(data) - 1
             return data[-1][1]
-        # iterate from previous index
+
+        # extract previous keyframe
+        prev_index = self.prev_index
+        prev_kf = data[prev_index]
+        if time == prev_kf[0]:
+            return prev_kf[1]
+
+        sign = time - prev_kf[0]
         len_data = len(data)
-        kf = None
-        for idx in range(self.prev, len_data):
-            if data[idx][0] > time:
-                kf = data[idx]
-                break
-        # if we don't find it searching forward, start at beginning
-        if kf is None:
-            for idx in range(len_data):
-                if data[idx][0] > time:
-                    kf = data[idx]
+
+        # if time is greater than previous keyframe time, search toward end
+        if sign > 0:
+            offset = -1
+            for index in range(self.prev_index + 1, len_data):
+                #print('a%i' % index)
+                # find the next keyframe that the current time is less than
+                proposed_kf = data[index]
+                if time < proposed_kf[0]:
+                    kf = proposed_kf
                     break
-        # TODO: kf *should* exist at this point, but do we need more error checking?
-        self.prev = idx
-        reference = data[self.prev-1]
+        # if time is less than previous keyframe time, search toward beginning
+        elif sign < 0:
+            offset = 1
+            for index in range(self.prev_index - 1, -1, -1):
+                #print('b%i' % index)
+                # find the next keyframe that the current time is greater than
+                proposed_kf = data[index]
+                if time > proposed_kf[0]:
+                    kf = proposed_kf
+                    break
+        else:
+            raise ValueError('Unexpected value.')
+
+        self.prev_index = index
+        # find the other keyframe to interpolate between
+        reference = data[index + offset]
+        # print('kf_ref: %s, time: %s, kf_targ: %s' % (reference, time, kf))
         goal_time = kf[0] - reference[0]
         new_time = time - reference[0]
         time_warp = self.easing(1 - ((goal_time - new_time)/goal_time))

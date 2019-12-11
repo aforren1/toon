@@ -43,8 +43,10 @@ def test_outside_bounds():
 
 
 def test_backwards():
-    kfs = [(1, 1), (2, 2), (3, 3)]
+    kfs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
     track = Track(kfs)
     assert(track.at(2) == 2)
     # rewind; the track has to loop around and start searching from the beginning of the keyframes
     assert(track.at(1.5) == 1.5)
+    # forward
+    assert(track.at(4.5) == 4.5)
