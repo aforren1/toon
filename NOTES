@@ -24,6 +24,5 @@ Upload/release:
 Local (from project root):
 
 2. rm dist/*
-3. python setup.py bdist_wheel
-4. python setup.py sdist
-5. twine upload dist/*
+3. python setup.py bdist_wheel sdist
+4. twine upload dist/*
