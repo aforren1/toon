@@ -97,3 +97,37 @@ if sys.platform == 'win32':
                 kernel32.SetThreadPriority(thread, THREAD_PRIORITY_ABOVE_NORMAL)
 
         return True
+
+elif sys.platform == 'darwin':
+    # TODO
+    # https://developer.apple.com/library/archive/documentation/Darwin/Conceptual/KernelProgramming/scheduler/scheduler.html#//apple_ref/doc/uid/TP30000905-CH211-BABCHEEB
+    def priority(level=0, pid=None):
+        if level > 0:
+            gc.disable()
+        else:
+            gc.enable()
+        return True
+
+else:  # linux
+    import os
+
+    def priority(level=0, pid=0):
+        if level > 0:
+            gc.disable()
+        else:
+            gc.enable()
+
+        if level == 1:
+            policy = os.SCHED_RR
+        elif level == 2:
+            policy = os.SCHED_FIFO
+        else:
+            policy = os.SCHED_OTHER
+
+        sched_param = os.sched_param(os.sched_get_priority_max(policy))
+
+        try:
+            os.sched_setscheduler(pid, policy, sched_param)
+        except PermissionError:
+            return False
+        return True

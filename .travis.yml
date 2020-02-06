@@ -4,18 +4,17 @@ dist: xenial
 cache:
   - pip
 python:
-  - 2.7
   - 3.6
 
 matrix:
   include:
     - os: linux
       language: python
+      python: 3.8
+
+    - os: linux
+      language: python
       python: 3.7
-    
-    # default version of python2 (2.7.15)
-    - os: osx
-      language: generic
 
     # default version of python3 (3.6.5)
     - os: osx

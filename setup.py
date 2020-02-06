@@ -23,7 +23,7 @@ full_reqs = list(set(full_reqs))
 
 setup(
     name='toon',
-    version='0.12.8',
+    version='0.12.9',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',
@@ -35,8 +35,6 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
