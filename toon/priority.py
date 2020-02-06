@@ -8,8 +8,8 @@ import warnings
 if sys.platform == 'win32':
     kernel32 = None
     avrt = None
-    from ctypes import WinDLL, get_last_error, set_last_error
-    from ctypes.wintypes import LPDWORD
+    from ctypes import WinDLL, get_last_error, set_last_error, byref
+    from ctypes.wintypes import LPDWORD, LPCSTR
     try:
         kernel32 = WinDLL('kernel32', use_last_error=True)
     except Exception:
@@ -80,7 +80,7 @@ if sys.platform == 'win32':
             kernel32.SetPriorityClass(process, HIGH_PRIORITY_CLASS)
             if avrt:
                 tmp = LPDWORD()
-                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristics('Pro Audio', 'capture', tmp)
+                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristicsA(LPCSTR(b'Pro Audio'), LPCSTR(b'Capture'), byref(tmp))
             if not thread_grp['mmcss']:  # failed
                 kernel32.SetThreadPriority(thread, THREAD_PRIORITY_HIGHEST)
 
@@ -92,7 +92,7 @@ if sys.platform == 'win32':
                 kernel32.SetPriorityClass(process, HIGH_PRIORITY_CLASS)
             if avrt:
                 tmp = LPDWORD()
-                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristics('Pro Audio', 'capture', tmp)
+                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristicsA(LPCSTR(b'Pro Audio'), LPCSTR(b'Capture'), byref(tmp))
             if not thread_grp['mmcss']:  # failed
                 kernel32.SetThreadPriority(thread, THREAD_PRIORITY_ABOVE_NORMAL)
 
