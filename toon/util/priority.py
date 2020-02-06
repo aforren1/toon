@@ -109,6 +109,13 @@ elif sys.platform == 'darwin':
 
 else:  # linux
     import os
+    import ctypes
+    import ctypes.util
+
+    MCL_CURRENT = 1
+    MCL_FUTURE = 2
+
+    libc = ctypes.CDLL(ctypes.util.find_library('c'))
 
     def priority(level=0, pid=0):
         if level > 0:
@@ -116,6 +123,7 @@ else:  # linux
         else:
             gc.enable()
 
+        libc.munlockall()
         if level == 1:
             policy = os.SCHED_RR
         elif level == 2:
@@ -129,4 +137,10 @@ else:  # linux
             os.sched_setscheduler(pid, policy, sched_param)
         except PermissionError:
             return False
+
+        if level == 2:  # try to lock memory (and we succeeded in sched already)
+            res = libc.mlockall(MCL_CURRENT | MCL_FUTURE)
+            if res != 0:
+                libc.munlockall()
+
         return True
