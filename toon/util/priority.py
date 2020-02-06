@@ -52,8 +52,7 @@ if sys.platform == 'win32':
             # nothing to do if we don't have these
             return False
 
-        if not pid:
-            pid = os.getpid()
+        pid = os.getpid()
         process = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_SET_INFORMATION, 0, pid)
         thread = kernel32.GetCurrentThread()
 
@@ -86,7 +85,7 @@ if sys.platform == 'win32':
 
         elif level == 2:
             # first try to set time critical
-            if not (kernel32.SetPriorityClass(process, REALTIME_PRIORITY_CLASS) or
+            if (not kernel32.SetPriorityClass(process, REALTIME_PRIORITY_CLASS) or
                     kernel32.GetPriorityClass(process) != REALTIME_PRIORITY_CLASS):
                 # try for high priority scheduling instead
                 kernel32.SetPriorityClass(process, HIGH_PRIORITY_CLASS)
