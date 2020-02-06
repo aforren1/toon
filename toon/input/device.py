@@ -1,5 +1,4 @@
 import abc
-import six
 import inspect
 import numpy as np
 from collections import namedtuple
@@ -24,8 +23,7 @@ def prevent_if_remote(func):
     return wrap_if_remote
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Obs():
+class Obs(metaclass=abc.ABCMeta):
     """Abstract base class for observations.
 
     This is subclassed when making new subclasses of toon.input.BaseDevice,
@@ -67,8 +65,7 @@ class Obs():
         return '%s(time: %f, data: %s)' % (type(self).__name__, self.time, self.data)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseDevice():
+class BaseDevice(metaclass=abc.ABCMeta):
     """Abstract base class for input devices.
     Attributes
     ----------

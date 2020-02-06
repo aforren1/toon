@@ -10,9 +10,10 @@ from itertools import compress
 from sys import platform
 from toon.input.tsarray import TsArray as TsA
 from toon.input.tsarray import stack as tsstack
+from toon.util import priority
 
 import numpy as np
-import psutil
+from psutil import pid_exists
 
 try:  # numpy>=1.16.1, https://github.com/numpy/numpy/pull/12769
     from numpy.ctypeslib import as_ctypes_type
@@ -38,21 +39,18 @@ def shared_to_numpy(mp_arr, dims, dtype):
 class MpDevice(object):
     """Creates and manages a process for polling an input device."""
 
-    def __init__(self, device, high_priority=True, buffer_len=None):
+    def __init__(self, device, buffer_len=None):
         """Create a new MpDevice.
 
         Parameters
         ----------
         device: object (derived from toon.input.BaseDevice)
             Input device object.
-        high_priority: bool
-            Whether the priority of the child process should be elevated.
         buffer_len: int, optional
             Overrides the device's sampling_frequency when specifing the size of the
             circular buffer.
         """
         self.device = device
-        self.high_priority = high_priority
         self.buffer_len = buffer_len
 
     def start(self):
@@ -118,9 +116,6 @@ class MpDevice(object):
                                         self.current_buffer_index, remote_err))
         self.process.daemon = True
         self.process.start()
-        self.ps_process = psutil.Process(self.process.pid)
-        self.original_nice = self.ps_process.nice()
-        self.set_high_priority(self.high_priority)  # lame try to set priority
         for i in range(n_buffers):
             for obs in self._data[i]:
                 obs.generate_squeeze()
@@ -201,7 +196,6 @@ class MpDevice(object):
         -----
         Prefer using as a context manager over explicitly starting and stopping.
         """
-        self.set_high_priority(False)
         self.kill_remote.set()
         self.process.join()
         self.device.local = True
@@ -228,21 +222,6 @@ class MpDevice(object):
             print(exc_traceback)
             raise exc
 
-    def set_high_priority(self, val=False):
-        """Set the priority of the child process.
-        Fails unless the user has adquate permissions.
-        """
-        try:
-            if val:
-                if psutil.WINDOWS:
-                    self.ps_process.nice(psutil.HIGH_PRIORITY_CLASS)
-                else:
-                    self.ps_process.nice(-10)
-            else:
-                self.ps_process.nice(self.original_nice)
-        except (psutil.AccessDenied, psutil.NoSuchProcess):
-            pass
-
 
 def remote(dev, shared_data,
            # extras
@@ -264,7 +243,7 @@ def remote(dev, shared_data,
         shared.counter.value += 1
 
     try:
-        gc.disable()
+        priority(1)
         # instantiate the device
 
         for i in shared_data:
@@ -273,7 +252,7 @@ def remote(dev, shared_data,
 
         with dev:
             remote_ready.set()  # signal to the local process that remote is ready to go
-            while not kill_remote.is_set() and psutil.pid_exists(parent_pid):
+            while not kill_remote.is_set() and pid_exists(parent_pid):
                 data = dev.do_read()  # get observation(s) from device
                 buffer_index = int(current_buffer_index.value)  # can only change later
                 if isinstance(data, list):  # if a list of observations, rather than a single one
@@ -312,6 +291,7 @@ def remote(dev, shared_data,
         remote_err.close()
     finally:
         remote_ready.set()
+        priority(0)
 
 
 # make sure this is visible for pickleability
