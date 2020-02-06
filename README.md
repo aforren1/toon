@@ -225,3 +225,12 @@ The input should be a 0 (no priority/cancel), 1 (higher priority), or 2 (realtim
   - Any `level > 0` seems to fail unless the user is either superuser, or has the right capability. I've used setcap: `sudo setcap cap_sys_nice=eip <path to python>` (disable by passing `sudo setcap cap_sys_nice= <path>`). For memory locking, I've used Psychtoolbox's [99-psychtoolboxlimits.conf](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychBasic/99-psychtoolboxlimits.conf) and added myself to the psychtoolbox group.
 
 Your mileage may vary on whether these *actually* improve latency/determinism. When in doubt, measure! Read the warnings [here](http://psychtoolbox.org/docs/Priority).
+
+Notes about checking whether parts are working:
+
+#### Windows
+ - In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out checking the Avrt threading stuff.
+
+#### Linux
+ - Check `mlockall` with `cat /proc/{python pid}/status | grep VmLck`
+ - Check priority with `top -c -p $(pgrep -d',' -f python)`
