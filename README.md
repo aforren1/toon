@@ -193,3 +193,35 @@ Other notes:
   - The `Timeline` class (in `toon.anim`) can be used to get the time between frames, or the time since some origin time, taken at `timeline.start()`.
   - The `Player` can also be used as a mixin, in which case the `obj` argument can be omitted from `player.add()` (see the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for examples).
   - Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
+
+### Utilities
+
+The sole utility currently included is a `priority` function, which tries to improve the determinism of the calling script. This is derived from Psychtoolbox's `Priority` (doc [here](http://psychtoolbox.org/docs/Priority)). General usage is:
+
+```python
+from toon.util import priority
+
+res = priority(1)
+if not res:
+    raise ValueError('Failed to raise priority.')
+
+# ...do stuff...
+
+priority(0)
+```
+
+The input should be a 0 (no priority/cancel), 1 (higher priority), or 2 (realtime). If the requested level is rejected, the function will return `False`. The exact implementational details depend on the host operating system. All implementations disable garbage collection.
+
+#### Windows
+ - Uses `SetPriorityClass` and `SetThreadPriority`/`AvSetMmMaxThreadCharacteristics`.
+ - `level = 2` only seems to work if running Python as administrator.
+
+#### MacOS
+ - Only disables/enables garbage collection; I don't have a Mac to test on.
+
+#### Linux
+  - Sets the scheduler policy and parameters `sched_setscheduler`.
+  - If `level == 2`, locks the calling process's virtual address space into RAM via `mlockall`.
+  - Any `level > 0` seems to fail unless the user is either superuser, or has the right capability. I've used setcap: `sudo setcap cap_sys_nice=eip <path to python>` (disable by passing `sudo setcap cap_sys_nice= <path>`). For memory locking, I've used Psychtoolbox's [99-psychtoolboxlimits.conf](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychBasic/99-psychtoolboxlimits.conf) and added myself to the psychtoolbox group.
+
+Your mileage may vary on whether these *actually* improve latency/determinism. When in doubt, measure! Read the warnings [here](http://psychtoolbox.org/docs/Priority).
