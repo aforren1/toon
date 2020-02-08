@@ -98,7 +98,7 @@ class MpDevice(object):
             ctype = self.device.ctype
             # Structures get padding when passing through this,
             # so only run on non-Structures
-            if not isinstance(ctype, ctypes.Structure):
+            if not issubclass(ctype, ctypes.Structure):
                 ctype = as_ctypes_type(ctype)
             mp_arr = mp.Array(ctype, flat_dim, lock=False)
             np_arr = shared_to_numpy(mp_arr, new_dim)
