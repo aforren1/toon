@@ -17,7 +17,7 @@ class Process(mp.Process):
         except Exception as e:
             tb = traceback.format_exc()
             self._cconn.send((e, tb))
-            raise e  # You can still rise this exception if you need to
+            # raise e  # You can still rise this exception if you need to
 
     @property
     def exception(self):

@@ -10,8 +10,6 @@ from psutil import pid_exists
 
 from toon.util import priority
 from toon.input._tbprocess import Process
-# numpy as front, multiprocessing array as backend
-# time datatype is determined on-the-fly (just call timer fn)
 
 
 def shared_to_numpy(mp_arr, dims):
@@ -154,6 +152,8 @@ class MpDevice(object):
                 data_out = self._local_arr[:local_count]
                 np.copyto(data_out, current_data['np_data'][:local_count])
                 np.copyto(t_out, current_data['np_time'][:local_count])
+        if local_count <= 0:
+            return None
         # return time, data
         if self._copy:
             return np.copy(t_out), np.copy(data_out)
@@ -193,7 +193,7 @@ def process_data(shared_time, shared_data, local_time, local_data, shared_counte
         shared_time[next_index] = local_time
         shared_data[next_index, :] = local_data
         shared_counter.value += 1
-    else:  # ring buffer ish
+    else:  # ring buffer ish, see benchmarks https://github.com/aforren1/toon/issues/77
         np.copyto(shared_time[:-1], shared_time[1:])
         shared_time[-1] = local_time
         np.copyto(shared_data[:-1], shared_data[1:])
@@ -201,14 +201,13 @@ def process_data(shared_time, shared_data, local_time, local_data, shared_counte
 
 
 def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_index):
+    for d in data:
+        # need to re-generate connection between mp and np arrays
+        dims = d['np_data'].shape
+        d['np_data'] = shared_to_numpy(d['mp_data'], dims)
+        d['np_time'] = shared_to_numpy(d['mp_time'], dims[0])
     try:
         priority(1)  # high priority (non-realtime, though) and disables gc
-        for d in data:
-            # need to re-generate connection between mp and np arrays
-            dims = d['np_data'].shape
-            d['np_data'] = shared_to_numpy(d['mp_data'], dims)
-            d['np_time'] = shared_to_numpy(d['mp_time'], dims[0])
-
         with dev:
             remote_ready.set()  # signal all set to the parent process
             while not kill_remote.is_set() and pid_exists(parent_pid):

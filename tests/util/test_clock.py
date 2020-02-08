@@ -1,4 +1,4 @@
-from toon.input.clock import MonoClock
+from toon.util import MonoClock
 from timeit import default_timer
 
 

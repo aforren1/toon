@@ -6,11 +6,8 @@ omit =
     tests/*
     toon/input/hand.py
     toon/input/force_keyboard.py
-    toon/input/keyboard.py
-    toon/input/mouse.py
     toon/input/birds.py
     toon/input/cyberglove.py
-    toon/input/keyboard2.py
-    toon/input/clock.py
-    toon/input/clocks/*.py
+    toon/util/clock.py
+    toon/util/clocks/*.py
 

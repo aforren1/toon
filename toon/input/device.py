@@ -1,5 +1,5 @@
 import abc
-from toon.util.clock import mono_clock
+from toon.util import mono_clock
 
 
 def prevent_if_remote(func):
@@ -53,13 +53,22 @@ class BaseDevice(metaclass=abc.ABCMeta):
     def read(self):
         pass
 
+    def enter(self):
+        # we separate enter and exit from the dunder methods
+        # so inheriting classes need not use the decorator
+        pass
+
+    def exit(self):
+        pass
+
     @prevent_if_remote
     def __enter__(self):
+        self.enter()
         return self
 
     @prevent_if_remote
     def __exit__(self, *args):
-        pass
+        self.exit()
 
     @property
     def local(self):
