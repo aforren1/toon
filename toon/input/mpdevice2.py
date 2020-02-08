@@ -1,10 +1,15 @@
 import ctypes
 import multiprocessing as mp
-import numpy as np
+import os
 from sys import platform
+
+import numpy as np
 # unconditional reuirement of numpy >= 1.16.1
 from numpy.ctypeslib import as_ctypes_type
+from psutil import pid_exists
 
+from toon.util import priority
+from toon.input._tbprocess import Process
 # numpy as front, multiprocessing array as backend
 # time datatype is determined on-the-fly (just call timer fn)
 
@@ -21,7 +26,7 @@ def shared_to_numpy(mp_arr, dims):
 class MpDevice(object):
     """Creates and manages a process for polling an input device."""
 
-    def __init__(self, device, buffer_len=None):
+    def __init__(self, device, buffer_len=None, copy_read=True):
         """Create a new MpDevice.
 
         Parameters
@@ -34,6 +39,7 @@ class MpDevice(object):
         """
         self.device = device
         self.buffer_len = buffer_len
+        self._copy = copy_read
 
     def start(self):
         """Start polling from the device on the child process.
@@ -63,7 +69,6 @@ class MpDevice(object):
         self.shared_locks = [mp.Lock() for i in range(n_buffers)]
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
-        self.local_err, remote_err = mp.Pipe(duplex=False)
         self.current_buffer_index = mp.Value(ctypes.c_bool, 0, lock=False)
 
         # figure out number of observations to save between reads
@@ -101,16 +106,142 @@ class MpDevice(object):
             t_np_arr = shared_to_numpy(t_mp_arr, nrow)
             counter = mp.Value(ctypes.c_uint, 0, lock=False)
             # generate local version
-            local_arr = np.empty_like(np_arr)
-            t_local_arr = np.empty_like(t_np_arr)
             if is_scalar:
                 local_arr = np.squeeze(local_arr)
             # special case for buffer size of 1 and scalar data
             if local_arr.shape == ():
                 local_arr.shape = (1,)
-            data_pack = {'mp_data': mp_arr, 'np_data': np_arr, 'local_data': local_arr,
-                         'mp_time': t_mp_arr, 'np_time': t_np_arr, 'local_time': t_local_arr,
-                         'lock': lck}
+            data_pack = {'mp_data': mp_arr, 'np_data': np_arr,
+                         'mp_time': t_mp_arr, 'np_time': t_np_arr,
+                         'counter': counter, 'lock': lck}
             self._data.append(data_pack)
 
+        # make local versions to copy the data into
+        self._local_arr = np.empty_like(np_arr)
+        self._t_local_arr = np.empty_like(t_np_arr)
         self.device.local = True
+
+        # TODO: handle errors (current way is broken by python)
+        self.process = Process(target=remote,
+                               kwargs={'dev': self.device,
+                                       'data': self._data,
+                                       'remote_ready': self.remote_ready,
+                                       'kill_remote': self.kill_remote,
+                                       'parent_pid': os.getpid(),
+                                       'current_buffer_index': self.current_buffer_index})
+
+        self.process.daemon = True
+        self.process.start()
+        self.check_error()
+        self.remote_ready.wait()  # block until child process is ready
+        self.device.local = False  # try to prevent local access to the device
+
+    def read(self):
+        # TODO: add docs
+        self.check_error()
+
+        # get the current buffer (either 0 or 1)
+        current_buffer_index = self.current_buffer_index.value
+        # this might block, if the remote is currently writing data
+        current_data = self._data[current_buffer_index]
+        with current_data['lock']:
+            local_count = current_data['counter'].value
+            current_data['counter'].value = 0  # start writing from the top of the array
+            if local_count > 0:
+                t_out = self._t_local_arr[:local_count]
+                data_out = self._local_arr[:local_count]
+                np.copyto(data_out, current_data['np_data'][:local_count])
+                np.copyto(t_out, current_data['np_time'][:local_count])
+        # return time, data
+        if self._copy:
+            return np.copy(t_out), np.copy(data_out)
+        # otherwise, return views
+        return t_out, data_out
+
+    def clear(self):
+        """Discard all pending observations."""
+        self.check_error()
+        current_buffer_index = self.current_buffer_index.value
+        current_data = self._data[current_buffer_index]
+        with current_data['lock']:
+            current_data['counter'].value = 0
+
+    def check_error(self):
+        if not self.process.is_alive():
+            if self.process.exception:
+                err, traceback = self.process.exception
+                raise err
+
+    def stop(self):
+        self.kill_remote.set()
+        self.process.join()
+        self.device.local = True
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *args):
+        self.stop()
+
+
+def process_data(shared_time, shared_data, local_time, local_data, shared_counter):
+    next_index = shared_counter.value
+    if next_index < shared_time.shape[0]:
+        shared_time[next_index] = local_time
+        shared_data[next_index, :] = local_data
+        shared_counter.value += 1
+    else:  # ring buffer ish
+        np.copyto(shared_time[:-1], shared_time[1:])
+        shared_time[-1] = local_time
+        np.copyto(shared_data[:-1], shared_data[1:])
+        shared_data[-1] = local_data
+
+
+def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_index):
+    try:
+        priority(1)  # high priority (non-realtime, though)
+        for d in data:
+            # need to re-generate connection between mp and np arrays
+            dims = d['np_data'].shape
+            d['np_data'] = shared_to_numpy(d['mp_data'], dims)
+            d['np_time'] = shared_to_numpy(d['mp_time'], dims[0])
+
+        with dev:
+            remote_ready.set()  # signal all set to the parent process
+            while not kill_remote.is_set() and pid_exists(parent_pid):
+                # either a (time, data) tuple or list of (time, data) tuples
+                # or None if nothing
+                data = dev.read()
+                if data is None:
+                    continue  # next read
+                buffer_index = current_buffer_index.value
+                # lock magicks
+                # test whether the current buffer is accessible
+                current_data = data[buffer_index]
+                lck = current_data['lock']
+                success = lck.acquire(block=False)
+                if not success:
+                    current_buffer_index.value = not current_buffer_index.value
+                    buffer_index = not buffer_index
+                    current_data = data[buffer_index]
+                    lck = current_data['lock']
+                    # manual lock handling
+                    lck.acquire()
+                    try:
+                        shared_time = current_data['np_time']
+                        shared_data = current_data['np_data']
+                        shared_counter = current_data['counter']
+                        if isinstance(data, list):
+                            for dat in data:
+                                process_data(shared_time, shared_data,
+                                             dat[0], dat[1], shared_counter)
+                        else:
+                            process_data(shared_time, shared_data,
+                                         data[0], data[1], shared_counter)
+                    finally:
+                        lck.release()
+
+    finally:
+        priority(0)
+        remote_ready.set()
