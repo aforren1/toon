@@ -44,7 +44,6 @@ setup(
         'demo': demo_reqs,
         'hand': hand_reqs,
         'birds': serial_reqs,
-        'key_mouse': key_mouse_reqs,
         'cyberglove': serial_reqs,
         'force': force_reqs
     },
