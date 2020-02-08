@@ -80,16 +80,37 @@ class MpDevice(object):
         # we have a double buffer sort of thing going on,
         # so we need two of everything
         self._data = []
-        time_type = as_ctypes_type(type(self.device.timer()))
-        for i in range(n_buffers):
+        time_type = as_ctypes_type(type(self.device.clock()))
+        for lck in self.shared_locks:
             # make mp version
+            is_scalar = False
             if self.device.shape == (1,):
                 new_dim = (nrow,)
+                is_scalar = True
             else:
                 new_dim = (nrow,) + self.device.shape
             flat_dim = np.product(new_dim)
+            ctype = self.device.ctype
+            # Structures get padding when passing through this,
+            # so only run on non-Structures
+            if not issubclass(ctype, ctypes.Structure):
+                ctype = as_ctypes_type(ctype)
             mp_arr = mp.Array(self.device.ctype, flat_dim, lock=False)
             np_arr = shared_to_numpy(mp_arr, new_dim)
             t_mp_arr = mp.Array(time_type, nrow, lock=False)
             t_np_arr = shared_to_numpy(t_mp_arr, nrow)
             counter = mp.Value(ctypes.c_uint, 0, lock=False)
+            # generate local version
+            local_arr = np.empty_like(np_arr)
+            t_local_arr = np.empty_like(t_np_arr)
+            if is_scalar:
+                local_arr = np.squeeze(local_arr)
+            # special case for buffer size of 1 and scalar data
+            if local_arr.shape == ():
+                local_arr.shape = (1,)
+            data_pack = {'mp_data': mp_arr, 'np_data': np_arr, 'local_data': local_arr,
+                         'mp_time': t_mp_arr, 'np_time': t_np_arr, 'local_time': t_local_arr,
+                         'lock': lck}
+            self._data.append(data_pack)
+
+        self.device.local = True

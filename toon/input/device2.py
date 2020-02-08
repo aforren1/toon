@@ -30,11 +30,11 @@ class BaseDevice(metaclass=abc.ABCMeta):
     shape = (1,)  # shape can technically be None, but
     ctype = None  # ctype must be present
 
-    def __init__(self, timer=mono_clock.get_time):
+    def __init__(self, clock=mono_clock.get_time):
         """Create new device.
         Parameters
         ----------
-        timer: function or method
+        clock: function or method
             The clock used for timestamping events. Defaults to toon.input.mono_clock, which
             allows us to share a reference time between the parent and child processes. The 
             mono_clock is based off psychopy.clock.MonotonicClock 
@@ -47,7 +47,7 @@ class BaseDevice(metaclass=abc.ABCMeta):
         Do not start communicating with the device in `__init__`, wait until `enter()`.
         """
         self._local = True  # MpDevice toggles this in the main process
-        self.timer = timer
+        self.clock = clock
 
     @abc.abstractmethod
     def read(self):
