@@ -1,4 +1,4 @@
-sudo: false
+os: linux
 language: python
 dist: xenial
 cache:
@@ -6,7 +6,7 @@ cache:
 python:
   - 3.6
 
-matrix:
+jobs:
   include:
     - os: linux
       language: python

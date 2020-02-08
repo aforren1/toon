@@ -4,7 +4,6 @@ import os
 from sys import platform
 
 import numpy as np
-# unconditional reuirement of numpy >= 1.16.1
 from numpy.ctypeslib import as_ctypes_type
 from psutil import pid_exists
 
