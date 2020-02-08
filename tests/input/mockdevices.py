@@ -19,6 +19,11 @@ class Dummy(BaseDevice):
         return t, data
 
 
+class NoData(Dummy):
+    def read(self):
+        return None
+
+
 class Timebomb(Dummy):
     counter = 0
 
@@ -63,6 +68,23 @@ class StructObs(BaseDevice):
 
     def read(self):
         data = Rect()
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        return t, data
+
+
+class Incrementing(BaseDevice):
+    ctype = int
+    sampling_frequency = 100
+    shape = (1,)
+    t0 = default_timer()
+    counter = 0
+
+    def read(self):
+        data = self.counter
+        self.counter += 1
         while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()

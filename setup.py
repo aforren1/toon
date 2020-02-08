@@ -1,7 +1,5 @@
 from setuptools import setup, find_packages
-from codecs import open
 from os import path
-import platform
 
 here = path.abspath(path.dirname(__file__))
 
@@ -15,15 +13,14 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 hand_reqs = ['hidapi', 'pyusb']
 serial_reqs = ['pyserial']
-key_mouse_reqs = ['pynput']
 force_reqs = ['nidaqmx;platform_system=="Windows"']
-demo_reqs = ['pynput', 'matplotlib', 'pyqtgraph']
-full_reqs = hand_reqs + serial_reqs + key_mouse_reqs + force_reqs + demo_reqs
+demo_reqs = ['matplotlib', 'pyqtgraph']
+full_reqs = hand_reqs + serial_reqs + force_reqs + demo_reqs
 full_reqs = list(set(full_reqs))
 
 setup(
     name='toon',
-    version='0.12.9',
+    version='0.13.0',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',

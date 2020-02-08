@@ -41,6 +41,7 @@ class MpDevice(object):
         self.device = device
         self.buffer_len = buffer_len
         self._copy = copy_read
+        self.process = None
 
     def start(self):
         """Start polling from the device on the child process.
@@ -94,18 +95,20 @@ class MpDevice(object):
                 is_scalar = True
             else:
                 new_dim = (nrow,) + self.device.shape
-            flat_dim = np.product(new_dim)
+            flat_dim = int(np.product(new_dim))
             ctype = self.device.ctype
             # Structures get padding when passing through this,
             # so only run on non-Structures
             if not issubclass(ctype, ctypes.Structure):
                 ctype = as_ctypes_type(ctype)
-            mp_arr = mp.Array(self.device.ctype, flat_dim, lock=False)
+            mp_arr = mp.Array(ctype, flat_dim, lock=False)
             np_arr = shared_to_numpy(mp_arr, new_dim)
             t_mp_arr = mp.Array(time_type, nrow, lock=False)
             t_np_arr = shared_to_numpy(t_mp_arr, nrow)
             counter = mp.Value(ctypes.c_uint, 0, lock=False)
             # generate local version
+            local_arr = np.empty_like(np_arr)
+            t_local_arr = np.empty_like(t_np_arr)
             if is_scalar:
                 local_arr = np.squeeze(local_arr)
             # special case for buffer size of 1 and scalar data
@@ -117,8 +120,8 @@ class MpDevice(object):
             self._data.append(data_pack)
 
         # make local versions to copy the data into
-        self._local_arr = np.empty_like(np_arr)
-        self._t_local_arr = np.empty_like(t_np_arr)
+        self._local_arr = local_arr
+        self._t_local_arr = t_local_arr
         self.device.local = True
 
         # TODO: handle errors (current way is broken by python)
@@ -139,7 +142,6 @@ class MpDevice(object):
     def read(self):
         # TODO: add docs
         self.check_error()
-
         # get the current buffer (either 0 or 1)
         current_buffer_index = self.current_buffer_index.value
         # this might block, if the remote is currently writing data
@@ -169,10 +171,14 @@ class MpDevice(object):
             current_data['counter'].value = 0
 
     def check_error(self):
-        if not self.process.is_alive():
-            if self.process.exception:
-                err, traceback = self.process.exception
-                raise err
+        if self.process:
+            if not self.process.is_alive():
+                if self.process.exception:
+                    err, traceback = self.process.exception
+                    print(traceback)
+                    raise err
+                else:
+                    raise ValueError('MpDevice is closed.')
 
     def stop(self):
         self.kill_remote.set()
@@ -191,7 +197,7 @@ def process_data(shared_time, shared_data, local_time, local_data, shared_counte
     next_index = shared_counter.value
     if next_index < shared_time.shape[0]:
         shared_time[next_index] = local_time
-        shared_data[next_index, :] = local_data
+        shared_data[next_index] = local_data
         shared_counter.value += 1
     else:  # ring buffer ish, see benchmarks https://github.com/aforren1/toon/issues/77
         np.copyto(shared_time[:-1], shared_time[1:])
@@ -213,8 +219,8 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
             while not kill_remote.is_set() and pid_exists(parent_pid):
                 # either a (time, data) tuple or list of (time, data) tuples
                 # or None if nothing
-                data = dev.read()
-                if data is None:
+                device_dat = dev.read()
+                if device_dat is None:
                     continue  # next read
                 buffer_index = current_buffer_index.value
                 # lock magicks
@@ -229,19 +235,19 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
                     lck = current_data['lock']
                     # manual lock handling
                     lck.acquire()
-                    try:
-                        shared_time = current_data['np_time']
-                        shared_data = current_data['np_data']
-                        shared_counter = current_data['counter']
-                        if isinstance(data, list):
-                            for dat in data:
-                                process_data(shared_time, shared_data,
-                                             dat[0], dat[1], shared_counter)
-                        else:
+                try:
+                    shared_time = current_data['np_time']
+                    shared_data = current_data['np_data']
+                    shared_counter = current_data['counter']
+                    if isinstance(device_dat, list):
+                        for dat in device_dat:
                             process_data(shared_time, shared_data,
-                                         data[0], data[1], shared_counter)
-                    finally:
-                        lck.release()
+                                         dat[0], dat[1], shared_counter)
+                    else:
+                        process_data(shared_time, shared_data,
+                                     device_dat[0], device_dat[1], shared_counter)
+                finally:
+                    lck.release()
 
     finally:
         priority(0)
