@@ -98,7 +98,7 @@ class MpDevice(object):
             ctype = self.device.ctype
             # Structures get padding when passing through this,
             # so only run on non-Structures
-            if not issubclass(ctype, ctypes.Structure):
+            if not isinstance(ctype, ctypes.Structure):
                 ctype = as_ctypes_type(ctype)
             mp_arr = mp.Array(ctype, flat_dim, lock=False)
             np_arr = shared_to_numpy(mp_arr, new_dim)
@@ -138,6 +138,7 @@ class MpDevice(object):
         self.remote_ready.wait()  # block until child process is ready
         self.device.local = False  # try to prevent local access to the device
 
+    # @profile
     def read(self):
         # TODO: add docs
         self.check_error()
@@ -219,8 +220,8 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
             while not kill_remote.is_set() and pid_exists(parent_pid):
                 # either a (time, data) tuple or list of (time, data) tuples
                 # or None if nothing
-                # t0 = default_timer()
                 device_dat = dev.read()
+                # t0 = default_timer()
                 if device_dat is None:
                     continue  # next read
                 buffer_index = current_buffer_index.value

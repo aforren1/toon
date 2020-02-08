@@ -6,7 +6,7 @@ import numpy as np
 import hid
 import usb.core
 import usb.util
-from toon.input.device import BaseDevice, make_obs
+from toon.input.device import BaseDevice
 
 
 def get_teensy_path(serial_number):
@@ -26,8 +26,8 @@ def get_teensy_path(serial_number):
 
 class Hand(BaseDevice):
     sampling_frequency = 1000
-
-    Pos = make_obs('Pos', (15,), c_double)
+    ctype = c_double
+    shape = (15,)
 
     def __init__(self, serial_number=None, blocking=True, **kwargs):
         super(Hand, self).__init__(**kwargs)
@@ -42,7 +42,7 @@ class Hand(BaseDevice):
         self._device.open_path(get_teensy_path(self.serial_number))
         self._device.set_nonblocking(not self.blocking)
 
-    def exit(self, *args):
+    def exit(self):
         self._device.close()
 
     def read(self):
@@ -56,37 +56,4 @@ class Hand(BaseDevice):
         self._buffer[0::3] = (data[2::4] - data[3::4])/self._sqrt2
         self._buffer[1::3] = (data[2::4] + data[3::4])/self._sqrt2
         self._buffer[2::3] = data[4::4] + data[5::4]
-        return self.Pos(time, self._buffer)
-
-
-# USB demo (should be phenotypically identical to above)
-class UsbHand(BaseDevice):
-    sampling_frequency = 1000
-
-    Pos = make_obs('Pos', (15,), c_double)
-
-    def __init__(self, **kwargs):
-        super(UsbHand, self).__init__(**kwargs)
-        self._sqrt2 = np.sqrt(2)
-        self._device = None
-        self._buffer = np.full(15, np.nan)
-
-    def enter(self):
-        dev = usb.core.find(idVendor=0x16c0, idProduct=0x486)
-        if dev is None:
-            raise ValueError('Device not found.')
-        # there was definitely more to claiming the device,
-        # but I can't find the ref now
-        self.ep_in = dev[0][(0, 0)][0]  # get the proper endpoint
-
-    def read(self):
-        data = self.ep_in.read(self.ep_in.wMaxPacketSize)
-        time = self.clock()
-        data = struct.unpack('>Lh' + 'H' * 20, data[:46])
-        data = np.array(data, dtype='d')
-        data[2:] /= 65535.0
-        data[2:] -= 0.5
-        self._buffer[0::3] = (data[2::4] - data[3::4])/self._sqrt2
-        self._buffer[1::3] = (data[2::4] + data[3::4])/self._sqrt2
-        self._buffer[2::3] = data[4::4] + data[5::4]
-        return self.Pos(time, self._buffer)
+        return time, self._buffer

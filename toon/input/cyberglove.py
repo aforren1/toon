@@ -3,7 +3,7 @@ import struct
 import serial
 import numpy as np
 from time import sleep
-from toon.input.device import BaseDevice, make_obs
+from toon.input.device import BaseDevice
 from serial.tools import list_ports
 
 # thanks to ROS http://docs.ros.org/fuerte/api/cyberglove/html/serial__glove_8hpp.html
@@ -41,8 +41,8 @@ class GloveData(ctypes.Structure):
 
 class Cyberglove(BaseDevice):
     sampling_frequency = 150
-
-    Pos = make_obs('Pos', (1,), GloveData)
+    shape = (1,)
+    ctype = GloveData
 
     def __init__(self, port=None, **kwargs):
         super(Cyberglove, self).__init__(**kwargs)
@@ -93,12 +93,12 @@ class Cyberglove(BaseDevice):
             ring_data = FingerData(data[9], data[10], data[11])
             pinky_data = FingerData(data[12], data[13], data[14])
             wrist_data = WristData(data[15], data[16], data[17])
-            return self.Pos(time, GloveData(thumb=thumb_data,
-                                            index=index_data, middle=middle_data,
-                                            ring=ring_data, pinky=pinky_data,
-                                            wrist=wrist_data))
+            return time, GloveData(thumb=thumb_data,
+                                   index=index_data, middle=middle_data,
+                                   ring=ring_data, pinky=pinky_data,
+                                   wrist=wrist_data)
 
-    def exit(self, *args):
+    def exit(self):
         self.dev.write(b'\x03')  # stop streaming
         self.dev.write(b'l 0\r')  # light off
         sleep(0.1)
@@ -111,11 +111,10 @@ if __name__ == '__main__':
     import time
     from toon.input.mpdevice import MpDevice
     dev = MpDevice(Cyberglove())
-    #dev = Mouse()
     with dev:
         start = time.time()
         while time.time() - start < 10:
-            #dat = dev.do_read()
+            # dat = dev.do_read()
             dat = dev.read()
             if dat is not None:
                 print(dat)  # access joints via dat[-1]['thumb']['mcp']
