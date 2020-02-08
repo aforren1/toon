@@ -206,6 +206,7 @@ def process_data(shared_time, shared_data, local_time, local_data, shared_counte
 
 
 def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_index):
+    # from timeit import default_timer
     for d in data:
         # need to re-generate connection between mp and np arrays
         dims = d['np_data'].shape
@@ -218,6 +219,7 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
             while not kill_remote.is_set() and pid_exists(parent_pid):
                 # either a (time, data) tuple or list of (time, data) tuples
                 # or None if nothing
+                # t0 = default_timer()
                 device_dat = dev.read()
                 if device_dat is None:
                     continue  # next read
@@ -247,6 +249,7 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
                                      device_dat[0], device_dat[1], shared_counter)
                 finally:
                     lck.release()
+                # print(default_timer() - t0)
 
     finally:
         priority(0)
