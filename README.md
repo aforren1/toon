@@ -14,6 +14,7 @@ Additional tools for neuroscience experiments, including:
 
 -   A framework for polling input devices on a separate process.
 -   A framework for keyframe-based animation.
+-   High-resolution clocks.
 
 Everything should work on Windows/Mac/Linux.
 

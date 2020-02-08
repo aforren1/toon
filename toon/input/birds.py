@@ -53,23 +53,27 @@ class Birds(BaseDevice):
         for bird in self._birds:
             bird.setRTS(0)
 
+        # reorder birds
+        out = [0 for i in range(len(self._birds))]
         for b in self._birds:
-            # query each bird for id
             b.write(b'\x4F' + b'\x15')
             res = b.read()
-            res = struct.unpack('b', res)[0]  # convert
-            if res == 1:  # master bird
+            res = struct.unpack('b', res)[0]
+            out[res] = b
+            if res == 1:
                 self._master = b
-            # figure out birds to read from
-            if self.indices and res in self.indices:
-                self.read_from.append(b)
         if self._master is None:
             raise ValueError('Master not found in ports provided.')
+        self._birds = out  # overwrite unsorted
+        # subset of birds to read
+        for b in self._birds:
+            if self.indices and res in self.indices:
+                self.read_from.append(b)
         self.read_from.reverse()  # TODO: fix it up so that read_from is in order of bird indices
         # init master, FBB autoconfig
         time.sleep(1)
         self._master.write(('P' + chr(0x32) + chr(len(devices))).encode('utf-8'))
-        time.sleep(5)
+        time.sleep(3)
 
         # set the sampling frequency
         self._master.write(b'P' + b'\x07' + struct.pack('<H', int(130 * 256)))
@@ -120,6 +124,7 @@ class Birds(BaseDevice):
             bird.write(b'?')  # stop stream
         time.sleep(1)
         self._master.write(b'G')  # sleep (master only?)
+        time.sleep(1)
         for bird in self._birds:
             bird.close()
 
