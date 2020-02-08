@@ -80,6 +80,7 @@ class MpDevice(object):
         # we have a double buffer sort of thing going on,
         # so we need two of everything
         self._data = []
+        time_type = as_ctypes_type(type(self.device.timer()))
         for i in range(n_buffers):
             # make mp version
             if self.device.shape == (1,):
@@ -89,3 +90,6 @@ class MpDevice(object):
             flat_dim = np.product(new_dim)
             mp_arr = mp.Array(self.device.ctype, flat_dim, lock=False)
             np_arr = shared_to_numpy(mp_arr, new_dim)
+            t_mp_arr = mp.Array(time_type, nrow, lock=False)
+            t_np_arr = shared_to_numpy(t_mp_arr, nrow)
+            counter = mp.Value(ctypes.c_uint, 0, lock=False)
