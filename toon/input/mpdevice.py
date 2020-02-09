@@ -138,7 +138,6 @@ class MpDevice(object):
         self.remote_ready.wait()  # block until child process is ready
         self.device.local = False  # try to prevent local access to the device
 
-    # @profile
     def read(self):
         # TODO: add docs
         self.check_error()
@@ -152,8 +151,8 @@ class MpDevice(object):
             if local_count > 0:
                 t_out = self._t_local_arr[:local_count]
                 data_out = self._local_arr[:local_count]
-                np.copyto(data_out, current_data['np_data'][:local_count])
-                np.copyto(t_out, current_data['np_time'][:local_count])
+                data_out[:local_count] = current_data['np_data'][:local_count]
+                t_out[:local_count] = current_data['np_time'][:local_count]
         if local_count <= 0:
             return None
         # return time, data
@@ -200,9 +199,9 @@ def process_data(shared_time, shared_data, local_time, local_data, shared_counte
         shared_data[next_index] = local_data
         shared_counter.value += 1
     else:  # ring buffer ish, see benchmarks https://github.com/aforren1/toon/issues/77
-        np.copyto(shared_time[:-1], shared_time[1:])
+        shared_time[:-1] = shared_time[1:]
         shared_time[-1] = local_time
-        np.copyto(shared_data[:-1], shared_data[1:])
+        shared_data[:-1] = shared_data[1:]
         shared_data[-1] = local_data
 
 
