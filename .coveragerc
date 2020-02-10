@@ -10,4 +10,4 @@ omit =
     toon/input/cyberglove.py
     toon/util/clock.py
     toon/util/clocks/*.py
-
+    toon/util/priority.py
