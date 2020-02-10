@@ -11,7 +11,7 @@ class MonoClock(object):
         self._reference_counter = self.get_ticks() if relative else cwt.LARGE_INTEGER(0)
         self.frequency = cwt.LARGE_INTEGER()
         kernel32.QueryPerformanceFrequency(ctypes.byref(self.frequency))
-        self.frequency = float(self.frequency.value)
+        self.inv_frequency = 1/float(self.frequency.value)
 
     def get_ticks(self):
         current_counter = cwt.LARGE_INTEGER()
@@ -19,11 +19,11 @@ class MonoClock(object):
         return current_counter
 
     def get_time(self):
-        return (self.get_ticks().value - self._reference_counter.value) / self.frequency
+        return (self.get_ticks().value - self._reference_counter.value) * self.inv_frequency
 
     def getTime(self):
         return self.get_time()
 
     @property
     def start_time(self):
-        return self._reference_counter.value / self.frequency
+        return self._reference_counter.value * self.inv_frequency

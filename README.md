@@ -114,7 +114,7 @@ A few things to be aware of for data returned by `MpDevice`:
 
 
 Other notes:
-  - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `copy_read=False` when making the `MpDevice`.
+  - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `copy_read=False` when instantiating the `MpDevice`.
   - If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
   - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
   - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
@@ -187,7 +187,18 @@ Other notes:
 
 ### Utilities
 
-The sole utility currently included is a `priority` function, which tries to improve the determinism of the calling script. This is derived from Psychtoolbox's `Priority` (doc [here](http://psychtoolbox.org/docs/Priority)). General usage is:
+The `util` module includes high-resolution clocks/timers. Windows uses `QueryPerformanceCounter`, MacOS uses `mach_absolute_time`, and other systems use `timeit.default_timer`. The class is called `MonoClock`, and an instantiation called `mono_clock` is created upon import. Usage:
+
+```python
+from toon.util import mono_clock, MonoClock
+
+clk = mono_clock # re-use pre-instantiated clock
+clk2 = MonoClock(relative=False) # time relative to whenever the system's clock started
+
+t0 = clk.get_time()
+```
+
+Another utility currently included is a `priority` function, which tries to improve the determinism of the calling script. This is derived from Psychtoolbox's `Priority` (doc [here](http://psychtoolbox.org/docs/Priority)). General usage is:
 
 ```python
 from toon.util import priority
