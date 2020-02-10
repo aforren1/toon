@@ -23,7 +23,7 @@ jobs:
       - python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
       - pip3 install -r requirements.txt
       - pip3 install -r requirements_test.txt
-      - pip3 install python-coveralls coverage
+      - pip3 install coveralls
       - pip3 install .
 
 
@@ -31,10 +31,10 @@ install:
   - python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
   - pip install -r requirements.txt
   - pip install -r requirements_test.txt
-  - pip install python-coveralls coverage
+  - pip install coveralls
   - pip install .
 script:
-  - coverage run --source toon -m pytest -v
+  - coverage run --source=toon -m pytest -v -s
   - coverage report
 after_success:
   - coveralls
