@@ -231,7 +231,7 @@ Your mileage may vary on whether these *actually* improve latency/determinism. W
 Notes about checking whether parts are working:
 
 #### Windows
- - In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out checking the Avrt threading stuff.
+ - In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out how to verify the Avrt threading parts are working.
 
 #### Linux
  - Check `mlockall` with `cat /proc/{python pid}/status | grep VmLck`
