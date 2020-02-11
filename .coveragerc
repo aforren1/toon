@@ -4,10 +4,6 @@ omit =
     /usr/*
     /home/travis/virtualenv/*
     tests/*
-    toon/input/hand.py
-    toon/input/force_keyboard.py
-    toon/input/birds.py
-    toon/input/cyberglove.py
     toon/util/clock.py
     toon/util/clocks/*.py
     toon/util/priority.py

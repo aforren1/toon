@@ -46,7 +46,7 @@ Overview
 
 `toon` provides a framework for polling from input devices, including common peripherals like mice and keyboards, with the flexibility to handle less-common devices like eyetrackers, motion trackers, and custom devices (see `toon/input/` for examples). The goal is to make it easier to use a wide variety of devices, including those with sampling rates >1kHz, with minimal performance impact on the main process.
 
-We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See [demos/bench.py](https://github.com/aforren1/toon/blob/master/demos/bench.py) for an example of measuring user-side read performance.
+We use the built-in `multiprocessing` module to control a separate process that hosts the device, and, in concert with `numpy`, to move data to the main process via shared memory. It seems that under typical conditions, we can expect single `read()` operations to take less than 500 microseconds (and more often < 100 us). See [demos/bench_plot.py](https://github.com/aforren1/toon/blob/master/demos/bench_plot.py) for an example of measuring user-side read performance.
 
 Typical use looks like this:
 
@@ -110,15 +110,12 @@ This device can then be passed to a `toon.input.MpDevice`, which preallocates th
 
 A few things to be aware of for data returned by `MpDevice`:
 
- - If there's no data for a given `read`, `None` is returned.
-
-
-Other notes:
+  - If there's no data for a given `read`, `None` is returned.
   - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `copy_read=False` when instantiating the `MpDevice`.
   - If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
   - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
   - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
-  - In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [cyberglove](https://github.com/aforren1/toon/blob/master/toon/input/cyberglove.py) for examples).
+  - In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [example_devices folder](https://github.com/aforren1/toon/blob/master/toon/example_devices) for examples).
 
 ### Animation
 

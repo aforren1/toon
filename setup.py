@@ -11,13 +11,6 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     desc = f.read()
 
-hand_reqs = ['hidapi', 'pyusb']
-serial_reqs = ['pyserial']
-force_reqs = ['nidaqmx;platform_system=="Windows"']
-demo_reqs = ['matplotlib', 'pyqtgraph']
-full_reqs = hand_reqs + serial_reqs + force_reqs + demo_reqs
-full_reqs = list(set(full_reqs))
-
 setup(
     name='toon',
     version='0.13.1',
@@ -40,14 +33,6 @@ setup(
         'Programming Language :: Python :: 3.8'
     ],
     install_requires=requirements,
-    extras_require={
-        'full': full_reqs,
-        'demo': demo_reqs,
-        'hand': hand_reqs,
-        'birds': serial_reqs,
-        'cyberglove': serial_reqs,
-        'force': force_reqs
-    },
     keywords='psychophysics neuroscience input experiment',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests'])
+    packages=find_packages(exclude=['contrib', 'docs', 'tests', 'example_devices'])
 )
