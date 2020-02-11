@@ -31,7 +31,7 @@ class Hand(BaseDevice):
 
     def __init__(self, serial_number=None, blocking=True, **kwargs):
         super(Hand, self).__init__(**kwargs)
-        self._sqrt2 = np.sqrt(2)
+        self._inv_sqrt2 = 1/np.sqrt(2)
         self._device = None
         self._buffer = np.full(15, np.nan)
         self.serial_number = serial_number
@@ -53,7 +53,7 @@ class Hand(BaseDevice):
         data = np.array(data, dtype='d')
         data[2:] /= 65535.0
         data[2:] -= 0.5
-        self._buffer[0::3] = (data[2::4] - data[3::4])/self._sqrt2
-        self._buffer[1::3] = (data[2::4] + data[3::4])/self._sqrt2
+        self._buffer[0::3] = (data[2::4] - data[3::4]) * self._inv_sqrt2
+        self._buffer[1::3] = (data[2::4] + data[3::4]) * self._inv_sqrt2
         self._buffer[2::3] = data[4::4] + data[5::4]
         return time, self._buffer

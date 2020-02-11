@@ -114,7 +114,6 @@ if __name__ == '__main__':
     with dev:
         start = time.time()
         while time.time() - start < 10:
-            # dat = dev.do_read()
             dat = dev.read()
             if dat is not None:
                 print(dat)  # access joints via dat[-1]['thumb']['mcp']

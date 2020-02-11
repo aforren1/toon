@@ -19,20 +19,13 @@ jobs:
     # default version of python3 (3.6.5)
     - os: osx
       language: generic
-      install:
-      - python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
-      - pip3 install -r requirements.txt
-      - pip3 install -r requirements_test.txt
-      - pip3 install coveralls
-      - pip3 install .
-
 
 install:
-  - python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
-  - pip install -r requirements.txt
-  - pip install -r requirements_test.txt
-  - pip install coveralls
-  - pip install .
+  - python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
+  - pip3 install -r requirements.txt
+  - pip3 install -r requirements_test.txt
+  - pip3 install coveralls
+  - pip3 install .
 script:
   - coverage run --source=toon -m pytest -v -s
   - coverage report
