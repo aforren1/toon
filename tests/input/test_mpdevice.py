@@ -101,12 +101,12 @@ def test_read_multi():
     dev = MpDevice(Incrementing())
     with dev:
         times, dats = [], []
-        for i in range(100):
+        for i in range(500):
             data = dev.read()
             if data:
                 times.append(data[0])
                 dats.append(data[1])
-                sleep(0.016)
+            sleep(0.016)
     times = np.hstack(times)
     vals = np.hstack(dats)
     print(times)
