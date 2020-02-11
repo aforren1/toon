@@ -60,13 +60,15 @@ device = MpDevice(Mouse())
 with device:
     t1 = default_timer() + 10
     while default_timer() < t1:
-        data = device.read()
+        res = device.read()
         # alternatively, unpack immediately
         # time, data = device.read()
-        if data is not None:
-            time, data = data # unpack
+        if res:
+            time, data = res # unpack (or access via res.time, res.data)
             # N-D array of data (0th dim is time)
             print(data)
+            # 1D array of times
+            print(time)
 ```
 
 Creating a custom device is relatively straightforward, though there are a few boxes to check.
