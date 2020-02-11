@@ -97,6 +97,24 @@ def test_mono():
     assert(all(np.diff(val) > 0))
 
 
+def test_read_multi():
+    dev = MpDevice(Incrementing())
+    with dev:
+        times, dats = [], []
+        for i in range(100):
+            data = dev.read()
+            if data:
+                times.append(data[0])
+                dats.append(data[1])
+                sleep(0.016)
+    times = np.hstack(times)
+    vals = np.hstack(dats)
+    print(times)
+    print(vals)
+    assert(all(np.diff(times)) > 0)
+    assert(all(np.diff(vals)) > 0)
+
+
 def test_restart():
     dev = MpDevice(Dummy())
     with dev:

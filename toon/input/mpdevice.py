@@ -151,8 +151,8 @@ class MpDevice(object):
             if local_count > 0:
                 t_out = self._t_local_arr[:local_count]
                 data_out = self._local_arr[:local_count]
-                data_out = current_data['np_data'][:local_count]
-                t_out = current_data['np_time'][:local_count]
+                data_out[:] = current_data['np_data'][:local_count]
+                t_out[:] = current_data['np_time'][:local_count]
         if local_count <= 0:
             return None
         # return time, data
