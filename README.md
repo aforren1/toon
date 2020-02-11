@@ -61,8 +61,8 @@ with device:
     t1 = default_timer() + 10
     while default_timer() < t1:
         data = device.read()
-        # alternatively, unpack
-        # clicks, pos, scroll = device.read()
+        # alternatively, unpack immediately
+        # time, data = device.read()
         if data is not None:
             time, data = data # unpack
             # N-D array of data (0th dim is time)
