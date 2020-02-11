@@ -1,14 +1,18 @@
 import ctypes
 import multiprocessing as mp
 import os
+from collections import namedtuple
 from sys import platform
 
 import numpy as np
 from numpy.ctypeslib import as_ctypes_type
 from psutil import pid_exists
 
-from toon.util import priority
 from toon.input._tbprocess import Process
+from toon.util import priority
+
+ret = namedtuple('mpdata', ['time', 'data'])
+noneret = ret(None, None)
 
 
 def shared_to_numpy(mp_arr, dims):
@@ -157,9 +161,9 @@ class MpDevice(object):
             return None
         # return time, data
         if self._copy:
-            return np.copy(t_out), np.copy(data_out)
+            return ret(np.copy(t_out), np.copy(data_out))
         # otherwise, return views
-        return t_out, data_out
+        return ret(t_out, data_out)
 
     def clear(self):
         """Discard all pending observations."""

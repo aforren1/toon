@@ -20,7 +20,7 @@ full_reqs = list(set(full_reqs))
 
 setup(
     name='toon',
-    version='0.13.0',
+    version='0.13.1',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',
@@ -29,7 +29,7 @@ setup(
     author_email='aforren1@jhu.edu',
     license='MIT',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',

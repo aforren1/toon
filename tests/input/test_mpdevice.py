@@ -104,8 +104,8 @@ def test_read_multi():
         for i in range(500):
             data = dev.read()
             if data:
-                times.append(data[0])
-                dats.append(data[1])
+                times.append(data.time)
+                dats.append(data.data)
             sleep(0.016)
     times = np.hstack(times)
     vals = np.hstack(dats)

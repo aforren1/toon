@@ -110,7 +110,7 @@ This device can then be passed to a `toon.input.MpDevice`, which preallocates th
 
 A few things to be aware of for data returned by `MpDevice`:
 
- - If there's no data for a given observation, `None` is returned.
+ - If there's no data for a given `read`, `None` is returned.
 
 
 Other notes:
