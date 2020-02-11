@@ -115,7 +115,7 @@ A few things to be aware of for data returned by `MpDevice`:
   - If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
   - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
   - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
-  - In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [example_devices folder](https://github.com/aforren1/toon/blob/master/toon/example_devices) for examples).
+  - In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [example_devices](https://github.com/aforren1/toon/tree/master/example_devices) folder for examples).
 
 ### Animation
 
