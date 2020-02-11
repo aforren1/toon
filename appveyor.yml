@@ -1,6 +1,6 @@
 
 environment:
-  PYTEST: pytest -v
+  PYTEST: pytest -v -s
   APPVEYOR_SAVE_CACHE_ON_ERROR: true
 
   matrix:

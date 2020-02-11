@@ -5,16 +5,17 @@ import numpy as np
 from nidaqmx.constants import AcquisitionType, TerminalConfiguration
 from nidaqmx.stream_readers import AnalogMultiChannelReader
 from nidaqmx._task_modules.read_functions import _read_analog_f_64
-from toon.input.device import BaseDevice, make_obs
+from toon.input.device import BaseDevice
 
 
 class ForceKeyboard(BaseDevice):
-    Forces = make_obs('Forces', (2,), c_double)
+    shape = (2,)
+    ctype = c_double
 
     def __init__(self, sampling_frequency=250, indices=[7, 8], **kwargs):
         super(ForceKeyboard, self).__init__(**kwargs)
         self.sampling_frequency = sampling_frequency
-        self._buffer = np.empty(self.Forces.shape, dtype=c_double)
+        self._buffer = np.empty(self.shape, dtype=c_double)
         if len(indices) > 2:
             raise ValueError('Too many indices for ForceKeyboard.')
         self._indices = indices
@@ -43,9 +44,9 @@ class ForceKeyboard(BaseDevice):
             return None
         # TODO: apply calibration?
         time = self.clock()
-        return self.Returns(forces=self.Forces(time, self._buffer))
+        return time, self._buffer
 
-    def exit(self, *args):
+    def exit(self):
         self._device.stop()
         self._device.close()
 
@@ -61,8 +62,9 @@ if __name__ == '__main__':
         while time.time() - start < 240:
             dat = dev.read()
             if dat is not None:
-                print(dat)
-                times.append(dat.time.copy())
+                time, data = dat
+                print(data)
+                times.append(time)
             time.sleep(0.016)
 
     times = np.hstack(times)

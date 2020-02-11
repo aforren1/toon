@@ -1,99 +1,55 @@
-from toon.input.device import BaseDevice, make_obs
+from toon.input.device import BaseDevice
 from timeit import default_timer
 import ctypes
 import numpy as np
 
-Num1 = make_obs('Num1', (5,), ctypes.c_float)
-Num2 = make_obs('Num2', (3, 3), ctypes.c_int)
-
 
 class Dummy(BaseDevice):
-    counter = 0
     t0 = default_timer()
-
-    Num1 = Num1
-    Num2 = Num2
-
-    @property
-    def foo(self):
-        return 3
+    ctype = ctypes.c_int
+    shape = (5,)
+    sampling_frequency = 500
 
     def read(self):
-        dat = None
-        self.counter += 1
-        if self.counter % 10 == 0:
-            dat = np.random.randint(5, size=self.Num2.shape)
+        data = np.random.randint(5, size=self.shape)
         while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
-        num1 = self.Num1(t, np.random.random(self.Num1.shape))
-        num2 = None
-        if dat is not None:
-            num2 = self.Num2(t, dat)
-        return self.Returns(num1=num1,
-                            num2=num2)
+        return t, data
 
 
-class SingleResp(BaseDevice):
-    t0 = default_timer()
-    sampling_frequency = 1000
+class NoData(Dummy):
+    def read(self):
+        return None
+
+
+class Timebomb(Dummy):
     counter = 0
 
-    Num1 = make_obs('Num1', (1,), int)
-
     def read(self):
-        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
-            pass
-        val = self.counter
-        self.counter += 1
-        self.t0 = default_timer()
-        t = self.clock()
-        return self.Num1(t, val)
-
-
-class Timebomb(SingleResp):
-    def read(self):
-        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
-            pass
-        val = self.counter
         self.counter += 1
         if self.counter > 10:
             raise ValueError('Broke it.')
-        self.t0 = default_timer()
-        t = self.clock()
-        return self.Num1(t, val)
+        return super().read()
 
 
-class DummyList(BaseDevice):
+class DummyList(Dummy):
+    def read(self):
+        out = []
+        for i in range(5):
+            out.append(super().read())
+        return out
+
+
+class SometimesNot(Dummy):
     counter = 0
-    t0 = default_timer()
-
-    Num1 = Num1
-    Num2 = Num2
 
     def read(self):
-        dat = None
         self.counter += 1
-        if self.counter % 10 == 0:
-            dat = np.random.randint(5, size=self.Num2.shape)
-        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
-            pass
-        self.t0 = default_timer()
-        t = self.clock()
-        num1 = self.Num1(t, np.random.random(self.Num1.shape))
-        num2 = None
-        if dat is not None:
-            num2 = self.Num2(t, dat)
-        return [self.Returns(num1=num1,
-                             num2=num2),
-                self.Returns(num1=num1,
-                             num2=num2)]
-
-
-class NoObs(BaseDevice):
-    def read(self):
-        pass
+        if self.counter % 2 == 0:
+            return None
+        return super().read()
 
 
 class Point(ctypes.Structure):
@@ -105,63 +61,32 @@ class Rect(ctypes.Structure):
 
 
 class StructObs(BaseDevice):
-    Num1 = make_obs('Num1', (1,), Rect)
+    ctype = Rect
+    sampling_frequency = 200
+    shape = (2, 2)
+    t0 = default_timer()
+
+    def read(self):
+        data = Rect()
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        return t, data
+
+
+class Incrementing(BaseDevice):
+    ctype = int
+    sampling_frequency = 100
+    shape = (1,)
     t0 = default_timer()
     counter = 0
 
     def read(self):
+        data = self.counter
         self.counter += 1
         while default_timer() - self.t0 < (1.0/self.sampling_frequency):
             pass
         self.t0 = default_timer()
         t = self.clock()
-        num1 = self.Num1(t, ((self.counter, self.counter + 1), (self.counter+2, self.counter+3)))
-        return num1
-
-
-class PackingSingle(BaseDevice):
-    counter = 0
-    t0 = default_timer()
-
-    Num1 = Num1
-
-    def read(self):
-        self.counter += 1
-        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
-            pass
-        self.t0 = default_timer()
-        t = self.clock()
-        num1 = self.Num1(t, np.random.random(self.Num1.shape))
-        if self.counter % 4 == 0:
-            return self.Returns(num1)
-        if self.counter % 5 == 0:
-            return [num1, num1]
-        if self.counter % 6 == 0:
-            return [self.Returns(num1), self.Returns(num1)]
-        if self.counter % 7 == 0:
-            return None
-        return num1
-
-
-class PackingMulti(BaseDevice):
-    counter = 0
-    t0 = default_timer()
-
-    Num1 = Num1
-    Num2 = Num2
-
-    def read(self):
-        self.counter += 1
-        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
-            pass
-        self.t0 = default_timer()
-        t = self.clock()
-        num1 = self.Num1(t, np.random.random(self.Num1.shape))
-        num2 = self.Num2(t, np.random.randint(5, size=self.Num2.shape))
-        if self.counter % 5 == 0:
-            return [(num2, num1), (num1, num2)]
-        if self.counter % 8 == 0:
-            return [self.Returns(num1, num2), self.Returns(num1, num2)]
-        if self.counter % 13 == 0:
-            return None
-        return num2, num1
+        return t, data

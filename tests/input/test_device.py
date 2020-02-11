@@ -1,35 +1,46 @@
 from pytest import raises
-from tests.input.mockdevices import Dummy, DummyList, NoObs
-from toon.input.device import Obs
+import numpy as np
+from tests.input.mockdevices import Dummy, Timebomb, DummyList, SometimesNot, StructObs
 
 
 def test_device_single():
     dev = Dummy()
     with dev:
-        res = dev.do_read()
-    assert(issubclass(type(res[0]), Obs))
-    assert(issubclass(type(res.num1.time), float))
-    assert(len(res.num1.data) == 5)
+        time, data = dev.read()
+    assert(isinstance(time, float))
+    assert(isinstance(data, np.ndarray))
+    assert(data.shape == (5,))
 
 
-def test_device_multi():
+def test_err():
+    dev = Timebomb()
+    with dev:
+        with raises(ValueError):
+            for i in range(12):
+                dev.read()
+
+
+def test_list():
     dev = DummyList()
     with dev:
-        res = dev.do_read()
-    assert(len(res) == 2)
+        data = dev.read()
+
+    assert(isinstance(data, list))
+    assert(len(data) == 5)
 
 
-def test_context():
-    dev = Dummy()
+def test_nones():
+    dev = SometimesNot()
+    data = []
     with dev:
-        res = dev.do_read()
-    assert(issubclass(type(res[0]), Obs))
-    assert(issubclass(type(res.num1.time), float))
-    assert(len(res.num1.data) == 5)
+        for i in range(10):
+            data.append(dev.read())
+
+    assert(data[1] is None)
 
 
-def test_no_obs():
-    dev = NoObs()
-    with raises(ValueError):
-        with dev:
-            dev.read()
+def test_struct():
+    dev = StructObs()
+    with dev:
+        time, data = dev.read()
+    assert(data.ll.x == 0)

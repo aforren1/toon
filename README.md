@@ -14,6 +14,7 @@ Additional tools for neuroscience experiments, including:
 
 -   A framework for polling input devices on a separate process.
 -   A framework for keyframe-based animation.
+-   High-resolution clocks.
 
 Everything should work on Windows/Mac/Linux.
 
@@ -51,7 +52,7 @@ Typical use looks like this:
 
 ```python
 from toon.input import MpDevice
-from toon.input.mouse import Mouse
+from mydevice.mouse import Mouse
 from timeit import default_timer
 
 device = MpDevice(Mouse())
@@ -62,31 +63,26 @@ with device:
         data = device.read()
         # alternatively, unpack
         # clicks, pos, scroll = device.read()
-        if data.pos is not None:
+        if data is not None:
+            time, data = data # unpack
             # N-D array of data (0th dim is time)
-            print(data.pos)
-            # time is 1D array of timestamps
-            print(data.pos.time)
-            print(data.pos[-1].time) # most recent timestamp
+            print(data)
 ```
 
 Creating a custom device is relatively straightforward, though there are a few boxes to check.
 
 ```python
-from toon.input import BaseDevice, make_obs
 from ctypes import c_double
 
-# Obs is a class that manages observations
 class MyDevice(BaseDevice):
-    # optional: give a hint for the buffer size (we'll allocate 1s worth of this)
+    # optional: give a hint for the buffer size (we'll allocate 1 sec worth of this)
     sampling_frequency = 500
 
-    # required: each data source gets its own Obs
-    # can have multiple Obs per device
     # this can either be introduced at the class level, or during __init__
+    shape = (3, 3)
     # ctype can be a python type, numpy dtype, or ctype
-    Pos = make_obs('Pos', shape=(3,), ctype=float)
-    RotMat = make_obs('RotMat', (3, 3), c_double) # 2D data
+    # including ctypes.Structures
+    ctype = c_double
 
     # optional. Do not start device communication here, wait until `enter`
     def __init__(self):
@@ -98,7 +94,7 @@ class MyDevice(BaseDevice):
         pass
     
     # optional: clean up resources, close device
-    def exit(self, *args):
+    def exit(self):
         pass
     
     # required
@@ -106,28 +102,23 @@ class MyDevice(BaseDevice):
         # See demos/ for examples of sharing a time source between the processes
         time = self.clock()
         # store new data with a timestamp
-        pos = self.Pos(time, (1, 2, 3))
-        rotmat = self.RotMat(time, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        # can also be explicit, i.e. `self.Returns(pos=pos, rotmat=rotmat)`
-        return pos, rotmat
+        data = get_data()
+        return time, data
 ```
 
 This device can then be passed to a `toon.input.MpDevice`, which preallocates the shared memory and handles other details.
 
 A few things to be aware of for data returned by `MpDevice`:
 
- - If a device only has a single `Obs`, `MpDevice` returns a single `TsArray` (a numpy array with a `time` attribute). Otherwise, `MpDevice` returns a named tuple of observations, where the names are alphabetically-sorted, lowercased versions of the pre-defined `Obs`. 
- - If the data returned by a single read is scalar (e.g. a 1D force sensor), `MpDevice` will drop the 1st dimension.
- - If there's no data for a given observation, `None` is returned. The named tuple has a method for checking all members at once (`data.any()`).
+ - If there's no data for a given observation, `None` is returned.
 
 
 Other notes:
-  - The returned data is a *view* of the local copy of the data. `toon.input.TsArray`s and device `Returns` have a `copy` method, which may be useful if e.g. appending to a list for later concatenation.
-  - Re: concatenation, there is a `stack` function available via `from toon.input import stack`, which is like numpy's `vstack` but keeps the time attribute intact. It also dispatches appropriately for either `TsArray`s or `Returns`.
-  - If receiving batches of data when reading from the device, you can return a list of `Returns` (see `tests/input/mockdevices.py` for an example).
+  - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `copy_read=False` when instantiating the `MpDevice`.
+  - If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
   - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
   - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
-  - In addition to python types/dtypes/ctypes, `Obs` can use `ctypes.Structure`s (see input tests or the [cyberglove](https://github.com/aforren1/toon/blob/master/toon/input/cyberglove.py) for examples).
+  - In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [cyberglove](https://github.com/aforren1/toon/blob/master/toon/input/cyberglove.py) for examples).
 
 ### Animation
 
@@ -196,7 +187,18 @@ Other notes:
 
 ### Utilities
 
-The sole utility currently included is a `priority` function, which tries to improve the determinism of the calling script. This is derived from Psychtoolbox's `Priority` (doc [here](http://psychtoolbox.org/docs/Priority)). General usage is:
+The `util` module includes high-resolution clocks/timers. Windows uses `QueryPerformanceCounter`, MacOS uses `mach_absolute_time`, and other systems use `timeit.default_timer`. The class is called `MonoClock`, and an instantiation called `mono_clock` is created upon import. Usage:
+
+```python
+from toon.util import mono_clock, MonoClock
+
+clk = mono_clock # re-use pre-instantiated clock
+clk2 = MonoClock(relative=False) # time relative to whenever the system's clock started
+
+t0 = clk.get_time()
+```
+
+Another utility currently included is a `priority` function, which tries to improve the determinism of the calling script. This is derived from Psychtoolbox's `Priority` (doc [here](http://psychtoolbox.org/docs/Priority)). General usage is:
 
 ```python
 from toon.util import priority
@@ -229,7 +231,7 @@ Your mileage may vary on whether these *actually* improve latency/determinism. W
 Notes about checking whether parts are working:
 
 #### Windows
- - In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out checking the Avrt threading stuff.
+ - In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out how to verify the Avrt threading parts are working.
 
 #### Linux
  - Check `mlockall` with `cat /proc/{python pid}/status | grep VmLck`

@@ -1,12 +1,12 @@
 import struct
 import time
-from ctypes import c_double
+from ctypes import c_double, Structure
 
 import numpy as np
 import serial
 from serial.tools import list_ports
 
-from toon.input.device import BaseDevice, make_obs
+from toon.input.device import BaseDevice
 
 # reference (most recent):
 # https://github.com/aforren1/toon/blob/455d06827082ae30ec4ae3b2605185cb4d291c92/toon/input/birds.py
@@ -14,9 +14,17 @@ from toon.input.device import BaseDevice, make_obs
 # with two birds, we can also try putting it in group mode & get adequate data rates
 
 
+class Point3D(Structure):
+    _fields_ = [('x', c_double), ('y', c_double), ('z', c_double)]
+
+
+class BirdData(Structure):
+    _fields_ = [('left', Point3D), ('right', Point3D)]
+
+
 class Birds(BaseDevice):
-    LeftPos = make_obs('LeftPos', (3,), c_double)
-    RightPos = make_obs('RightPos', (3,), c_double)
+    shape = (1,)
+    ctype = BirdData
 
     def __init__(self, **kwargs):
         self._birds = None
@@ -45,23 +53,27 @@ class Birds(BaseDevice):
         for bird in self._birds:
             bird.setRTS(0)
 
+        # reorder birds
+        out = [0 for i in range(len(self._birds))]
         for b in self._birds:
-            # query each bird for id
             b.write(b'\x4F' + b'\x15')
             res = b.read()
-            res = struct.unpack('b', res)[0]  # convert
-            if res == 1:  # master bird
+            res = struct.unpack('b', res)[0]
+            out[res] = b
+            if res == 1:
                 self._master = b
-            # figure out birds to read from
-            if self.indices and res in self.indices:
-                self.read_from.append(b)
         if self._master is None:
             raise ValueError('Master not found in ports provided.')
+        self._birds = out  # overwrite unsorted
+        # subset of birds to read
+        for b in self._birds:
+            if self.indices and res in self.indices:
+                self.read_from.append(b)
         self.read_from.reverse()  # TODO: fix it up so that read_from is in order of bird indices
         # init master, FBB autoconfig
         time.sleep(1)
         self._master.write(('P' + chr(0x32) + chr(len(devices))).encode('utf-8'))
-        time.sleep(5)
+        time.sleep(3)
 
         # set the sampling frequency
         self._master.write(b'P' + b'\x07' + struct.pack('<H', int(130 * 256)))
@@ -104,13 +116,15 @@ class Birds(BaseDevice):
         # translate to the lower left corner
         data[::3] += 61.35
         data[1::3] += 17.69
-        return self.LeftPos(time, data[0:3]), self.RightPos(time, data[3:6])
+        out = BirdData(left=Point3D(*data[0:3]), right=Point3D(*data[3:6]))
+        return time, out
 
-    def exit(self, *args):
+    def exit(self):
         for bird in self.read_from:
             bird.write(b'?')  # stop stream
         time.sleep(1)
         self._master.write(b'G')  # sleep (master only?)
+        time.sleep(1)
         for bird in self._birds:
             bird.close()
 
@@ -143,9 +157,10 @@ if __name__ == '__main__':
         start = time.time()
         while time.time() - start < 20:
             dat = dev.read()
-            if dat.any():
-                print(dat.leftpos.data)
-                times.append(np.diff(dat.leftpos.time))
+            if dat is not None:
+                time, data = dat
+                print(data['left'])
+                times.append(np.diff(time))
             time.sleep(0.016)
 
     import matplotlib.pyplot as plt

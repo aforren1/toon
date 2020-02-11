@@ -35,17 +35,17 @@ class MonoClock(object):
         self._reference_counter = self.get_ticks() if relative else 0
         timebase = mach_timebase_info_data_t()
         libc.mach_timebase_info(ctypes.byref(timebase))
-        self.frequency = timebase.numer / timebase.denom * 1.0e9
+        self.inv_frequency = 1/(timebase.numer / timebase.denom * 1.0e9)
 
     def get_ticks(self):
         return mach_absolute_time()
 
     def get_time(self):
-        return (self.get_ticks() - self._reference_counter) / self.frequency
+        return (self.get_ticks() - self._reference_counter) * self.inv_frequency
 
     def getTime(self):
         return self.get_time()
 
     @property
     def start_time(self):
-        return self._reference_counter / self.frequency
+        return self._reference_counter * self.inv_frequency
