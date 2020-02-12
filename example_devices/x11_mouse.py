@@ -7,8 +7,14 @@ x11path = find_library('X11')
 if not x11path:
     raise ImportError('Could not find the X11 library.')
 
+xi2path = find_library('Xi')
+if not xi2path:
+    raise ImportError('Could not find XInput.')
+
 x11 = c.cdll.LoadLibrary(x11path)
 x11.XInitThreads()
+
+xi = c.cdll.LoadLibrary(xi2path)
 # some tips:
 # https://stackoverflow.com/questions/29638210/how-can-i-use-python-xlib-to-generate-a-single-keypress
 # https://github.com/kripken/intensityengine/blob/master/src/python/intensity/components/thirdparty/Skype4Py/api/posix_x11.py
@@ -74,7 +80,32 @@ class XEvent(c.Union):
 
 
 XEventP = c.POINTER(XEvent)
-x11.XOpenDisplay.restype = DisplayP
+
+XOpenDisplay = x11.XOpenDisplay
+XOpenDisplay.restype = DisplayP
+
+XQueryExtension = x11.XQueryExtension
+XQueryExtension.restype = c.c_int
+XQueryExtension.argtypes = (DisplayP, c.c_char_p, c_int_p, c_int_p, c_int_p)
+
+XIQueryVersion = xi.XIQueryVersion
+XIQueryVersion.restype = c.c_int
+XIQueryVersion.argtypes = (DisplayP, c_int_p, c_int_p)
+
+XIQueryDevice = xi.XIQueryDevice
+
+disp = XOpenDisplay(None)
+
+xi_opcode = c.c_int()
+event = c.c_int()
+error = c.c_int()
+
+res = XQueryExtension(disp, b'XInputExtension', c.byref(xi_opcode), c.byref(event), c.byref(error))
+
+major = c.c_int(2)
+minor = c.c_int(2)
+# res should be 0
+res = XIQueryVersion(disp, c.byref(major), c.byref(minor))
 
 
 class X11Mouse(BaseDevice):
