@@ -56,6 +56,7 @@ def test_struct():
     with dev:
         sleep(0.2)
         time, data = dev.read()
+    print(data)
     assert(data.shape[0] > 10)
     assert(data.shape[0] == time.shape[0])
 

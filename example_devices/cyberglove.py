@@ -41,7 +41,7 @@ class GloveData(ctypes.Structure):
 
 class Cyberglove(BaseDevice):
     sampling_frequency = 150
-    shape = (1,)
+    shape = (1, 1)
     ctype = GloveData
 
     def __init__(self, port=None, **kwargs):
@@ -113,8 +113,8 @@ if __name__ == '__main__':
     dev = MpDevice(Cyberglove())
     with dev:
         start = time.time()
-        while time.time() - start < 10:
+        while time.time() - start < 20:
             dat = dev.read()
-            if dat is not None:
-                print(dat)  # access joints via dat[-1]['thumb']['mcp']
+            if dat:
+                print(dat.data[-1]['index']['mcp'])  # access joints via dat[-1]['thumb']['mcp']
             time.sleep(0.016)  # pretend to have a screen

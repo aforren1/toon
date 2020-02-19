@@ -63,7 +63,7 @@ class Rect(ctypes.Structure):
 class StructObs(BaseDevice):
     ctype = Rect
     sampling_frequency = 200
-    shape = (2, 2)
+    shape = (1, 1)  # TODO: scalar breaks
     t0 = default_timer()
 
     def read(self):
