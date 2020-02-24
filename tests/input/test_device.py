@@ -43,4 +43,5 @@ def test_struct():
     dev = StructObs()
     with dev:
         time, data = dev.read()
-    assert(data.ll.x == 0)
+    print(data)
+    assert(data.ll.x == 1)

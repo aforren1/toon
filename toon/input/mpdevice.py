@@ -196,8 +196,11 @@ class MpDevice(object):
         self.stop()
 
 
-def process_data(shared_time, shared_data, local_time, local_data, shared_counter):
+def process_data(shared_time, shared_data, local_time, local_data, shared_counter, is_struct):
     next_index = shared_counter.value
+    if is_struct:
+        # np.ctypeslib.as_array is ~30x slower?
+        local_data = np.frombuffer(local_data, dtype=shared_data.dtype)
     if next_index < shared_time.shape[0]:
         shared_time[next_index] = local_time
         shared_data[next_index] = local_data
@@ -216,6 +219,7 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
         dims = d['np_data'].shape
         d['np_data'] = shared_to_numpy(d['mp_data'], dims)
         d['np_time'] = shared_to_numpy(d['mp_time'], dims[0])
+        is_struct = d['np_data'].dtype.type == np.void
     try:
         priority(1)  # high priority (non-realtime, though) and disables gc
         with dev:
@@ -247,10 +251,10 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
                     if isinstance(device_dat, list):
                         for dat in device_dat:
                             process_data(shared_time, shared_data,
-                                         dat[0], dat[1], shared_counter)
+                                         dat[0], dat[1], shared_counter, is_struct)
                     else:
                         process_data(shared_time, shared_data,
-                                     device_dat[0], device_dat[1], shared_counter)
+                                     device_dat[0], device_dat[1], shared_counter, is_struct)
                 finally:
                     lck.release()
                 # print(default_timer() - t0)
