@@ -27,7 +27,7 @@ class BaseDevice(metaclass=abc.ABCMeta):
     The user supplies `enter` and `exit`, not the dunder methods (`__enter__`, `__exit__`).
     """
     sampling_frequency = 500
-    shape = (1,)  # shape can technically be None, but
+    shape = (1,)  # shape can technically be None...
     ctype = None  # ctype must be present
 
     def __init__(self, clock=mono_clock.get_time):
@@ -36,10 +36,7 @@ class BaseDevice(metaclass=abc.ABCMeta):
         ----------
         clock: function or method
             The clock used for timestamping events. Defaults to toon.input.mono_clock, which
-            allows us to share a reference time between the parent and child processes. The 
-            mono_clock is based off psychopy.clock.MonotonicClock 
-            (on Windows, time.perf_counter seems to be relative to when the process is created, 
-            which makes it difficult to relate the time between processes).
+            allows us to share a reference time between the parent and child processes.
 
         Notes
         -----

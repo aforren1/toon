@@ -43,7 +43,7 @@ class MpDevice(object):
         """
         self.device = device
         self.buffer_len = buffer_len
-        self._copy = copy_read
+        self._use_view = not copy_read
         self.process = None
 
     def start(self):
@@ -73,7 +73,7 @@ class MpDevice(object):
         self.shared_locks = [mp.Lock() for i in range(n_buffers)]
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
-        self.current_buffer_index = mp.Value(ctypes.c_bool, 0, lock=False)
+        self.current_buffer_index = mp.RawValue(ctypes.c_bool, 0)
 
         # figure out number of observations to save between reads
         nrow = 100  # default (100 Hz)
@@ -104,11 +104,11 @@ class MpDevice(object):
             # so only run on non-Structures
             if not issubclass(ctype, ctypes.Structure):
                 ctype = as_ctypes_type(ctype)
-            mp_arr = mp.Array(ctype, flat_dim, lock=False)
+            mp_arr = mp.RawArray(ctype, flat_dim)
             np_arr = shared_to_numpy(mp_arr, new_dim)
-            t_mp_arr = mp.Array(time_type, nrow, lock=False)
+            t_mp_arr = mp.RawArray(time_type, nrow)
             t_np_arr = shared_to_numpy(t_mp_arr, nrow)
-            counter = mp.Value(ctypes.c_uint, 0, lock=False)
+            counter = mp.RawValue(ctypes.c_uint, 0)
             # generate local version
             local_arr = np.empty_like(np_arr)
             t_local_arr = np.empty_like(t_np_arr)
@@ -127,7 +127,6 @@ class MpDevice(object):
         self._t_local_arr = t_local_arr
         self.device.local = True
 
-        # TODO: handle errors (current way is broken by python)
         self.process = Process(target=remote,
                                kwargs={'dev': self.device,
                                        'data': self._data,
@@ -143,7 +142,26 @@ class MpDevice(object):
         self.device.local = False  # try to prevent local access to the device
 
     def read(self):
-        # TODO: add docs
+        """Retrieve all observations that have occurred since the last read.
+        Notes
+        -----
+        The data is stored in a circular buffer, which means that if the number
+        of observations since the last read exceeds the preallocated data, the oldest
+        data will be overwritten in favor of the newest. If this behavior is undesirable,
+        either bump the sampling_frequency of the Device or the buffer_len of the MpDevice
+        up to an adequate number, depending on the sampling rate of the device and how
+        often you expect to call read().
+        We copy data by default. If `copy_read` is set to False upon initialization,
+        then *views* are returned, which is faster (but more error prone).
+
+        Returns
+        -------
+        Named tuple (time, data), or None if there is no data.
+
+        Raises
+        ------
+        May raise an exception if one has occurred on the child process since the last read.
+        """
         self.check_error()
         # get the current buffer (either 0 or 1)
         current_buffer_index = self.current_buffer_index.value
@@ -157,13 +175,13 @@ class MpDevice(object):
                 data_out = self._local_arr[:local_count]
                 data_out[:] = current_data['np_data'][:local_count]
                 t_out[:] = current_data['np_time'][:local_count]
-        if local_count <= 0:
-            return None
-        # return time, data
-        if self._copy:
-            return ret(np.copy(t_out), np.copy(data_out))
-        # otherwise, return views
-        return ret(t_out, data_out)
+            else:
+                return None
+        # return time, data views (fast)
+        if self._use_view:
+            return ret(t_out, data_out)
+        # otherwise, return copies
+        return ret(np.copy(t_out), np.copy(data_out))
 
     def clear(self):
         """Discard all pending observations."""
@@ -174,6 +192,9 @@ class MpDevice(object):
             current_data['counter'].value = 0
 
     def check_error(self):
+        """See if any exceptions have occurred on the child process, or whether
+        the device was already closed.
+        """
         if self.process:
             if not self.process.is_alive():
                 if self.process.exception:
@@ -182,8 +203,15 @@ class MpDevice(object):
                     raise err
                 else:
                     raise ValueError('MpDevice is closed.')
+        else:
+            raise ValueError('MpDevice has not been started yet.')
 
     def stop(self):
+        """Stop reading from the device and kill the child process.
+        Notes
+        -----
+        Prefer using as a context manager over explicitly starting and stopping.
+        """
         self.kill_remote.set()
         self.process.join()
         self.device.local = True
