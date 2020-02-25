@@ -27,7 +27,7 @@ def shared_to_numpy(mp_arr, dims):
 class MpDevice(object):
     """Creates and manages a process for polling an input device."""
 
-    def __init__(self, device, buffer_len=None, copy_read=True):
+    def __init__(self, device, buffer_len=None, use_views=False):
         """Create a new MpDevice.
 
         Parameters
@@ -37,13 +37,12 @@ class MpDevice(object):
         buffer_len: int, optional
             Overrides the device's sampling_frequency when specifing the size of the
             circular buffer.
-        copy_read: bool, optional
-            Copy data returned by `read()` (True, default) or return views (faster, but
-            more error-prone).
+        use_views: bool, optional
+            Return views (False by default; faster, but more error-prone) or copy data returned by `read()`.
         """
         self.device = device
         self.buffer_len = buffer_len
-        self._use_view = not copy_read
+        self._use_views = use_views
         self.process = None
 
     def start(self):
@@ -151,7 +150,7 @@ class MpDevice(object):
         either bump the sampling_frequency of the Device or the buffer_len of the MpDevice
         up to an adequate number, depending on the sampling rate of the device and how
         often you expect to call read().
-        We copy data by default. If `copy_read` is set to False upon initialization,
+        We copy data by default. If `use_views` is set to True upon initialization,
         then *views* are returned, which is faster (but more error prone).
 
         Returns
@@ -178,7 +177,7 @@ class MpDevice(object):
             else:
                 return None
         # return time, data views (fast)
-        if self._use_view:
+        if self._use_views:
             return ret(t_out, data_out)
         # otherwise, return copies
         return ret(np.copy(t_out), np.copy(data_out))

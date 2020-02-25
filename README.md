@@ -113,7 +113,7 @@ This device can then be passed to a `toon.input.MpDevice`, which preallocates th
 A few things to be aware of for data returned by `MpDevice`:
 
   - If there's no data for a given `read`, `None` is returned.
-  - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `copy_read=False` when instantiating the `MpDevice`.
+  - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `use_views=True` when instantiating the `MpDevice`.
   - If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
   - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
   - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.

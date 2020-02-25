@@ -178,3 +178,16 @@ def test_no_local():
         with raises(ValueError):
             with local_dev:
                 res = local_dev.read()
+
+
+def test_views():
+    dev = MpDevice(Dummy(), use_views=True)
+    with dev:
+        datas = []
+        sleep(0.1)
+        time, data = dev.read()
+        datas.append(data)
+        sleep(0.1)
+        time, data = dev.read()
+        datas.append(data)
+    assert(datas[0][-1, 3] == datas[1][-1, 3])
