@@ -75,6 +75,21 @@ class StructObs(BaseDevice):
         return t, data
 
 
+class NpStruct(BaseDevice):
+    ctype = [('x', int), ('y', float)]
+    sampling_frequency = 200
+    shape = (1,)
+    t0 = default_timer()
+
+    def read(self):
+        data = np.zeros(1, dtype=self.ctype)
+        while default_timer() - self.t0 < (1.0/self.sampling_frequency):
+            pass
+        self.t0 = default_timer()
+        t = self.clock()
+        return t, data
+
+
 class Incrementing(BaseDevice):
     ctype = int
     sampling_frequency = 100

@@ -2,6 +2,7 @@ import ctypes
 import multiprocessing as mp
 import os
 from collections import namedtuple
+from inspect import isclass
 from sys import platform
 
 import numpy as np
@@ -101,7 +102,7 @@ class MpDevice(object):
             ctype = self.device.ctype
             # Structures get padding when passing through this,
             # so only run on non-Structures
-            if not issubclass(ctype, ctypes.Structure):
+            if not isclass(ctype) or not issubclass(ctype, ctypes.Structure):
                 ctype = as_ctypes_type(ctype)
             mp_arr = mp.RawArray(ctype, flat_dim)
             np_arr = shared_to_numpy(mp_arr, new_dim)
