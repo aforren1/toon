@@ -191,4 +191,4 @@ def test_views():
         time, data = dev.read()
         datas.append(data)
     print(datas)
-    assert(datas[0][-1, 3] == datas[1][-1, 3])
+    assert(datas[0][2, 3] == datas[1][2, 3])
