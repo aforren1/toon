@@ -61,14 +61,14 @@ def test_struct():
     assert(data.shape[0] == time.shape[0])
 
 
-# def test_npstruct():
-#     dev = MpDevice(NpStruct())
-#     with dev:
-#         sleep(0.2)
-#         time, data = dev.read()
-#     print(data)
-#     assert(len(data.shape) == 1)
-#     assert(data.shape[0] == time.shape[0])
+def test_npstruct():
+    dev = MpDevice(NpStruct())
+    with dev:
+        sleep(0.2)
+        time, data = dev.read()
+    print(data)
+    assert(len(data.shape) == 1)
+    assert(data.shape[0] == time.shape[0])
 
 
 def test_freq():
