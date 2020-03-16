@@ -149,6 +149,7 @@ x_track = Track(keyframes, easing=linear)
 # a scalar (probably float), generally having a lower asymptote
 # of 0 and upper asymptote of 1, which is used as the current time
 # for purposes of interpolation
+pihalf = pi/2
 def elastic_in(x):
     return pow(2.0, 10.0 * (x - 1.0)) * sin(13.0 * pihalf * x)
 

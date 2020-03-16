@@ -9,3 +9,4 @@ dist/
 .cache/
 *.lprof
 posts/
+debug_track.py

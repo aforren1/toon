@@ -115,6 +115,13 @@ class Player(object):
         if time < self.ref_time:
             return
         for trk in self.tracks:
+            # if we've gone beyond, stop playing
+            if time - self.ref_time >= self.duration:
+                self._repeats -= 1
+                if self._repeats < 1:
+                    self.state = 'stopped'
+                else:
+                    self.ref_time = time
             # if tracks are playing, will return a val
             val = trk.track.at((time - self.ref_time) * self.timescale)
             if trk.obj is not None:  # object or list provided, so we'll manipulate them
@@ -127,13 +134,6 @@ class Player(object):
                                         obj, **trk.kwargs)
             else:  # operate on self
                 self._do_update(trk.attr, val, self, **trk.kwargs)
-            # if we've gone beyond, stop playing
-            if time - self.ref_time >= self.duration:
-                self._repeats -= 1
-                if self._repeats < 1:
-                    self.state = 'stopped'
-                else:
-                    self.ref_time = time
 
     @property
     def is_playing(self):
