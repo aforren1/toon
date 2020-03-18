@@ -121,7 +121,7 @@ class Player(object):
                 if self._repeats < 1:
                     self.state = 'stopped'
                 else:
-                    self.ref_time = self.ref_time + duration
+                    self.ref_time = self.ref_time + self.duration
             # if tracks are playing, will return a val
             val = trk.track.at((time - self.ref_time) * self.timescale)
             if trk.obj is not None:  # object or list provided, so we'll manipulate them

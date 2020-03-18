@@ -99,3 +99,11 @@ def test_reset():
     player.reset()
     player.advance(0.5)
     assert(circ.x == 0)
+
+def test_repeat():
+    circ = Circ()
+    player = Player(repeats=2)
+    player.add(Track([(0, 0), (1, 1)]), 'x', circ)
+    player.start(0)
+    player.advance(1.5)
+    assert(circ.x == 0.5)
