@@ -18,8 +18,6 @@ Additional tools for neuroscience experiments, including:
 
 Everything should work on Windows/Mac/Linux.
 
-See [requirements.txt](https://github.com/aforren1/toon/blob/master/requirements.txt) for dependencies.
-
 Install
 -------
 
@@ -31,13 +29,7 @@ Development version:
 
 ```pip install git+https://github.com/aforren1/toon```
 
-For full install (including device and demo dependencies):
-
-```pip install toon[full]```
-
-See [setup.py](https://github.com/aforren1/toon/blob/master/setup.py) for a list of those dependencies, as well as device-specific subdivisions.
-
-See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples (note: some require [psychopy](https://github.com/psychopy/psychopy)).
+See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples (note: some require additional packages).
 
 Overview
 ---------
