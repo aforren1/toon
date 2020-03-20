@@ -90,11 +90,18 @@ class Track(object):
         self.prev_index = index + offset
         # find the other keyframe to interpolate between
         reference = data[index + offset]
+
+        if sign > 0:
+            a = reference
+            b = kf
+        else:
+            a = kf
+            b = reference
         # print('kf_ref: %s, time: %s, kf_targ: %s' % (reference, time, kf))
-        goal_time = kf[0] - reference[0]
-        new_time = time - reference[0]
+        goal_time = b[0] - a[0]
+        new_time = time - a[0]
         time_warp = self.easing(1 - ((goal_time - new_time)/goal_time))
-        return self.interpolator(reference[1], kf[1], time_warp)
+        return self.interpolator(a[1], b[1], time_warp)
 
     def duration(self):
         """The maximum duration of the track."""

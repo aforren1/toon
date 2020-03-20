@@ -2,7 +2,9 @@ import pytest
 from collections import namedtuple
 from toon.anim.player import Player
 from toon.anim.track import Track
+from toon.anim.interpolators import select
 
+from pytest import approx
 
 class Circ(object):
     def __init__(self):
@@ -107,3 +109,30 @@ def test_repeat():
     player.start(0)
     player.advance(1.5)
     assert(circ.x == 0.5)
+
+def test_foo():
+    circ = Circ()
+    player = Player()
+    kfs = [(0, 0), (1, 1), (2, -1)]
+    player.add(Track(kfs), 'x', circ)
+    player.add(Track(kfs, interpolator=select), 'y', circ)
+    player.start(0)
+    player.advance(0.5)
+    assert(circ.x == approx(0.5))
+    assert(circ.y == 0)
+
+    player.advance(0.999)
+    assert(circ.x == approx(0.999))
+    assert(circ.y == 0)
+    player.advance(1.0)
+    assert(circ.x == circ.y == approx(1.0))
+
+    player.advance(1.5)
+    assert(circ.x == approx(0))
+    assert(circ.y == approx(1.0))
+
+    player.advance(0.5) # rewind
+    assert(circ.x == approx(0.5))
+    assert(circ.y == 0)
+
+    
