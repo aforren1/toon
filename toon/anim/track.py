@@ -49,7 +49,6 @@ class Track(object):
 
         # handle boundaries first
         data = self.data
-
         if time <= data[0][0]:
             self.prev_index = 0
             return data[0][1]
@@ -71,26 +70,24 @@ class Track(object):
         if sign > 0:
             offset = -1
             for index in range(self.prev_index + 1, len_data):
-                #print('a%i' % index)
+                # print('a%i' % index)
                 # find the next keyframe that the current time is less than
                 proposed_kf = data[index]
                 if time < proposed_kf[0]:
                     kf = proposed_kf
                     break
         # if time is less than previous keyframe time, search toward beginning
-        elif sign < 0:
+        else:
             offset = 1
             for index in range(self.prev_index - 1, -1, -1):
-                #print('b%i' % index)
+                # print('b%i' % index)
                 # find the next keyframe that the current time is greater than
                 proposed_kf = data[index]
                 if time > proposed_kf[0]:
                     kf = proposed_kf
                     break
-        else:
-            raise ValueError('Unexpected value.')
 
-        self.prev_index = index
+        self.prev_index = index + offset
         # find the other keyframe to interpolate between
         reference = data[index + offset]
         # print('kf_ref: %s, time: %s, kf_targ: %s' % (reference, time, kf))

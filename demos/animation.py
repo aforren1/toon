@@ -34,11 +34,11 @@ col1_track = Track([(0.0, 0.6),
 
 # easing doesn't matter here
 col2_track = Track([(0, 'black'),
-                    (1.25, 'gray'),
-                    (2.5, 'white'),
+                    (1.25, 'blue'),
+                    (2.5, 'green'),
                     (5, 'black')])
 
-win = visual.Window(units='height', fullscr=True)
+win = visual.Window(units='height', fullscr=True, waitBlanking=False)
 
 lin_cir = visual.Circle(win, radius=0.1,
                         pos=(-0.3, 0.3), fillColor='red',
@@ -109,7 +109,7 @@ t0 = default_timer()
 
 while not event.getKeys():
     win.callOnFlip(timeline.next_frame)
-    #print((timeline.frame_time(), lin_cir.pos))
+    #print((timeline.frame_time, lin_cir.pos))
     player.advance(timeline.frame_time + 1/60)
     rect.advance(timeline.frame_time + 1/60)
     rect.draw()
