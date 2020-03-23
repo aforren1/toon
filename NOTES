@@ -4,15 +4,6 @@ find . -type f -exec dos2unix {} +
 
 to remove Windows line endings.
 
-
-Docs:
-
-Ran `sphinx-quickstart`
-Add `sys.path.insert(0, os.path.abspath('../toon'))` to conf.py
-Add 'sphinx.ext.napoleon' to conf.py (under extensions)
-Ran `sphinx-apidoc -f -o doc/source toon` in top-level
-Ran `make html` in doc/
-
 Upload/release:
 
 1. Commit (don't forget to increment # in setup.py)
