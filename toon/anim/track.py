@@ -49,7 +49,6 @@ class Track(object):
 
         # handle boundaries first
         data = self.data
-
         if time <= data[0][0]:
             self.prev_index = 0
             return data[0][1]
@@ -71,33 +70,38 @@ class Track(object):
         if sign > 0:
             offset = -1
             for index in range(self.prev_index + 1, len_data):
-                #print('a%i' % index)
+                # print('a%i' % index)
                 # find the next keyframe that the current time is less than
                 proposed_kf = data[index]
                 if time < proposed_kf[0]:
                     kf = proposed_kf
                     break
         # if time is less than previous keyframe time, search toward beginning
-        elif sign < 0:
+        else:
             offset = 1
             for index in range(self.prev_index - 1, -1, -1):
-                #print('b%i' % index)
+                # print('b%i' % index)
                 # find the next keyframe that the current time is greater than
                 proposed_kf = data[index]
                 if time > proposed_kf[0]:
                     kf = proposed_kf
                     break
-        else:
-            raise ValueError('Unexpected value.')
 
-        self.prev_index = index
+        self.prev_index = index + offset
         # find the other keyframe to interpolate between
         reference = data[index + offset]
+
+        if sign > 0:
+            a = reference
+            b = kf
+        else:
+            a = kf
+            b = reference
         # print('kf_ref: %s, time: %s, kf_targ: %s' % (reference, time, kf))
-        goal_time = kf[0] - reference[0]
-        new_time = time - reference[0]
+        goal_time = b[0] - a[0]
+        new_time = time - a[0]
         time_warp = self.easing(1 - ((goal_time - new_time)/goal_time))
-        return self.interpolator(reference[1], kf[1], time_warp)
+        return self.interpolator(a[1], b[1], time_warp)
 
     def duration(self):
         """The maximum duration of the track."""
