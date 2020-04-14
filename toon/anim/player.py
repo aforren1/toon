@@ -27,6 +27,7 @@ class Player(object):
         self.ref_time = 0
         self.duration = 0
         self.timescale = 1
+        self.prev_vals = []
         if repeats < 1:
             raise ValueError('Number of repeats must be > 1 (or math.inf)')
         self._repeats = repeats  # track
@@ -48,6 +49,7 @@ class Player(object):
         **kwargs: Arbitrary keyword arguments, passed to `attr` if it is a function
         """
         self.tracks.append(TrackAttr(copy(track), attr, obj, kwargs))
+        self.prev_vals.append(None)
         new_dur = track.duration()
         self.duration = new_dur if new_dur > self.duration else self.duration
 
@@ -114,7 +116,7 @@ class Player(object):
             return
         if time < self.ref_time:
             return
-        for trk in self.tracks:
+        for counter, trk in enumerate(self.tracks):
             # if we've gone beyond, stop playing
             if time - self.ref_time >= self.duration:
                 self._repeats -= 1
@@ -124,6 +126,10 @@ class Player(object):
                     self.ref_time = self.ref_time + self.duration
             # if tracks are playing, will return a val
             val = trk.track.at((time - self.ref_time) * self.timescale)
+            prev_val = self.prev_vals[counter]
+            self.prev_vals[counter] = val
+            if val == prev_val:
+                continue
             if trk.obj is not None:  # object or list provided, so we'll manipulate them
                 try:  # see if single object
                     self._do_update(trk.attr, val,
