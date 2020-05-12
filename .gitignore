@@ -13,3 +13,4 @@ debug_track.py
 *.html
 *.cpp
 *.pyd
+*.c

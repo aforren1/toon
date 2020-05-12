@@ -3,6 +3,7 @@ from setuptools.extension import Extension
 from os import path
 from Cython.Build import cythonize
 from sys import platform
+import numpy as np
 
 flags = []
 if platform == 'win32':
@@ -15,6 +16,16 @@ if platform == 'darwin':
 
 ext = [Extension('toon.util.clock', ['toon/util/clock.pyx'], 
                  language='c++', extra_compile_args=flags)]
+
+
+defs = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+ext.extend([
+    Extension('toon.anim.easing', sources=['toon/anim/easing.pyx']),
+    Extension('toon.anim.interpolators', sources=['toon/anim/interpolators.pyx']),
+    Extension('toon.anim.track', sources=['toon/anim/track.pyx'], include_dirs=[np.get_include()],
+              define_macros=defs),
+    Extension('toon.anim.player', sources=['toon/anim/player.pyx'])
+])
 
 here = path.abspath(path.dirname(__file__))
 

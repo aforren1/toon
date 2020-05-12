@@ -3,9 +3,6 @@ toon
 
 [![image](https://img.shields.io/pypi/v/toon.svg)](https://pypi.python.org/pypi/toon)
 [![image](https://img.shields.io/pypi/l/toon.svg)](https://raw.githubusercontent.com/aforren1/toon/master/LICENSE.txt)
-[![image](https://img.shields.io/travis/aforren1/toon.svg)](https://travis-ci.org/aforren1/toon)
-[![image](https://img.shields.io/appveyor/ci/aforren1/toon.svg)](https://ci.appveyor.com/project/aforren1/toon)
-[![image](https://img.shields.io/coveralls/aforren1/toon.svg)](https://coveralls.io/github/aforren1/toon)
 
 Description
 -----------
@@ -25,7 +22,7 @@ Current release:
 
 ```pip install toon```
 
-Development version:
+Development version (requires compilation):
 
 ```pip install git+https://github.com/aforren1/toon```
 
@@ -125,7 +122,7 @@ from timeit import default_timer
 import matplotlib.pyplot as plt
 from toon.anim import Track, Player
 # see toon/anim/easing.py for all available easings
-from toon.anim.easing import linear
+from toon.anim.easing import LINEAR, ELASTIC_IN
 
 class Circle(object):
     x = 0
@@ -134,19 +131,10 @@ class Circle(object):
 circle = Circle()
 # list of (time, value)
 keyframes = [(0.2, -0.5), (0.5, 0), (3, 0.5)]
-x_track = Track(keyframes, easing=linear)
-
-# currently, easings can be any function that takes a single
-# positional argument as input (time normalized to [0, 1]) and returns
-# a scalar (probably float), generally having a lower asymptote
-# of 0 and upper asymptote of 1, which is used as the current time
-# for purposes of interpolation
-pihalf = pi/2
-def elastic_in(x):
-    return pow(2.0, 10.0 * (x - 1.0)) * sin(13.0 * pihalf * x)
+x_track = Track(keyframes, easing=LINEAR)
 
 # we can reuse keyframes
-y_track = Track(keyframes, easing=elastic_in)
+y_track = Track(keyframes, easing=ELASTIC_IN)
 
 player = Player(repeats=3)
 
@@ -173,13 +161,12 @@ plt.show()
 
 Other notes:
   - Non-numeric attributes, like color strings, can also be modified in this framework (easing is ignored).
-  - The `Timeline` class (in `toon.anim`) can be used to get the time between frames, or the time since some origin time, taken at `timeline.start()`.
   - The `Player` can also be used as a mixin, in which case the `obj` argument can be omitted from `player.add()` (see the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for examples).
   - Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
 
 ### Utilities
 
-The `util` module includes high-resolution clocks/timers. Windows uses `QueryPerformanceCounter`, MacOS uses `mach_absolute_time`, and other systems use `timeit.default_timer`. The class is called `MonoClock`, and an instantiation called `mono_clock` is created upon import. Usage:
+The `util` module includes high-resolution clocks/timers via `std::chrono::steady_clock`. The class is called `MonoClock`, and an instantiation called `mono_clock` is created upon import. Usage:
 
 ```python
 from toon.util import mono_clock, MonoClock

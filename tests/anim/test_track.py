@@ -1,7 +1,7 @@
 import pytest
 from toon.anim.track import Track
-from toon.anim.easing import *
-from toon.anim.interpolators import lerp, select
+from toon.anim.easing import SMOOTHERSTEP
+from toon.anim.interpolators import LERP, SELECT
 
 
 def test_track():
@@ -15,20 +15,19 @@ def test_track():
 def test_discrete():
     kfs = [(0, 'red'), (1, 'green'), (2, 'blue')]
     track = Track(kfs)
-    assert(track.interpolator == select)
     assert(track.at(0.99) == 'red')
     assert(track.at(1.00) == 'green')
 
 
 def test_other_easing():
     kfs = [(0, 0), (0.5, 1), (1.0, 2)]
-    track = Track(kfs, easing=smootherstep)
+    track = Track(kfs, easing=SMOOTHERSTEP)
     assert(track.at(1.0) == 2)
 
 
 def test_other_interp():
     kfs = [(0, 0), (0.5, 1), (1.0, 2)]
-    track = Track(kfs, interpolator=select)
+    track = Track(kfs, interpolator=SELECT)
     assert(track.at(0.499) == 0)
     assert(track.at(0.5) == 1)
 
