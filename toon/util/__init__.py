@@ -1,2 +1,2 @@
-from .priority import priority
-from .clock import MonoClock, mono_clock
+from toon.util.priority import priority
+from toon.util.clock import MonoClock, mono_clock
