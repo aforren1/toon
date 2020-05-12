@@ -26,10 +26,11 @@ jobs:
     - name: Install toon
       run: |
         python -m pip install -e .
-    
-    - name: Run tests
+
+    - name: Run tests and coveralls
       run: |
-        python -m pip install -r requirements_test.txt && python -m pytest
+        python -m pip install coveralls && python -m pip install -r requirements_test.txt
+        coverage run --source=toon -m pytest -v -s && coverage report && coveralls
 
   build_wheels:
     name: Build wheel on ${{ matrix.os }}
