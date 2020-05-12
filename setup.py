@@ -1,5 +1,20 @@
 from setuptools import setup, find_packages
+from setuptools.extension import Extension
 from os import path
+from Cython.Build import cythonize
+from sys import platform
+
+flags = []
+if platform == 'win32':
+    flags.append('/std:c++14')
+else:
+    flags.append('-std=c++11')
+
+if platform == 'darwin':
+    flags.append('-stdlib=libc++')
+
+ext = [Extension('toon.util.clock', ['toon/util/clock.pyx'], 
+                 language='c++', extra_compile_args=flags)]
 
 here = path.abspath(path.dirname(__file__))
 
@@ -13,7 +28,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.14.0',
+    version='0.15.0',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',
@@ -32,5 +47,6 @@ setup(
     ],
     install_requires=requirements,
     keywords='psychophysics neuroscience input experiment',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests', 'example_devices'])
+    packages=find_packages(exclude=['contrib', 'docs', 'tests', 'example_devices']),
+    ext_modules=cythonize(ext, language_level='3', annotate=True)
 )
