@@ -25,7 +25,7 @@ jobs:
     
     - name: Install toon
       run: |
-        python -m pip install .
+        python -m pip install -e .
     
     - name: Run tests
       run: |
@@ -33,7 +33,7 @@ jobs:
 
   build_wheels:
     name: Build wheel on ${{ matrix.os }}
-    needs: run_tests
+    needs: [run_tests]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
