@@ -10,3 +10,7 @@ dist/
 *.lprof
 posts/
 debug_track.py
+*.html
+*.cpp
+*.pyd
+*.c

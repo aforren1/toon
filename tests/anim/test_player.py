@@ -2,7 +2,7 @@ import pytest
 from collections import namedtuple
 from toon.anim.player import Player
 from toon.anim.track import Track
-from toon.anim.interpolators import select
+from toon.anim.interpolators import SELECT
 
 from pytest import approx
 
@@ -55,28 +55,6 @@ def test_player():
     assert(circ.x == 1)
 
 
-def test_player_mixin():
-    class CircMix(Player, Circ):
-        pass
-
-    trk = Track([(0, 0), (0.5, 0.5), (1, 1)])
-
-    def change_y(val, obj):
-        obj.y = val
-    circ = CircMix()
-    circ2 = Circ()
-    # change directly
-    circ.add(trk, 'x')
-    # callback
-    circ.add(trk, change_y)
-    # drive another object
-    circ.add(trk, 'x', circ2)
-
-    circ.start(0)
-    circ.advance(0.5)
-    assert(circ.x == circ.y == circ2.x)
-
-
 def test_scaling():
     circ = Circ()
     player = Player()
@@ -115,7 +93,7 @@ def test_foo():
     player = Player()
     kfs = [(0, 0), (1, 1), (2, -1)]
     player.add(Track(kfs), 'x', circ)
-    player.add(Track(kfs, interpolator=select), 'y', circ)
+    player.add(Track(kfs, interpolator=SELECT), 'y', circ)
     player.start(0)
     player.advance(0.5)
     assert(circ.x == approx(0.5))
@@ -134,5 +112,3 @@ def test_foo():
     player.advance(0.5) # rewind
     assert(circ.x == approx(0.5))
     assert(circ.y == 0)
-
-    
