@@ -150,12 +150,15 @@ player.add(y_track, y_cb, obj=circle)
 t0 = default_timer()
 player.start(t0)
 vals = []
+times = []
 while player.is_playing:
-    player.advance(default_timer())
+    t = default_timer()
+    player.advance(t)
+    times.append(t)
     vals.append([circle.x, circle.y])
-    sleep(1/60)
+    # sleep(1/60)
 
-plt.plot(vals)
+plt.plot(times, vals)
 plt.show()
 ```
 
