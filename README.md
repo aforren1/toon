@@ -22,7 +22,7 @@ Current release:
 
 ```pip install toon```
 
-Development version (requires compilation):
+Development version (requires compilation-- C++11 (and if using MSVC, >= 2015 for proper `std::chrono` implementation)):
 
 ```pip install git+https://github.com/aforren1/toon```
 
