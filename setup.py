@@ -45,7 +45,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/aforren1/toon',
     author='Alexander Forrence',
-    author_email='aforren1@jhu.edu',
+    author_email='alex.forrence@gmail.com',
     license='MIT',
     classifiers=[
         'Development Status :: 4 - Beta',
