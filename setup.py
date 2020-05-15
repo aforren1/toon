@@ -5,17 +5,17 @@ from Cython.Build import cythonize
 from sys import platform
 import numpy as np
 
-flags = []
+cxxflags = []
+ldflags = []
 if platform == 'win32':
-    flags.append('/std:c++14')
+    cxxflags.append('/std:c++14')
+elif platform == 'darwin':
+    cxxflags.extend(['-std=c++11', '-stdlib=libc++'])
 else:
-    flags.append('-std=c++11')
-
-if platform == 'darwin':
-    flags.append('-stdlib=libc++')
+    cxxflags.append('-std=c++11')
 
 ext = [Extension('toon.util.clock', ['toon/util/clock.pyx'], 
-                 language='c++', extra_compile_args=flags)]
+                 language='c++', extra_compile_args=cxxflags)]
 
 
 defs = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
@@ -39,7 +39,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.15.0',
+    version='0.15.1a2',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',

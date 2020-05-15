@@ -10,10 +10,6 @@ Upload/release:
 
 (via Travis)
 2. `git tag -a <version> -m <message>`
-3. `git push github <version>`
+3. `git push origin <version>`
 
-Local (from project root):
-
-2. rm dist/*
-3. python setup.py bdist_wheel sdist
-4. twine upload dist/*
+Non-tagged commits will upload packages to test.pypi.org.
