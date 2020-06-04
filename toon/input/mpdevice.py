@@ -44,20 +44,6 @@ class MpDevice(object):
         self.buffer_len = buffer_len
         self._use_views = use_views
         self.process = None
-
-    def start(self):
-        """Start polling from the device on the child process.
-        Allocates all resources and creates the child process.
-
-        Notes
-        -----
-        Prefer using as a context manager over explicitly starting and stopping.
-
-        Raises
-        ------
-        Will raise an exception if something goes wrong during instantiation
-        of the device.
-        """
         # For Macs, use spawn (interaction with OpenGL or ??)
         # Windows only does spawn
         if platform in ['darwin', 'win32']:
@@ -129,6 +115,19 @@ class MpDevice(object):
         self._t_local_arr = t_local_arr
         self.device.local = True
 
+    def start(self):
+        """Start polling from the device on the child process.
+        Allocates all resources and creates the child process.
+
+        Notes
+        -----
+        Prefer using as a context manager over explicitly starting and stopping.
+
+        Raises
+        ------
+        Will raise an exception if something goes wrong during instantiation
+        of the device.
+        """
         self.process = Process(target=remote,
                                kwargs={'dev': self.device,
                                        'data': self._data,
@@ -217,6 +216,8 @@ class MpDevice(object):
         self.kill_remote.set()
         self.process.join()
         self.device.local = True
+        self.kill_remote.clear()
+        self.remote_ready.clear()
 
     def __enter__(self):
         self.start()
