@@ -3,14 +3,14 @@ from toon.util import mono_clock
 
 
 def prevent_if_remote(func):
-    """Decorator to raise ValueError in order to prevent accidental use
+    """Decorator to raise RuntimeError in order to prevent accidental use
     of a remote device locally.
     """
     def wrap_if_remote(*args, **kwargs):
         self = args[0]
         if self._local:
             return func(*args, **kwargs)
-        raise ValueError('Device is being used on a remote process.')
+        raise RuntimeError('Device is being used on a remote process.')
     return wrap_if_remote
 
 

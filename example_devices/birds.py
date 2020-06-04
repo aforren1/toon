@@ -63,7 +63,7 @@ class Birds(BaseDevice):
             if res == 1:
                 self._master = b
         if self._master is None:
-            raise ValueError('Master not found in ports provided.')
+            raise RuntimeError('Master not found in ports provided.')
         self._birds = out  # overwrite unsorted
         # subset of birds to read
         for b in self._birds:

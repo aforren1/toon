@@ -59,7 +59,7 @@ class Cyberglove(BaseDevice):
         self.dev.write(b'l ?\r')
         # should echo back & give result
         if not self.dev.read():
-            raise ValueError('Make sure the device is switched on.')
+            raise RuntimeError('Make sure the device is switched on.')
         self.dev.write(b'f 0\r')  # stop filtering
         self.dev.write(b't 1152 1\r')  # 100 Hz
         self.dev.write(b'u 0\r')  # don't transmit status
@@ -76,7 +76,7 @@ class Cyberglove(BaseDevice):
                 self.dev.read(19)  # read the rest of the line
                 break
         if i >= 39:
-            raise ValueError('Did not find the start byte.')
+            raise RuntimeError('Did not find the start byte.')
 
     def read(self):
         # one byte (S)

@@ -177,7 +177,7 @@ def test_already_closed():
     dev.start()
     res = dev.read()
     dev.stop()
-    with raises(ValueError):
+    with raises(RuntimeError):
         dev.read()
 
 
@@ -185,7 +185,7 @@ def test_no_local():
     local_dev = Dummy()
     dev = MpDevice(local_dev)
     with dev:
-        with raises(ValueError):
+        with raises(RuntimeError):
             with local_dev:
                 res = local_dev.read()
 
@@ -202,3 +202,10 @@ def test_views():
         datas.append(data)
     print(datas)
     assert(datas[0][2, 3] == datas[1][2, 3])
+
+def test_start_start():
+    dev = MpDevice(Dummy())
+    dev.start()
+    with raises(RuntimeError):
+        dev.start()
+    dev.stop()

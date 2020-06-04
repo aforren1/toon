@@ -189,9 +189,8 @@ Another utility currently included is a `priority` function, which tries to impr
 ```python
 from toon.util import priority
 
-res = priority(1)
-if not res:
-    raise ValueError('Failed to raise priority.')
+if not priority(1):
+    raise RuntimeError('Failed to raise priority.')
 
 # ...do stuff...
 

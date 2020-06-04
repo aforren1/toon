@@ -128,6 +128,8 @@ class MpDevice(object):
         Will raise an exception if something goes wrong during instantiation
         of the device.
         """
+        if not self.device.local:
+            raise RuntimeError('MpDevice is already started.')
         self.process = Process(target=remote,
                                kwargs={'dev': self.device,
                                        'data': self._data,
@@ -203,9 +205,9 @@ class MpDevice(object):
                     print(traceback)
                     raise err
                 else:
-                    raise ValueError('MpDevice is closed.')
+                    raise RuntimeError('MpDevice is closed.')
         else:
-            raise ValueError('MpDevice has not been started yet.')
+            raise RuntimeError('MpDevice has not been started yet.')
 
     def stop(self):
         """Stop reading from the device and kill the child process.
