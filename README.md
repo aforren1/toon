@@ -168,7 +168,6 @@ plt.show()
 
 Other notes:
   - Non-numeric attributes, like color strings, can also be modified in this framework (easing is ignored).
-  - The `Player` can also be used as a mixin, in which case the `obj` argument can be omitted from `player.add()` (see the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for examples).
   - Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
 
 ### Utilities
