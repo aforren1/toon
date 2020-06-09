@@ -172,8 +172,8 @@ class MpDevice(object):
         current_data = self._data[current_buffer_index]
         with current_data['lock']:
             local_count = current_data['counter'].value
-            current_data['counter'].value = 0  # start writing from the top of the array
             if local_count > 0:
+                current_data['counter'].value = 0  # start writing from the top of the array
                 t_out = self._t_local_arr[:local_count]
                 data_out = self._local_arr[:local_count]
                 data_out[:] = current_data['np_data'][:local_count]
