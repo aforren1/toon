@@ -8,7 +8,7 @@ import numpy as np
 cxxflags = []
 ldflags = []
 if platform == 'win32':
-    cxxflags.append('/std:c++14')
+    cxxflags.extend(['/std:c++14', '/MT'])
 elif platform == 'darwin':
     cxxflags.extend(['-std=c++11', '-stdlib=libc++'])
 else:
@@ -39,7 +39,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.15.4',
+    version='0.15.5a1',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',
