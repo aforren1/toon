@@ -216,7 +216,7 @@ class MpDevice(object):
         Prefer using as a context manager over explicitly starting and stopping.
         """
         self.kill_remote.set()
-        self.process.join()
+        self.process.join(timeout=1)
         self.device.local = True
         self.kill_remote.clear()
         self.remote_ready.clear()
