@@ -3,6 +3,7 @@ toon
 
 [![image](https://img.shields.io/pypi/v/toon.svg)](https://pypi.python.org/pypi/toon)
 [![image](https://img.shields.io/pypi/l/toon.svg)](https://raw.githubusercontent.com/aforren1/toon/master/LICENSE.txt)
+![Build](https://github.com/aforren1/toon/workflows/Build/badge.svg)
 
 Description
 -----------
@@ -29,6 +30,10 @@ Development version:
 Or for the latest commit (requires compilation-- C++11 (and if using MSVC, >= 2015 for proper `std::chrono` implementation)):
 
 ```pip install git+https://github.com/aforren1/toon```
+
+`msvcp140.dll` is required for clock usage on Windows, and can be installed via either:
+1. https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+2. `pip install msvc-runtime` (https://pypi.org/project/msvc-runtime/)
 
 See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples (note: some require additional packages).
 
