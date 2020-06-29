@@ -1,2 +1,3 @@
 numpy>=1.16.1
 psutil
+msvc-runtime; sys_platform == 'win32'
