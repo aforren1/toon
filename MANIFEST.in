@@ -4,5 +4,3 @@ global-include *.pyx
 global-include *.pxd
 global-include *.h
 global-include *.c
-global-include *.cpp
-global-include *.hpp
