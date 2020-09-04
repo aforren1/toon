@@ -1,40 +1,36 @@
-toon
-====
+# toon
 
 [![image](https://img.shields.io/pypi/v/toon.svg)](https://pypi.python.org/pypi/toon)
 [![image](https://img.shields.io/pypi/l/toon.svg)](https://raw.githubusercontent.com/aforren1/toon/master/LICENSE.txt)
 ![Build](https://github.com/aforren1/toon/workflows/Build/badge.svg)
 
-Description
------------
+## Description
 
 Additional tools for neuroscience experiments, including:
 
--   A framework for polling input devices on a separate process.
--   A framework for keyframe-based animation.
--   High-resolution clocks.
+- A framework for polling input devices on a separate process.
+- A framework for keyframe-based animation.
+- High-resolution clocks.
 
 Everything should work on Windows/Mac/Linux.
 
-Install
--------
+## Install
 
 Current release:
 
-```pip install toon```
+`pip install toon`
 
 Development version:
 
-```pip install -i https://test.pypi.org/simple/ toon --pre```
+`pip install -i https://test.pypi.org/simple/ toon --pre`
 
-Or for the latest commit (requires compilation-- C++11 (and if using MSVC, >= 2015 for proper `std::chrono` implementation)):
+Or for the latest commit (requires compilation):
 
-```pip install git+https://github.com/aforren1/toon```
+`pip install git+https://github.com/aforren1/toon`
 
 See the [demos/](https://github.com/aforren1/toon/tree/master/demos) folder for usage examples (note: some require additional packages).
 
-Overview
----------
+## Overview
 
 ### Input
 
@@ -83,16 +79,16 @@ class MyDevice(BaseDevice):
     # optional. Do not start device communication here, wait until `enter`
     def __init__(self):
         pass
-    
+
     ## Use `enter` and `exit`, rather than `__enter__` and `__exit__`
     # optional: configure the device, start communicating
     def enter(self):
         pass
-    
+
     # optional: clean up resources, close device
     def exit(self):
         pass
-    
+
     # required
     def read(self):
         # See demos/ for examples of sharing a time source between the processes
@@ -106,12 +102,12 @@ This device can then be passed to a `toon.input.MpDevice`, which preallocates th
 
 A few things to be aware of for data returned by `MpDevice`:
 
-  - If there's no data for a given `read`, `None` is returned.
-  - The returned data is a *copy* of the local copy of the data. If you don't need copies, set `use_views=True` when instantiating the `MpDevice`.
-  - If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
-  - You can optionally use `device.start()`/`device.stop()` instead of a context manager.
-  - You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
-  - In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [example_devices](https://github.com/aforren1/toon/tree/master/example_devices) folder for examples).
+- If there's no data for a given `read`, `None` is returned.
+- The returned data is a _copy_ of the local copy of the data. If you don't need copies, set `use_views=True` when instantiating the `MpDevice`.
+- If receiving batches of data when reading from the device, you can return a list of (time, data) tuples.
+- You can optionally use `device.start()`/`device.stop()` instead of a context manager.
+- You can check for remote errors at any point using `device.check_error()`, though this automatically happens after entering the context manager and when reading.
+- In addition to python types/dtypes/ctypes, devices can return `ctypes.Structure`s (see input tests or the [example_devices](https://github.com/aforren1/toon/tree/master/example_devices) folder for examples).
 
 ### Animation
 
@@ -168,12 +164,13 @@ plt.show()
 ```
 
 Other notes:
-  - Non-numeric attributes, like color strings, can also be modified in this framework (easing is ignored).
-  - Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
+
+- Non-numeric attributes, like color strings, can also be modified in this framework (easing is ignored).
+- Multiple objects can be modified simultaneously by feeding a list of objects into `player.add()`.
 
 ### Utilities
 
-The `util` module includes high-resolution clocks/timers via `std::chrono::steady_clock`. The class is called `MonoClock`, and an instantiation called `mono_clock` is created upon import. Usage:
+The `util` module includes high-resolution clocks/timers via `QueryPerformanceCounter/Frequency` on Windows, `mach_absolute_time` on MacOS, and `clock_gettime(CLOCK_MONOTONIC)` on Linux. The class is called `MonoClock`, and an instantiation called `mono_clock` is created upon import. Usage:
 
 ```python
 from toon.util import mono_clock, MonoClock
@@ -200,24 +197,29 @@ priority(0)
 The input should be a 0 (no priority/cancel), 1 (higher priority), or 2 (realtime). If the requested level is rejected, the function will return `False`. The exact implementational details depend on the host operating system. All implementations disable garbage collection.
 
 #### Windows
- - Uses `SetPriorityClass` and `SetThreadPriority`/`AvSetMmMaxThreadCharacteristics`.
- - `level = 2` only seems to work if running Python as administrator.
+
+- Uses `SetPriorityClass` and `SetThreadPriority`/`AvSetMmMaxThreadCharacteristics`.
+- `level = 2` only seems to work if running Python as administrator.
 
 #### MacOS
- - Only disables/enables garbage collection; I don't have a Mac to test on.
+
+- Only disables/enables garbage collection; I don't have a Mac to test on.
 
 #### Linux
-  - Sets the scheduler policy and parameters `sched_setscheduler`.
-  - If `level == 2`, locks the calling process's virtual address space into RAM via `mlockall`.
-  - Any `level > 0` seems to fail unless the user is either superuser, or has the right capability. I've used setcap: `sudo setcap cap_sys_nice=eip <path to python>` (disable by passing `sudo setcap cap_sys_nice= <path>`). For memory locking, I've used Psychtoolbox's [99-psychtoolboxlimits.conf](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychBasic/99-psychtoolboxlimits.conf) and added myself to the psychtoolbox group.
 
-Your mileage may vary on whether these *actually* improve latency/determinism. When in doubt, measure! Read the warnings [here](http://psychtoolbox.org/docs/Priority).
+- Sets the scheduler policy and parameters `sched_setscheduler`.
+- If `level == 2`, locks the calling process's virtual address space into RAM via `mlockall`.
+- Any `level > 0` seems to fail unless the user is either superuser, or has the right capability. I've used setcap: `sudo setcap cap_sys_nice=eip <path to python>` (disable by passing `sudo setcap cap_sys_nice= <path>`). For memory locking, I've used Psychtoolbox's [99-psychtoolboxlimits.conf](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychBasic/99-psychtoolboxlimits.conf) and added myself to the psychtoolbox group.
+
+Your mileage may vary on whether these _actually_ improve latency/determinism. When in doubt, measure! Read the warnings [here](http://psychtoolbox.org/docs/Priority).
 
 Notes about checking whether parts are working:
 
 #### Windows
- - In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out how to verify the Avrt threading parts are working.
+
+- In the task manager under details, right-clicking on python and mousing over "Set priority" will show the current priority level. I haven't figured out how to verify the Avrt threading parts are working.
 
 #### Linux
- - Check `mlockall` with `cat /proc/{python pid}/status | grep VmLck`
- - Check priority with `top -c -p $(pgrep -d',' -f python)`
+
+- Check `mlockall` with `cat /proc/{python pid}/status | grep VmLck`
+- Check priority with `top -c -p $(pgrep -d',' -f python)`
