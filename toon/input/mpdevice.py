@@ -53,15 +53,14 @@ class MpDevice(object):
             except (AttributeError, RuntimeError):
                 pass  # already started a process, or on python2
 
-        n_buffers = 2
         # make one lock per buffer
-        self.shared_locks = [mp.Lock() for i in range(n_buffers)]
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
-        self.current_buffer_index = mp.RawValue(ctypes.c_bool, 0)
+        self.current_buf_index = mp.RawValue(ctypes.c_uint64, 0)
+        self.prev_buf_index = 0
 
         # figure out number of observations to save between reads
-        nrow = 100  # default (100 Hz)
+        nrow = 500  # default (500 Hz)
         # if we have a sampling_frequency, allocate 1s worth
         # should be enough wiggle room for 60Hz refresh rate
         if self.device.sampling_frequency:
@@ -69,46 +68,43 @@ class MpDevice(object):
         if self.buffer_len:  # buffer_len overcomes all
             nrow = self.buffer_len
         nrow = int(max(nrow, 1))  # make sure we have at least one row
+        self._nrow = nrow
 
         # preallocate data
         # we have a double buffer sort of thing going on,
         # so we need two of everything
         self._data = []
         time_type = as_ctypes_type(type(self.device.clock()))
-        for lck in self.shared_locks:
-            # make mp version
-            is_scalar = False
-            if self.device.shape == (1,):
-                new_dim = (nrow,)
-                is_scalar = True
-            else:
-                new_dim = (nrow,) + self.device.shape
-            flat_dim = int(np.product(new_dim))
-            ctype = self.device.ctype
-            # Structures get padding when passing through this,
-            # so only run on non-Structures
-            if isinstance(ctype, list):
-                ctype = as_ctypes_type(ctype)
-                globals()['struct'] = ctype
-            elif not issubclass(ctype, ctypes.Structure):
-                ctype = as_ctypes_type(ctype)
-            mp_arr = mp.RawArray(ctype, flat_dim)
-            np_arr = shared_to_numpy(mp_arr, new_dim)
-            t_mp_arr = mp.RawArray(time_type, nrow)
-            t_np_arr = shared_to_numpy(t_mp_arr, nrow)
-            counter = mp.RawValue(ctypes.c_uint, 0)
-            # generate local version
-            local_arr = np.empty_like(np_arr)
-            t_local_arr = np.empty_like(t_np_arr)
-            if is_scalar:
-                local_arr = np.squeeze(local_arr)
-            # special case for buffer size of 1 and scalar data
-            if local_arr.shape == ():
-                local_arr.shape = (1,)
-            data_pack = {'mp_data': mp_arr, 'np_data': np_arr,
-                         'mp_time': t_mp_arr, 'np_time': t_np_arr,
-                         'counter': counter, 'lock': lck}
-            self._data.append(data_pack)
+        # make mp version
+        is_scalar = False
+        if self.device.shape == (1,):
+            new_dim = (nrow,)
+            is_scalar = True
+        else:
+            new_dim = (nrow,) + self.device.shape
+        flat_dim = int(np.product(new_dim))
+        ctype = self.device.ctype
+        # Structures get padding when passing through this,
+        # so only run on non-Structures
+        if isinstance(ctype, list):
+            ctype = as_ctypes_type(ctype)
+            globals()['struct'] = ctype
+        elif not issubclass(ctype, ctypes.Structure):
+            ctype = as_ctypes_type(ctype)
+        mp_arr = mp.RawArray(ctype, flat_dim)
+        np_arr = shared_to_numpy(mp_arr, new_dim)
+        t_mp_arr = mp.RawArray(time_type, nrow)
+        t_np_arr = shared_to_numpy(t_mp_arr, nrow)
+        # generate local version
+        local_arr = np.empty_like(np_arr)
+        t_local_arr = np.empty_like(t_np_arr)
+        if is_scalar:
+            local_arr = np.squeeze(local_arr)
+        # special case for buffer size of 1 and scalar data
+        if local_arr.shape == ():
+            local_arr.shape = (1,)
+        self._data = {'mp_data': mp_arr, 'np_data': np_arr,
+                      'mp_time': t_mp_arr, 'np_time': t_np_arr}
 
         # make local versions to copy the data into
         self._local_arr = local_arr
@@ -130,19 +126,22 @@ class MpDevice(object):
         """
         if not self.device.local:
             raise RuntimeError('MpDevice is already started.')
+
         self.process = Process(target=remote,
                                kwargs={'dev': self.device,
                                        'data': self._data,
                                        'remote_ready': self.remote_ready,
                                        'kill_remote': self.kill_remote,
                                        'parent_pid': os.getpid(),
-                                       'current_buffer_index': self.current_buffer_index})
+                                       'current_buf_index': self.current_buf_index})
 
         self.process.daemon = True
         self.process.start()
         self.check_error()
         self.remote_ready.wait()  # block until child process is ready
         self.device.local = False  # try to prevent local access to the device
+        self.prev_buf_index = 0
+        self.current_buf_index.value = 0
 
     def read(self):
         """Retrieve all observations that have occurred since the last read.
@@ -166,20 +165,41 @@ class MpDevice(object):
         May raise an exception if one has occurred on the child process since the last read.
         """
         self.check_error()
-        # get the current buffer (either 0 or 1)
-        current_buffer_index = self.current_buffer_index.value
-        # this might block, if the remote is currently writing data
-        current_data = self._data[current_buffer_index]
-        with current_data['lock']:
-            local_count = current_data['counter'].value
-            if local_count > 0:
-                current_data['counter'].value = 0  # start writing from the top of the array
-                t_out = self._t_local_arr[:local_count]
-                data_out = self._local_arr[:local_count]
-                data_out[:] = current_data['np_data'][:local_count]
-                t_out[:] = current_data['np_time'][:local_count]
-            else:
-                return None
+        # get current index val; if matching, short-circuit
+        prev_buf_index = self.prev_buf_index
+        current_buf_index = self.current_buf_index.value
+        self.prev_buf_index = current_buf_index
+        diff = current_buf_index - prev_buf_index
+        if diff == 0:
+            return None
+
+        data = self._data
+        # working up the array
+        if diff > 0:
+            # slice enough to hold the interval from prev to current
+            length = diff
+        else:  # rolled over the end of the array
+            # TODO: check check check
+            length = self._nrow - prev_buf_index + current_buf_index
+
+        # TODO: check if length > self._nrow?
+
+        # start writing from the top of the array
+        t_out = self._t_local_arr[:length]
+        data_out = self._t_local_arr[:length]
+        np_data = data['np_data']
+        np_time = data['np_time']
+        if diff > 0:
+            data_out[:] = np_data[:length]
+            t_out[:] = np_time[:length]
+        else:
+            # two copies: one to end, one from beginning
+            idx1 = self._nrow - prev_buf_index
+            data_out[:idx1] = np_data[prev_buf_index:]
+            data_out[idx1:] = np_data[:current_buf_index]
+            t_out[:idx1] = np_time[prev_buf_index:]
+            t_out[idx1:] = np_time[:current_buf_index]
+
         # return time, data views (fast)
         if self._use_views:
             return ret(t_out, data_out)
@@ -189,10 +209,7 @@ class MpDevice(object):
     def clear(self):
         """Discard all pending observations."""
         self.check_error()
-        current_buffer_index = self.current_buffer_index.value
-        current_data = self._data[current_buffer_index]
-        with current_data['lock']:
-            current_data['counter'].value = 0
+        self.prev_buf_index = self.current_buf_index.value
 
     def check_error(self):
         """See if any exceptions have occurred on the child process, or whether
@@ -202,7 +219,6 @@ class MpDevice(object):
             if not self.process.is_alive():
                 if self.process.exception:
                     err, traceback = self.process.exception
-                    print(traceback)
                     raise err
                 else:
                     raise RuntimeError('MpDevice is closed.')
