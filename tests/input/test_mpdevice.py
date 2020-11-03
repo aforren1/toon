@@ -71,34 +71,34 @@ def test_struct():
 #     assert(data.shape[0] == time.shape[0])
 
 
-def test_freq():
-    original_fs = Dummy.sampling_frequency
-    Dummy.sampling_frequency = 1
+# def test_freq():
+#     original_fs = Dummy.sampling_frequency
+#     Dummy.sampling_frequency = 1
 
-    dev = MpDevice(Dummy())
-    with dev:
-        sleep(4)
-        time, val = dev.read()
+#     dev = MpDevice(Dummy())
+#     with dev:
+#         sleep(4)
+#         time, val = dev.read()
 
-    assert(time.shape[0] == 1)
-    assert(val.shape == (1, 5))
-    print(time, val)
-    Dummy.sampling_frequency = original_fs
+#     assert(time.shape[0] == 1)
+#     assert(val.shape == (1, 5))
+#     print(time, val)
+#     Dummy.sampling_frequency = original_fs
 
 
-def test_ringbuffer():
-    dev = MpDevice(Dummy(), buffer_len=1)
-    with dev:
-        sleep(1)
-        time, val = dev.read()
+# def test_ringbuffer():
+#     dev = MpDevice(Dummy(), buffer_len=1)
+#     with dev:
+#         sleep(1)
+#         time, val = dev.read()
 
-    assert(time.shape[0] == 1)
-    assert(val.shape == (1, 5))
-    print(time, val)
+#     assert(time.shape[0] == 1)
+#     assert(val.shape == (1, 5))
+#     print(time, val)
 
 
 def test_mono():
-    dev = MpDevice(Incrementing(), buffer_len=10)
+    dev = MpDevice(Incrementing())
     with dev:
         sleep(1)
         time, val = dev.read()
@@ -202,6 +202,7 @@ def test_views():
         datas.append(data)
     print(datas)
     assert(datas[0][2, 3] == datas[1][2, 3])
+
 
 def test_start_start():
     dev = MpDevice(Dummy())

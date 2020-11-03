@@ -6,6 +6,8 @@ from toon.input import BaseDevice, MpDevice
 
 
 class TestDevice(BaseDevice):
+    ctype = float
+
     def __init__(self, device_sampling_freq, shape=(1,)):
         self.device_sampling_freq = device_sampling_freq
         self.t0 = default_timer()
@@ -49,6 +51,8 @@ if __name__ == '__main__':
             times = times[5:]
             print("""# shape: %s, sampling frequency: %i, Worst: %f, Median: %f""" %
                   (j, k, np.max(times), np.median(times)))
+            plt.plot(times)
+            plt.show()
             median_res.append({'dims': np.product(j),
                                'device_freq': k,
                                'median_time': np.median(times)})

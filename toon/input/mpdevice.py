@@ -40,6 +40,9 @@ class MpDevice(object):
         use_views: bool, optional
             Return views (False by default; faster, but more error-prone) or copy data returned by `read()`.
         """
+        if device.ctype is None:
+            raise RuntimeError('Device ctype must be set.')
+
         self.device = device
         self.buffer_len = buffer_len
         self._use_views = use_views
@@ -53,7 +56,6 @@ class MpDevice(object):
             except (AttributeError, RuntimeError):
                 pass  # already started a process, or on python2
 
-        # make one lock per buffer
         self.remote_ready = mp.Event()  # signal to main process that remote is done setup
         self.kill_remote = mp.Event()  # signal to remote process to die
         self.current_buf_index = mp.RawValue(ctypes.c_uint64, 0)
@@ -67,7 +69,7 @@ class MpDevice(object):
             nrow = self.device.sampling_frequency
         if self.buffer_len:  # buffer_len overcomes all
             nrow = self.buffer_len
-        nrow = int(max(nrow, 1))  # make sure we have at least one row
+        nrow = int(max(nrow, 10))  # make sure we have at least ten rows
         self._nrow = nrow
 
         # preallocate data
@@ -165,14 +167,17 @@ class MpDevice(object):
         May raise an exception if one has occurred on the child process since the last read.
         """
         self.check_error()
-        # get current index val; if matching, short-circuit
-        prev_buf_index = self.prev_buf_index
-        current_buf_index = self.current_buf_index.value
-        self.prev_buf_index = current_buf_index
+        nr = self._nrow
+        # wrap counter at nrow
+        prev_buf_index = self.prev_buf_index % nr
+        current_buf_index = self.current_buf_index.value % nr
         diff = current_buf_index - prev_buf_index
+        # if no new samples (or traversed the entirety of the buffer),
+        # short circuit (should we error/warn if the latter?)
         if diff == 0:
             return None
 
+        self.prev_buf_index = self.current_buf_index.value
         data = self._data
         # working up the array
         if diff > 0:
@@ -180,21 +185,20 @@ class MpDevice(object):
             length = diff
         else:  # rolled over the end of the array
             # TODO: check check check
-            length = self._nrow - prev_buf_index + current_buf_index
+            length = nr - prev_buf_index + current_buf_index
 
         # TODO: check if length > self._nrow?
-
         # start writing from the top of the array
         t_out = self._t_local_arr[:length]
-        data_out = self._t_local_arr[:length]
+        data_out = self._local_arr[:length]
         np_data = data['np_data']
         np_time = data['np_time']
         if diff > 0:
-            data_out[:] = np_data[:length]
-            t_out[:] = np_time[:length]
+            data_out[:] = np_data[prev_buf_index:current_buf_index]
+            t_out[:] = np_time[prev_buf_index:current_buf_index]
         else:
             # two copies: one to end, one from beginning
-            idx1 = self._nrow - prev_buf_index
+            idx1 = nr - prev_buf_index
             data_out[:idx1] = np_data[prev_buf_index:]
             data_out[idx1:] = np_data[:current_buf_index]
             t_out[:idx1] = np_time[prev_buf_index:]
@@ -245,30 +249,24 @@ class MpDevice(object):
         self.stop()
 
 
-def process_data(shared_time, shared_data, local_time, local_data, shared_counter, is_struct):
-    next_index = shared_counter.value
+def process_data(shared_time, shared_data, local_time, local_data, shared_counter, is_struct, nrow):
+    next_index = shared_counter.value % nrow
     if is_struct:
         # np.ctypeslib.as_array is ~30x slower?
         local_data = np.frombuffer(local_data, dtype=shared_data.dtype)
-    if next_index < shared_time.shape[0]:
-        shared_time[next_index] = local_time
-        shared_data[next_index] = local_data
-        shared_counter.value += 1
-    else:  # ring buffer ish, see benchmarks https://github.com/aforren1/toon/issues/77
-        shared_time[:-1] = shared_time[1:]
-        shared_time[-1] = local_time
-        shared_data[:-1] = shared_data[1:]
-        shared_data[-1] = local_data
+    shared_time[next_index] = local_time
+    shared_data[next_index] = local_data
+    shared_counter.value += 1
 
 
-def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_index):
+def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buf_index):
     # from timeit import default_timer
-    for d in data:
-        # need to re-generate connection between mp and np arrays
-        dims = d['np_data'].shape
-        d['np_data'] = shared_to_numpy(d['mp_data'], dims)
-        d['np_time'] = shared_to_numpy(d['mp_time'], dims[0])
-        is_struct = d['np_data'].dtype.type == np.void
+    # need to re-generate connection between mp and np arrays
+    dims = data['np_data'].shape
+    np_data = shared_to_numpy(data['mp_data'], dims)
+    np_time = shared_to_numpy(data['mp_time'], dims[0])
+    is_struct = np_data.dtype.type == np.void
+    nr = dims[0]
     try:
         priority(1)  # high priority (non-realtime, though) and disables gc
         with dev:
@@ -280,32 +278,14 @@ def remote(dev, data, remote_ready, kill_remote, parent_pid, current_buffer_inde
                 # t0 = default_timer()
                 if device_dat is None:
                     continue  # next read
-                buffer_index = current_buffer_index.value
-                # lock magicks
-                # test whether the current buffer is accessible
-                current_data = data[buffer_index]
-                lck = current_data['lock']
-                success = lck.acquire(block=False)
-                if not success:
-                    current_buffer_index.value = not current_buffer_index.value
-                    buffer_index = not buffer_index
-                    current_data = data[buffer_index]
-                    lck = current_data['lock']
-                    # manual lock handling
-                    lck.acquire()
-                try:
-                    shared_time = current_data['np_time']
-                    shared_data = current_data['np_data']
-                    shared_counter = current_data['counter']
-                    if isinstance(device_dat, list):
-                        for dat in device_dat:
-                            process_data(shared_time, shared_data,
-                                         dat[0], dat[1], shared_counter, is_struct)
-                    else:
-                        process_data(shared_time, shared_data,
-                                     device_dat[0], device_dat[1], shared_counter, is_struct)
-                finally:
-                    lck.release()
+
+                if isinstance(device_dat, list):
+                    for dat in device_dat:
+                        process_data(np_time, np_data, dat[0], dat[1],
+                                     current_buf_index, is_struct, nr)
+                else:
+                    process_data(np_time, np_data, device_dat[0], device_dat[1],
+                                 current_buf_index, is_struct, nr)
                 # print(default_timer() - t0)
 
     finally:
