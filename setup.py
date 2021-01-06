@@ -45,7 +45,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='toon',
-    version='0.15.8',
+    version='0.15.9a1',
     description='Tools for neuroscience experiments',
     long_description=desc,
     long_description_content_type='text/markdown',

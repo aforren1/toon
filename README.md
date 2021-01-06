@@ -42,7 +42,7 @@ Typical use looks like this:
 
 ```python
 from toon.input import MpDevice
-from mydevice.mouse import Mouse
+from mymouse import Mouse
 from timeit import default_timer
 
 device = MpDevice(Mouse())
