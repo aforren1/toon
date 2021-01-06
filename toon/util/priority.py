@@ -1,11 +1,10 @@
 # rush derived from Psychtoolbox
 import os
 import gc
-import sys
 import warnings
+from sys import platform
 
-
-if sys.platform == 'win32':
+if platform == 'win32':
     kernel32 = None
     avrt = None
     from ctypes import WinDLL, get_last_error, set_last_error, byref
@@ -43,10 +42,7 @@ if sys.platform == 'win32':
         # 0 = normal priority
         # 1 = high
         # 2 = realtime
-        if level > 0:
-            gc.disable()
-        else:
-            gc.enable()
+        gc.disable() if level > 0 else gc.enable()
 
         if kernel32 is None and avrt is None:
             # nothing to do if we don't have these
@@ -72,18 +68,18 @@ if sys.platform == 'win32':
         if err:
             set_last_error(0)
             return False
-        if level == 0:
-            kernel32.SetPriorityClass(process, NORMAL_PRIORITY_CLASS)
-            kernel32.SetThreadPriority(thread, THREAD_PRIORITY_NORMAL)
-        elif level == 1:
+
+        if level == 1:
             kernel32.SetPriorityClass(process, HIGH_PRIORITY_CLASS)
             if avrt:
                 tmp = LPDWORD()
-                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristicsA(LPCSTR(b'Pro Audio'), LPCSTR(b'Capture'), byref(tmp))
+                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristicsA(LPCSTR(b'Pro Audio'),
+                                                                            LPCSTR(b'Capture'),
+                                                                            byref(tmp))
             if not thread_grp['mmcss']:  # failed
                 kernel32.SetThreadPriority(thread, THREAD_PRIORITY_HIGHEST)
 
-        elif level == 2:
+        elif level >= 2:
             # first try to set time critical
             if (not kernel32.SetPriorityClass(process, REALTIME_PRIORITY_CLASS) or
                     kernel32.GetPriorityClass(process) != REALTIME_PRIORITY_CLASS):
@@ -91,20 +87,24 @@ if sys.platform == 'win32':
                 kernel32.SetPriorityClass(process, HIGH_PRIORITY_CLASS)
             if avrt:
                 tmp = LPDWORD()
-                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristicsA(LPCSTR(b'Pro Audio'), LPCSTR(b'Capture'), byref(tmp))
+                thread_grp['mmcss'] = avrt.AvSetMmMaxThreadCharacteristicsA(LPCSTR(b'Pro Audio'),
+                                                                            LPCSTR(b'Capture'),
+                                                                            byref(tmp))
             if not thread_grp['mmcss']:  # failed
-                kernel32.SetThreadPriority(thread, THREAD_PRIORITY_ABOVE_NORMAL)
+                kernel32.SetThreadPriority(
+                    thread, THREAD_PRIORITY_ABOVE_NORMAL)
+
+        else:
+            kernel32.SetPriorityClass(process, NORMAL_PRIORITY_CLASS)
+            kernel32.SetThreadPriority(thread, THREAD_PRIORITY_NORMAL)
 
         return True
 
-elif sys.platform == 'darwin':
+elif platform == 'darwin':
     # TODO
     # https://developer.apple.com/library/archive/documentation/Darwin/Conceptual/KernelProgramming/scheduler/scheduler.html#//apple_ref/doc/uid/TP30000905-CH211-BABCHEEB
     def priority(level=0, pid=None):
-        if level > 0:
-            gc.disable()
-        else:
-            gc.enable()
+        gc.disable() if level > 0 else gc.enable()
         return True
 
 else:  # linux
@@ -118,15 +118,12 @@ else:  # linux
     libc = ctypes.CDLL(ctypes.util.find_library('c'))
 
     def priority(level=0, pid=0):
-        if level > 0:
-            gc.disable()
-        else:
-            gc.enable()
+        gc.disable() if level > 0 else gc.enable()
 
         libc.munlockall()
         if level == 1:
             policy = os.SCHED_RR
-        elif level == 2:
+        elif level >= 2:
             policy = os.SCHED_FIFO
         else:
             policy = os.SCHED_OTHER
@@ -138,7 +135,8 @@ else:  # linux
         except PermissionError:
             return False
 
-        if level == 2:  # try to lock memory (and we succeeded in sched already)
+        # try to lock memory (and we succeeded in sched already)
+        if level >= 2:
             res = libc.mlockall(MCL_CURRENT | MCL_FUTURE)
             if res != 0:
                 libc.munlockall()
